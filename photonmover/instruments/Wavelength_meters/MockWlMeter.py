@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0,'../..')
-
 from photonmover.Interfaces.WlMeter import WlMeter
 from photonmover.Interfaces.Instrument import Instrument
 

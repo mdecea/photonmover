@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, '../..')
 import pyvisa as visa
 import numpy as np
 import time
@@ -7,7 +5,7 @@ import csv
 import struct
 import binascii
 import matplotlib.pyplot as plt
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 
 GPIB_ADDR = "GPIB1::2::INSTR"  # VISA adress
 

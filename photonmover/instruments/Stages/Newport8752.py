@@ -1,6 +1,4 @@
-import sys
-sys.path.insert(0, '../..')
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 import serial
 import time
 

@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-from Interfaces.Laser import TunableLaser
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Laser import TunableLaser
+from photonmover.Interfaces.Instrument import Instrument
 
 import socket
 import json

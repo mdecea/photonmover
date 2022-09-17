@@ -1,19 +1,17 @@
 # Controls de Aerotech stage. This is a special Instrument because it is made of
 # other instruments (a daq and an SMU).
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Stage import SingleAxisStage
 
-import sys
-from Interfaces.Instrument import Instrument
-from Interfaces.Stage import SingleAxisStage
-sys.path.insert(0, '..')
 
 # Interfaces/instruments necessary for the experiment
 # - You use an Interface if any instrument of that category can be used
 # - You use a specific instrument if you can only use that specific model
-from Interfaces.SourceMeter import SourceMeter
-from instruments.DAQ.NI_DAQ import NiDAQ
+from photonmover.Interfaces.SourceMeter import SourceMeter
+from photonmover.instruments.DAQ.NI_DAQ import NiDAQ
 
 # For the example
-from instruments.Source_meters.KeysightB2902A import KeysightB2902A
+from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
 
 # General imports
 import time

@@ -1,14 +1,9 @@
 import sys
-from instruments.Source_meters.KeysightB2902A import DEFAULT_CURRENT_COMPLIANCE
-sys.path.insert(0, '../..')
 import time
 import pyvisa as visa
-from Interfaces.LaserDriver import LaserDriver
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.LaserDriver import LaserDriver
+from photonmover.Interfaces.Instrument import Instrument
 
-"USB0::0x1AB1::0x04CE::DS1ZA201205030::INSTR"
-
-USB[board]::manufacturer ID::model code::serial number[::USB interface number][::INSTR]
 GPIB_ADDR = "GPIB1::29::INSTR"  # GPIB adress
 DEFAULT_CURRENT_RANGE = 'high'   # Default current range in A
 DEFAULT_CURRENT_COMPLIANCE = 1  # Default current compliance in A

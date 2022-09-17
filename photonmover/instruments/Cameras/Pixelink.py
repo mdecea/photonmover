@@ -6,9 +6,6 @@
 # To install the package: pip install pixelinkWrapper
 # For it to work you need the pixelink capture app or the pixelink SDK. 
 
-import sys
-sys.path.insert(0,'../..')
-
 try:    
     from pixelinkWrapper import*
 except:
@@ -17,8 +14,8 @@ except:
 from ctypes import*
 import os
 
-from Interfaces.Camera import Camera
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Camera import Camera
+from photonmover.Interfaces.Instrument import Instrument
 
 SUCCESS = 0
 FAILURE = 1

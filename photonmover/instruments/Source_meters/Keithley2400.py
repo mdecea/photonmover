@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0, '../..')
 import numpy as np
 import pyvisa as visa
 import time
-from Interfaces.SourceMeter import SourceMeter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.SourceMeter import SourceMeter
+from photonmover.Interfaces.Instrument import Instrument
 
 GPIB_ADDR = "GPIB1::26::INSTR"  # GPIB adress
 DEFAULT_CURRENT_COMPLIANCE = 0.100  # Default current compliance in A  # was 0.005

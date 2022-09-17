@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(0, '../..')
-import visa
-from Interfaces.SignalGenerator import SignalGenerator
-from Interfaces.Instrument import Instrument
+import pyvisa as visa
+from photonmover.Interfaces.SignalGenerator import SignalGenerator
+from photonmover.Interfaces.Instrument import Instrument
 import numpy as np
 
 

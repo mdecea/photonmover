@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0,'../..')
 import numpy as np
 import pyvisa as visa
 import time
-from Interfaces.SourceMeter import SourceMeter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.SourceMeter import SourceMeter
+from photonmover.Interfaces.Instrument import Instrument
 
 
 PARAM_ANALYZER_ADDR = "GPIB0::17::INSTR"  # GPIB adress

@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
-from Interfaces.Instrument import Instrument
-from Interfaces.PowMeter import PowerMeter
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.PowMeter import PowerMeter
 
 GPIB_ADDR = "GPIB1::19::INSTR"  # VISA adress
 

@@ -1,6 +1,4 @@
-import sys
-sys.path.insert(0,'../..')
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 import pyvisa as visa
 
 GPIB_ADDRESS = "GPIB1::16::INSTR"

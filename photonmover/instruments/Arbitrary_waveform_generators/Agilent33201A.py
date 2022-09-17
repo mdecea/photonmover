@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(0, '../..')
 import pyvisa as visa
-from Interfaces.WaveformGenerator import WaveformGenerator
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.WaveformGenerator import WaveformGenerator
+from photonmover.Interfaces.Instrument import Instrument
 
 GPIB_ADDR = "GPIB1::10::INSTR"  # GPIB adress
 

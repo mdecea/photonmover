@@ -1,9 +1,6 @@
 
 # This is taken from https://github.com/python-zwoasi/python-zwoasi
 
-import sys
-sys.path.insert(0,'../..')
-
 import ctypes as c
 from ctypes.util import find_library
 import numpy as np
@@ -12,8 +9,8 @@ import six
 import sys
 import time
 
-from Interfaces.Camera import Camera
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Camera import Camera
+from photonmover.Interfaces.Instrument import Instrument
 
 DLL_PATH = 'C:\\Program Files\\SharpCap 4.0 (64 bit)\\ASICamera2.dll'   # If None, we try to find the DLL using ctypes find_library
 

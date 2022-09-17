@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
 import time
-from Interfaces.LightSource import LightSource
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.LightSource import LightSource
+from photonmover.Interfaces.Instrument import Instrument
 import matplotlib.pyplot as plt
 import json
 import socket

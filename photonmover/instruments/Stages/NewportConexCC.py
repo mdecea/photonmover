@@ -1,9 +1,7 @@
 # NewPort Conex-CC class
 # Adapted from Itay Shahak's code (https://gist.github.com/ishahak/bd025295dd8f6976dc962c6a02dec86b)
-import sys
-sys.path.insert(0,'../..')
 
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 
 # dependant on 'clr' which is PythonNet package
 import clr

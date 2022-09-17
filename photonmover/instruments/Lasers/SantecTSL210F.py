@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
 import time
-from Interfaces.Laser import TunableLaser
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Laser import TunableLaser
+from photonmover.Interfaces.Instrument import Instrument
 
 SANTEC_1_ADDR = "GPIB1::7::INSTR"
 SANTEC_2_ADDR = "GPIB1::8::INSTR"

@@ -1,9 +1,6 @@
-import sys
-sys.path.insert(0,'../..')
-
 import nidaqmx
 import time
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 
 
 class NiDAQ(Instrument):

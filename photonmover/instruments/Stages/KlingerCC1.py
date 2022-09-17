@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0, '../..')
-from Interfaces.Instrument import Instrument
-from Interfaces.Stage import SingleAxisStage
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Stage import SingleAxisStage
 import pyvisa as visa
 import time
 

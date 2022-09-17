@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
 import time
-from Interfaces.Laser import TunableLaser
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Laser import TunableLaser
+from photonmover.Interfaces.Instrument import Instrument
 import matplotlib.pyplot as plt
 
 SANTEC_TSL550_GPIB_ADDRESS = 28

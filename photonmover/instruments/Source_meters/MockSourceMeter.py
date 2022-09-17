@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(0,'../..')
 import numpy as np
-from Interfaces.SourceMeter import SourceMeter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.SourceMeter import SourceMeter
+from photonmover.Interfaces.Instrument import Instrument
 
 
 class MockSourceMeter(Instrument, SourceMeter):

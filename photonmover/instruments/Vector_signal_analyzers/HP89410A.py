@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(0, '../..')
 import numpy as np
 import csv
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Instrument import Instrument
 import time
 import pyvisa as visa
 

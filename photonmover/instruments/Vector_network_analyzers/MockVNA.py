@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-from Interfaces.VNA import VNA
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.VNA import VNA
+from photonmover.Interfaces.Instrument import Instrument
 import numpy as np
 
 

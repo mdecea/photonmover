@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0,'../..')
 import numpy as np
 import pyvisa as visa
 import time
-from Interfaces.ElectricalAttenuator import ElectricalAttenuator
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.ElectricalAttenuator import ElectricalAttenuator
+from photonmover.Interfaces.Instrument import Instrument
 
 GPIB_ADDR = "GPIB1::14::INSTR"  # GPIB adress
 

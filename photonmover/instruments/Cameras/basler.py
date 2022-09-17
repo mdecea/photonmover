@@ -4,13 +4,10 @@
 # We can just directly use that package to talk to the pixelink.
 # 
 # To install the package: pip install pypylon
-import sys
-sys.path.insert(0, '../..')
-
 from pypylon import pylon
 
-from Interfaces.Camera import Camera
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Camera import Camera
+from photonmover.Interfaces.Instrument import Instrument
 
 class Pylon(Instrument, Camera):
 

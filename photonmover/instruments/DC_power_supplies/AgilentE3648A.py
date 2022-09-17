@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0, '../..')
 import numpy as np
 import pyvisa as visa
 import time
-from Interfaces.DCPowerSource import DCPowerSource
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.DCPowerSource import DCPowerSource
+from photonmover.Interfaces.Instrument import Instrument
 
 GPIB_ADDR = "GPIB1::5::INSTR"  # GPIB adress
 DEFAULT_VOLTAGE_COMPLIANCE = 8  # Default current compliance in V

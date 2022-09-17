@@ -1,9 +1,6 @@
-import sys
-sys.path.insert(0,'../..')
-
 from ctypes import *
-from Interfaces.WlMeter import WlMeter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.WlMeter import WlMeter
+from photonmover.Interfaces.Instrument import Instrument
 
 DLL_PATH = "C:\BristolWavelengthMeterV2_31b\CLDevIFace.dll"
 

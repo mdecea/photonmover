@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-from Interfaces.ElectricalAttenuator import ElectricalAttenuator
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.ElectricalAttenuator import ElectricalAttenuator
+from photonmover.Interfaces.Instrument import Instrument
 
 
 class MockElAtt(Instrument, ElectricalAttenuator):

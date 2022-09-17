@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-from Interfaces.MSA import MSA
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.MSA import MSA
+from photonmover.Interfaces.Instrument import Instrument
 
 import pyvisa as visa
 import time

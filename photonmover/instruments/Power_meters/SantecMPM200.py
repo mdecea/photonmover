@@ -1,14 +1,12 @@
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
-import instruments.Power_meters.real_plotter as real_plotter
+import photonmover.instruments.Power_meters.real_plotter as real_plotter
 import struct
 import matplotlib.pyplot as pyplot
 import time
 import math
 import numpy as np
-from Interfaces.Instrument import Instrument
-from Interfaces.PowMeter import PowerMeter
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.PowMeter import PowerMeter
 
 SANTEC_MPM200_GPIB_ADDRESS = 16
 

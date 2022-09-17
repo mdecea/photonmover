@@ -5,8 +5,8 @@ import numpy as np
 import pyvisa as visa
 from pyvisa.constants import StopBits, Parity, SerialTermination
 import time
-import TempController
-import Instrument
+import photonmover.Interfaces.TempController as TempController
+import photonmover.Interfaces.Instrument as Instrument
 
 
 class LFI3751(TempController,Instrument):

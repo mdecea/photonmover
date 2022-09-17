@@ -1,8 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-
-from Interfaces.PowMeter import PowerMeter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.PowMeter import PowerMeter
+from photonmover.Interfaces.Instrument import Instrument
 import numpy as np
 
 

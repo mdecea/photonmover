@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0,'../..')
 import pyvisa as visa
 import time
-from Interfaces.Laser import TunableLaser
-from Interfaces.Instrument import Instrument
-from Interfaces.PowMeter import PowerMeter
+from photonmover.Interfaces.Laser import TunableLaser
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.PowMeter import PowerMeter
 import matplotlib.pyplot as plt
 import math
 

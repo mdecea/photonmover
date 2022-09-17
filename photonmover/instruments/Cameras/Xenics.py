@@ -1,11 +1,8 @@
-import sys
-sys.path.insert(0,'../..')
-
 import numpy as np
 import matplotlib.pyplot as plt
 from ctypes import *
-from Interfaces.Camera import Camera
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Camera import Camera
+from photonmover.Interfaces.Instrument import Instrument
 import time
 from PIL import Image
 

@@ -8,10 +8,6 @@ This does not have the ablility to save images/videos or capture sequences of fr
 It is a basic interface to control the camera and get an image from it
 So far it has only been used with Thorlabs camera DCC1545M.
 """
-
-import sys
-sys.path.insert(0,'../..')
-
 import numpy as np
 import os.path
 import matplotlib.pyplot as plt
@@ -19,8 +15,8 @@ import matplotlib.pyplot as plt
 from ctypes import *
 import ctypes.wintypes as wt
 
-from Interfaces.Camera import Camera
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.Camera import Camera
+from photonmover.Interfaces.Instrument import Instrument
 
 DLL_PATH = "C:\\Program Files\\Thorlabs\\Scientific Imaging\\ThorCam\\uc480_64.dll"
 

@@ -1,8 +1,5 @@
-import sys
-sys.path.insert(0,'../..')
-
-from Interfaces.Instrument import Instrument
-from Interfaces.PowMeter import PowerMeter
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.Interfaces.PowMeter import PowerMeter
 
 import os
 from ctypes import cdll,c_long,c_uint32,byref,create_string_buffer,c_bool,c_char_p,c_int,c_int16,c_double, sizeof, c_voidp

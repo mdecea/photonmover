@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(0,'../..')
-
-from Interfaces.Instrument import Instrument
-from instruments.DAQ.RedPitaya import RedPitaya as scpi
+from photonmover.Interfaces.Instrument import Instrument
+from photonmover.instruments.DAQ.RedPitaya import RedPitaya as scpi
 import socket
+import sys
 
 RED_PITAYA_BUFFER_SIZE = 16384 # buffer size in RedPitaya
 

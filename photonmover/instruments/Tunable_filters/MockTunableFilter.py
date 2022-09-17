@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0, '../..')
-from Interfaces.TunableFilter import TunableFilter
-from Interfaces.Instrument import Instrument
+from photonmover.Interfaces.TunableFilter import TunableFilter
+from photonmover.Interfaces.Instrument import Instrument
 
 
 class MockTunableFilter(TunableFilter, Instrument):
