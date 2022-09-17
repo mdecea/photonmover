@@ -1,0 +1,50 @@
+
+# Describes the instruments present in the setup.
+# This should be constructed as a list, where each element of the list is
+# a dictionary describing a specific instrument
+# Each dictionary should at least have two keys:
+  # - "class_name", that indicates the class to be instantiated;
+  # - "class_package", which indicates the package to contains the class definition
+# Optionally, if the constructor requires parameters an additional key "class_params" (which is another
+# dictionary where each key is a parameter for the constructor).
+
+Setup:
+  smu_mode: 'meas_cur'
+  rec_splitter_ratio: 0.1  # The received power is the 10 % tap of a 90:10 splitter after the output fiber.
+
+
+Instruments:
+  - # HP Power meter/laser
+    class_name: 'HPLightWave'
+    class_package: 'instruments.Lasers.HPLightWave'
+    class_params:
+      tap_channel: 1
+      rec_channel: 3 # Was 3
+      use_as_laser: True  # If we only want to use it as a power meter, set this to False (when we are using another laser)
+
+  #- # Santec Power meter/laser
+  #  class_name: 'SantecTSL210F'
+  #  class_package: 'instruments.Lasers.SantecTSL210F'
+
+  #- # Source meter
+  #  class_name: 'Keithley2400'
+  #  class_package: 'instruments.Source_meters.Keithley2400'
+
+
+  #- # VNA
+  #  class_name: 'HP8722D'
+  #  class_package: 'instruments.Vector_network_analyzers.HP8722D'
+
+  #- # Electrical attenuator
+  #  class_name: 'HP11713A'
+  #  class_package: 'instruments.Electrical_attenuators.HP11713A'
+
+  #- # Tunable filter
+  #  class_name: 'AgiltronTunableFilter'
+  #  class_package: 'instruments.Tunable_filters.AgiltronTunableFilter'
+  #  class_params:
+  #    com_address: 'COM6'
+
+  - # DAQ
+    class_name: 'NiDAQ'
+    class_package: 'instruments.DAQ.NI_DAQ'

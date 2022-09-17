@@ -1,0 +1,407 @@
+<HTML><HEAD><TITLE>IQTools Server Command Set</TITLE></HEAD>
+<HR><H1>IQTools Server Command Set</H1>
+<H3>IQTools Server 1.0</H3>
+<hr><H2>Generic Commands (*)</H2>
+<P><B>Command: *IDN?</B>
+<BR>Type: Query Only
+<BR>Description: Returns the name and version of the server
+<BR>Example: *IDN?
+
+<P><B>Command: *OPC?</B>
+<BR>Type: Query Only
+<BR>Description: Returns a '1' when all operations are complete
+<BR>Example: *OPC?
+
+<P><B>Command: *RST</B>
+<BR>Type: Send Only
+<BR>Description: Resets the server to its default values
+<BR>Example: *RST
+
+<P><B>Command: *CLS</B>
+<BR>Type: Send Only
+<BR>Description: Clears the error queue
+<BR>Example: *CLS
+
+<hr><H2>Instrument Commands (:INST)</H2>
+<P><B>Command: :INST:MODE &#60;Mode String&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the server's instrument mode (N5194A_250MHz, N5194A_2GHz, M8190A_12bit, M8190A_14bit)
+<BR>Example: :INST:MODE?; :INST:MODE N5194A_250MHz
+
+<P><B>Command: :INST:SCPI &#60;SCPI Command String&#62;</B>
+<BR>Type: Send Only
+<BR>Description: Sends a SCPI command to the configured instrument
+<BR>Example: :INST:SCPI *RST
+
+<P><B>Command: :INST:CHMAP &#60;Channel Map String&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the configured instrument's channel mapping
+<BR>Example: :INST:CHMAP?; :INST:CHMAP [1 0; 0 1]
+
+<P><B>Command: :INST:SNUM &#60;segmentNumber&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the segment number into which a waveform is downloaded
+<BR>Example: :INST:SNUM?; :INST:SNUM 1
+
+<P><B>Command: :INST:SNAME &#60;segmentName&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the segment name that is used for download
+<BR>Example: :INST:SNAME?; :INST:SNAME 'waveform001'
+
+<P><B>Command: :INST:FTYPE &#60;Channel Map String&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the server's file save type
+<BR>Example: :INST:FTYPE?; :INST:FTYPE '16-bit I/Q MSB'
+
+<P><B>Command: :INST:CORR &#60;0 or 1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the if corrections are enabled
+<BR>Example: :INST:CORR?; :INST:CORR 1
+
+<P><B>Command: :INST:FCORR &#60;File Path&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the correction file path, which overwrites the current file present
+<BR>Example: :INST:FCORR?; :INST:FCORR 'ampCorr.mat'
+
+<P><B>Command: :INST:RFFREQ &#60;Frequency in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the carrier frequency for the signal if using a signal generator
+<BR>Example: :INST:RFFREQ?; :INST:RFFREQ 4E9
+
+<P><B>Command: :INST:RFPOW &#60;Power in dBm&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the carrier power for the signal if using a signal generator
+<BR>Example: :INST:RFPOW?; :INST:RFPOW -20
+
+<P><B>Command: :INST:RFON &#60;0 or 1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the carrier output state
+<BR>Example: :INST:RFON?; :INST:RFON 1
+
+<hr><H2>Calibration Commands (:CAL)</H2>
+<P><B>Command: :CAL:TYPE &#60;Calibration Type&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration type to perform
+<BR>Example: :CAL:TYPE?; :CAL:TYPE vsachannel
+
+<P><B>Command: :CAL:FSPAN &#60;Span in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration's frequency span in Hz
+<BR>Example: :CAL:FSPAN?; :CAL:FSPAN 1E9
+
+<P><B>Command: :CAL:FSPAC &#60;Spacing in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration's frequency spacing in Hz
+<BR>Example: :CAL:FSPAC?; :CAL:FSPAC 1E6
+
+<P><B>Command: :CAL:FOFFS &#60;Offset in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration's frequency offset in Hz (useful to avoid LO feedthru)
+<BR>Example: :CAL:FOFFS?; :CAL:FOFFS 10E3
+
+<P><B>Command: :CAL:FCENT &#60;Tune Frequency in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration's center frequency in Hz
+<BR>Example: :CAL:FCENT?; :CAL:FCENT 10E9
+
+<P><B>Command: :CAL:TSETT &#60;Cal Measurement Time in S&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current calibration's measurement time in S
+<BR>Example: :CAL:TSETT?; :CAL:TSETT 2.5
+
+<P><B>Command: :CAL:FSAV &#60;Calibration file save path&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the file path a calibration file will be saved to
+<BR>Example: :CAL:FSAV?; :CAL:FSAV Cal_Save_FC_1E9
+
+<P><B>Command: :CAL:INIT &#60;0 or 1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets whether or not the calibration runs through an initialization
+<BR>Example: :CAL:INIT?; :CAL:INIT 1
+
+<P><B>Command: :CAL:ARANG &#60;0 or 1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets whether or not the calibration autoranges the front end
+<BR>Example: :CAL:ARANG?; :CAL:ARANG 1
+
+<P><B>Command: :CAL:RANG &#60;Power in dBm&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the power the calibration will range to
+<BR>Example: :CAL:RANG?; :CAL:RANG -10
+
+<P><B>Command: :CAL:EXE</B>
+<BR>Type: Send Only
+<BR>Description: Performs a calibration based on the parameters defined
+<BR>Example: :CAL:EXE
+
+<P><B>Command: :CAL:SAVE</B>
+<BR>Type: Send Only
+<BR>Description: Saves the current calibration to the defined path
+<BR>Example: :GEN:PULS:SAVE
+
+<hr><H2>System Commands (:SYST)</H2>
+<P><B>Command: :SYST:TCPIP:CLOS</B>
+<BR>Type: Send Only
+<BR>Description: Closes the current TCPIP Server connection and listens again for a new connection
+<BR>Example: :SYST:TCPIP:CLOS
+
+<P><B>Command: :SYST:ERR?</B>
+<BR>Type: Query Only
+<BR>Description: Return the last error in the error queue or '0' if no errors are present
+<BR>Example: :SYST:ERR?
+
+<P><B>Command: :SYST:DEBUG &#60;0 or 1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets if debug mode is enabled
+<BR>Example: :SYST:DEBUG?; :SYST:DEBUG 1
+
+<hr><H2>Script Commands (:SCRIPT)</H2>
+<P><B>Command: :SCRIPT:EVAL '&#60;MATLAB syntax expression&#62;'</B>
+<BR>Type: Send and Query
+<BR>Description: Evaluates the expression and/or returns the expression's result
+<BR>Example: :SCRIPT:EVAL? '1 + 1'; :SCRIPT:EVAL 'plot(1:10, 2:2:20);'
+
+<P><B>Command: :SCRIPT:COMMAND:SET '&#60;MATLAB syntax expression&#62;'</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the command to evaulate with :EXE or add to a list with :LIST:ADD
+<BR>Example: :SCRIPT:COMMAND:SET?; :SCRIPT:COMMAND:SET 'plot(1:10, 2:2:20);'
+
+<P><B>Command: :SCRIPT:COMMAND:RESET</B>
+<BR>Type: Send Only
+<BR>Description: Resets the current set command
+<BR>Example: :SCRIPT:COMMAND:RESET
+
+<P><B>Command: :SCRIPT:COMMAND:EXE</B>
+<BR>Type: Send Only
+<BR>Description: Executes the current set command
+<BR>Example: :SCRIPT:COMMAND:EXE
+
+<P><B>Command: :SCRIPT:LIST:ADD</B>
+<BR>Type: Send Only
+<BR>Description: Adds the current set command to the list of commands to execute with :LIST:EXE
+<BR>Example: :SCRIPT:COMMAND:EXE
+
+<P><B>Command: :SCRIPT:LIST:RESET</B>
+<BR>Type: Send Only
+<BR>Description: Resets the list of commands
+<BR>Example: :SCRIPT:COMMAND:RESET
+
+<P><B>Command: :SCRIPT:LIST:COUNT</B>
+<BR>Type: Query Only
+<BR>Description: Gets the number of commands currently in the command list
+<BR>Example: :SCRIPT:COMMAND:LIST:COUNT?
+
+<P><B>Command: :SCRIPT:LIST:EXE</B>
+<BR>Type: Send Only
+<BR>Description: Executes the current list of commands
+<BR>Example: :SCRIPT:COMMAND:LIST:EXE
+
+<hr><H2>Pulse Generation Commands (:GEN:PULS)</H2>
+<P><B>Command: :GEN:PULS:SRAT &#60;Sample Rate in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's sample rate in Hz
+<BR>Example: :GEN:PULS:SRAT?; :GEN:PULS:SRAT 2E9
+
+<P><B>Command: :GEN:PULS:RESET</B>
+<BR>Type: Send Only
+<BR>Description: Resets the current pulse configuration to its default values
+<BR>Example: :GEN:PULS:RESET
+
+<P><B>Command: :GEN:PULS:DWEL &#60;Dwell Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's dwell time/s (duration/s) in seconds
+<BR>Example: :GEN:PULS:DWEL?; :GEN:PULS:DWEL 100E-6; :GEN:PULS:DWEL [100E-6, 10E-6]
+
+<P><B>Command: :GEN:PULS:WIDT &#60;Dwell Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's width/s in seconds
+<BR>Example: :GEN:PULS:WIDT?; :GEN:PULS:WIDT 10E-6; :GEN:PULS:WIDT [10E-6, 1E-6]
+
+<P><B>Command: :GEN:PULS:RISE &#60;Rise Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's rise time/s in seconds
+<BR>Example: :GEN:PULS:RISE?; :GEN:PULS:RISE 10E-9; :GEN:PULS:RISE [10E-9, 20E-9]
+
+<P><B>Command: :GEN:PULS:FALL &#60;Fall Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's fall time/s in seconds
+<BR>Example: :GEN:PULS:FALL?; :GEN:PULS:FALL 10E-9; :GEN:PULS:FALL [10E-9, 20E-9]
+
+<P><B>Command: :GEN:PULS:DELA &#60;Delay Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's delay time/s in seconds
+<BR>Example: :GEN:PULS:DELA?; :GEN:PULS:DELA 10E-9; :GEN:PULS:DELA [10E-9, 20E-9]
+
+<P><B>Command: :GEN:PULS:AMP &#60;Relative Amplitudes in dB&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's relative amplitude/s in dB
+<BR>Example: :GEN:PULS:AMP?; :GEN:PULS:AMP [0, -6]
+
+<P><B>Command: :GEN:PULS:PHAS &#60;Phase in Degrees&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's phase/s in degrees
+<BR>Example: :GEN:PULS:PHAS?; :GEN:PULS:PHAS 90; :GEN:PULS:PHAS [90, 45]
+
+<P><B>Command: :GEN:PULS:FREQOF &#60;Frequency Offset in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's frequency offset/s in Hz
+<BR>Example: :GEN:PULS:FREQOF?; :GEN:PULS:FREQOF 10E6; :GEN:PULS:FREQOF [10E6, -50E6]
+
+<P><B>Command: :GEN:PULS:SHAP &#60;Pulse Shape String&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's pulse shape/s (Raised Cosine, Trapezodial, Gaussian, Zero signal during rise time)
+<BR>Example: :GEN:PULS:SHAP?; :GEN:PULS:SHAP Raised Cosine
+
+<P><B>Command: :GEN:PULS:MOD &#60;Modulation Type Cell String Array&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's modulation type/s (None, Increasing, Decreasing, V-Shape, Inverted V, Barker-2 +-, Barker-2 ++, Barker-3, Barker-4 ++-+, Barker-4 +++-, Barker-5, Barker-7, Barker-11, Barker-13, Frank-4, Frank-6, FMCW)
+<BR>Example: :GEN:PULS:MOD?; :GEN:PULS:MOD {'Increasing'}, :GEN:PULS:MOD {'Increasing', 'None'}
+
+<P><B>Command: :GEN:PULS:FMOD &#60;MATLAB Syntax Modulation Formula&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's FM modulation formula. Use the variable "x" in the formula, which varies from 0 to 1 throughout the pulse
+<BR>Example: :GEN:PULS:FMOD?; :GEN:PULS:FMOD cos(pi*(x-1))
+
+<P><B>Command: :GEN:PULS:FSPA &#60;Frequency Span in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's frequency FM span/s in Hz
+<BR>Example: :GEN:PULS:FSPA?; :GEN:PULS:FSPA 10E6; :GEN:PULS:FSPA [10E6, 50E6]
+
+<P><B>Command: :GEN:PULS:PMOD &#60;MATLAB Syntax Modulation Formula&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's PM modulation formula. Use the variable "x" in the formula, which varies from 0 to 1 throughout the pulse
+<BR>Example: :GEN:PULS:PMOD?; :GEN:PULS:PMOD zeros(1,length(x)))
+
+<P><B>Command: :GEN:PULS:PTRAN &#60;Phase Transition Type Cell String Array&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's phase transition type/s (Coherent, Continuous, Exact, Bump)
+<BR>Example: :GEN:PULS:PTRAN?; :GEN:PULS:PTRAN {'Continuous'}; GEN:PULS:PTRAN {'Continuous', 'Coherent'}]
+
+<P><B>Command: :GEN:PULS:NORM &#60;0|1&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: 1: scale to full DAC range, 0: use :GEN:PULS:AMP as dbFS
+<BR>Example: :GEN:PULS:NORM?; :GEN:PULS:NORM 0
+
+<P><B>Command: :GEN:PULS:FSAV &#60;File save path&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's file save path
+<BR>Example: :GEN:PULS:FSAV?; :GEN:PULS:FSAV Pulse_10_us
+
+<P><B>Command: :GEN:PULS:SAVE</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse defined by its current settings, then saves to its defined path
+<BR>Example: :GEN:PULS:SAVE
+
+<P><B>Command: :GEN:PULS:VSA</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse defined by its current settings, then loads it to 89601B VSA to preview
+<BR>Example: :GEN:PULS:VSA
+
+<P><B>Command: :GEN:PULS:DOWNLOAD</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse defined by its current settings, then loads it to the defined instrument
+<BR>Example: :GEN:PULS:DOWNLOAD
+
+<hr><H2>Pulse Combining Generation Commands (:GEN:PULS:COMB)</H2>
+<P><B>Command: :GEN:PULS:COMB:RESET</B>
+<BR>Type: Send Only
+<BR>Description: Resets the current lists of pulses to combine
+<BR>Example: :GEN:PULS:COMB:RESET
+
+<P><B>Command: :GEN:PULS:COMB:TSTART &#60;Start Time in Seconds&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse to combine's start time in seconds
+<BR>Example: :GEN:PULS:COMB:TSTART?; :GEN:PULS:COMB:TSTART 100E-6
+
+<P><B>Command: :GEN:PULS:COMB:AMP &#60;Amplitude in dBm&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse to combine's amplitude in dBm
+<BR>Example: :GEN:PULS:COMB:AMP?; :GEN:PULS:COMB:AMP -20
+
+<P><B>Command: :GEN:PULS:COMB:PTRAN &#60;Phase Transition Type String&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse configuration's phase transition type/s (Coherent, Continuous, Exact, Bump)
+<BR>Example: :GEN:PULS:COMB:PTRAN?; :GEN:PULS:COMB:PTRAN Coherent
+
+<P><B>Command: :GEN:PULS:COMB:PHAS &#60;Phase Offset in Degrees&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse to combine's phase offset in degrees
+<BR>Example: :GEN:PULS:COMB:PHAS?; :GEN:PULS:COMB:PHAS 90
+
+<P><B>Command: :GEN:PULS:COMB:ADD</B>
+<BR>Type: Send Only
+<BR>Description: Adds the currently configured pulse combine entry to the list of pulses to combine
+<BR>Example: :GEN:PULS:COMB:ADD
+
+<P><B>Command: :GEN:PULS:COMB:COUNT</B>
+<BR>Type: Query Only
+<BR>Description: Gets the number of pulses that will be processed
+<BR>Example: :GEN:PULS:COMB:COUNT?
+
+<P><B>Command: :GEN:PULS:COMB:OFFSETAMP</B>
+<BR>Type: Query Only
+<BR>Description: Gets the amplitude offset of the calculated pulses (if the combined pulses constructively interfere, they may clip the DAC, so the the levels are normalized and managed with an offset)
+<BR>Example: :GEN:PULS:COMB:OFFSETAMP?
+
+<P><B>Command: :GEN:PULS:COMB:OFFSETTIME</B>
+<BR>Type: Query Only
+<BR>Description: Gets the time offset of the calculated pulses (to save samples, the first pulse can be offset in time to zero)
+<BR>Example: :GEN:PULS:COMB:OFFSETTIME?
+
+<P><B>Command: :GEN:PULS:COMB:FSAV &#60;File save path&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current pulse combination configuration's file save path
+<BR>Example: :GEN:PULS:COMB:FSAV?; :GEN:PULS:COMB:FSAV Pulse_Combine_100_us
+
+<P><B>Command: :GEN:PULS:COMB:SAVE</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse combination defined by its current settings, then saves to its defined path
+<BR>Example: :GEN:PULS:COMB:SAVE
+
+<P><B>Command: :GEN:PULS:COMB:VSA</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse combination defined by its current settings, then loads it to 89601B VSA to preview
+<BR>Example: :GEN:PULS:COMB:VSA
+
+<P><B>Command: :GEN:PULS:COMB:DOWNLOAD</B>
+<BR>Type: Send Only
+<BR>Description: Calculates the I/Q Data for a pulse combination defined by its current settings, then loads it to the defined instrument
+<BR>Example: :GEN:PULS:COMB:DOWNLOAD
+
+<hr><H2>Multi-tone Generation Commands (:GEN:TONE)</H2>
+<P><B>Command: :GEN:TONE:RESET</B>
+<BR>Type: Send Only
+<BR>Description: Resets the current tone configuration to its default values
+<BR>Example: :GEN:TONE:RESET
+
+<P><B>Command: :GEN:TONE:SRAT &#60;Sample Rate in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current tone configuration's sample rate in Hz.
+<BR>Example: :GEN:TONE:SRAT?;  :GEN:TONE:SRAT 2E9
+
+<P><B>Command: :GEN:TONE:FREQ &#60;frequencies in Hz&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current tone frequencies in Hz
+<BR>Example: :GEN:TONE:FREQ?; :GEN:TONE:FREQ 100E6; :GEN:TONE:FREQ [100e6, 200e6, 500e6]
+
+<P><B>Command: :GEN:TONE:MAG &#60;magnitudes in dBFS&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current tone magnitude(s) in dBFS
+<BR>Example: :GEN:TONE:MAG?; :GEN:TONE:MAG -12; :GEN:TONE:MAG [-10 -20 -30]
+
+<P><B>Command: :GEN:TONE:PHASE &#60;list of phase values in degrees or 'Random'&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: Gets or sets the current phase(s) in degrees
+<BR>Example: :GEN:TONE:PHASE?; :GEN:TONE:PHASE 'Random'; :GEN:TONE:PHASE [0 90 180 270]
+
+<P><B>Command: :GEN:TONE:NORM &#60;1|0&#62;</B>
+<BR>Type: Send and Query
+<BR>Description: When set to 1 (=default value), waveforms are scaled to use the full DAC range. When set to 0, scaling to full DAC range is only performed if the DAC range is exceeded.
+<BR>Example: :GEN:TONE:MAG?; :GEN:TONE:MAG -12; :GEN:TONE:MAG [-10 -20 -30]
+
+<P><B>Command: :GEN:TONE:DOWNLOAD</B>
+<BR>Type: Send only
+<BR>Description: Calculates the I/Q data for a multi-tone signal defined by its current settings, then loads it to the defined instrument
+<BR>Example: :GEN:TONE:DOWNLOAD
+
+</HR></HTML>

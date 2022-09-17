@@ -1,0 +1,26 @@
+
+# Describes the instruments present in the setup.
+# This should be constructed as a list, where each element of the list is
+# a dictionary describing a specific instrument
+# Each dictionary should at least have two keys:
+  # - "class_name", that indicates the class to be instantiated;
+  # - "class_package", which indicates the package to contains the class definition
+# Optionally, if the constructor requires parameters an additional key "class_params" (which is another
+# dictionary where each key is a parameter for the constructor).
+
+Instruments:
+  - # laser
+    class_name: 'MockLaser'
+    class_package: 'instruments.Lasers.MockLaser'
+
+  - # Source meter
+    class_name: 'MockSourceMeter'
+    class_package: 'instruments.Source_meters.MockSourceMeter'
+
+  - # Power meter
+    class_name: 'MockPowerMeter'
+    class_package: 'instruments.Power_meters.MockPowerMeter'
+
+  - # VNA
+    class_name: 'MockVNA'
+    class_package: 'instruments.Vector_network_analyzers.MockVNA'

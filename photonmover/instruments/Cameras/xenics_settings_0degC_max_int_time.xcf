@@ -1,0 +1,31 @@
+<?xml version="2.6.0.1005" encoding="utf-8"?>
+<Settings xmlns="http://dev.xenics.com/schemas/settings" productid="8637">
+  <Setting brief="IntegrationTime" value="100000" unit="us" origin="camera" type="513"/>
+  <Setting brief="ADCVIN" value="3260" unit="adu" origin="camera" type="513"/>
+  <Setting brief="ADCVREF" value="3275" unit="adu" origin="camera" type="513"/>
+  <Setting brief="VDETCOM" value="3500" unit="adu" origin="camera" type="513"/>
+  <Setting brief="Framerate" value="Max" unit="int" origin="camera" type="9729"/>
+  <Setting brief="FlipY" value="0" unit="bool" origin="camera" type="516"/>
+  <Setting brief="FlipX" value="0" unit="bool" origin="camera" type="516"/>
+  <Setting brief="CMDMULRD" value="0" unit="bool" origin="camera" type="516"/>
+  <Setting brief="CMDBANDW" value="0" unit="enum" origin="camera" type="514"/>
+  <Setting brief="CMDBIAS" value="0" unit="enum" origin="camera" type="514"/>
+  <Setting brief="CMDCURRENT" value="0" unit="enum" origin="camera" type="514"/>
+  <Setting brief="CMDPOWER" value="0" unit="enum" origin="camera" type="514"/>
+  <Setting brief="LowGain" value="0" unit="bool" origin="camera" type="516"/>
+  <Setting brief="WoiSX(0)" value="0" unit="coord" origin="camera" type="513"/>
+  <Setting brief="WoiSY(0)" value="0" unit="coord" origin="camera" type="513"/>
+  <Setting brief="WoiEX(0)" value="319" unit="coord" origin="camera" type="513"/>
+  <Setting brief="WoiEY(0)" value="255" unit="coord" origin="camera" type="513"/>
+  <Setting brief="ImageSource" value="0" unit="enum" origin="camera" type="514"/>
+  <Setting brief="Fan" value="1" unit="bool" origin="camera" type="516"/>
+  <Setting brief="PWM" value="0" unit="int" origin="camera" type="513"/>
+  <Setting brief="P" value="3000" unit="int" origin="camera" type="513"/>
+  <Setting brief="I" value="150" unit="int" origin="camera" type="513"/>
+  <Setting brief="D" value="1" unit="int" origin="camera" type="513"/>
+  <Setting brief="SETTLE" value="272.06" unit="k" origin="camera" type="513"/>
+  <Setting brief="TemperatureOffset" value="67" unit="int" origin="camera" type="513"/>
+  <Setting brief="CaptureMode" value="1" unit="enum" origin="camera" type="3586"/>
+  <Setting brief="Temperature" value="272.07" unit="k" origin="camera" type="257"/>
+  <Setting brief="_INT_REV" value="15934" unit="" origin="camera" type="4353"/>
+</Settings>
