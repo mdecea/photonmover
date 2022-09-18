@@ -14,7 +14,11 @@ class Keithley2400(Instrument, SourceMeter):
     Code for controlling Keithley 2400 through GPIB
     """
 
-    def __init__(self, current_compliance=DEFAULT_CURRENT_COMPLIANCE, voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE, gpib=None):
+    def __init__(
+            self,
+            current_compliance=DEFAULT_CURRENT_COMPLIANCE,
+            voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE,
+            gpib=None):
         """
         Note: the gpib is added as a parameter beacuse if we want to use two channels of the same
         SMU as two different source meters we would need to give the already initalized gpib (you cannot
@@ -41,9 +45,9 @@ class Keithley2400(Instrument, SourceMeter):
         try:
             if self.gpib is None:
                 self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Keysight Source meter')
-        
+
         self.init_function()
 
     def close(self):
@@ -96,8 +100,9 @@ class Keithley2400(Instrument, SourceMeter):
     def set_integration_time(self, time):
         # Sets the integration time (given in seconds)
         # We need to convert from seconds to number of power line cycles
-        nplc = time*60
-        self.gpib.write(':SENS:CURR:NPLC %.4E' % nplc)  # Even though we set if for current, it affects all measurements
+        nplc = time * 60
+        # Even though we set if for current, it affects all measurements
+        self.gpib.write(':SENS:CURR:NPLC %.4E' % nplc)
 
     def measure_current(self):
         curr = self.gpib.query_ascii_values(':MEAS:CURR?')
@@ -123,7 +128,9 @@ class Keithley2400(Instrument, SourceMeter):
             meas_current = self.measure_current()
             measurements[row, 0] = v
             measurements[row, 1] = meas_current
-            print('Set Voltage: %.4f mV ; Measured Current: %.4E mA' % (v*1000, meas_current*1000))
+            print(
+                'Set Voltage: %.4f mV ; Measured Current: %.4E mA' %
+                (v * 1000, meas_current * 1000))
             sys.stdout.flush()
             row = row + 1
 
@@ -200,7 +207,7 @@ if __name__ == '__main__':
     sm.initialize()
     sm.set_voltage(0.2)
     sm.turn_on()
-    #while True:
+    # while True:
     #    print(sm.measure_current())
     #    time.sleep(1)
     sm.close()

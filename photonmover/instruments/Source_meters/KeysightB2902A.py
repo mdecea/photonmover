@@ -13,7 +13,11 @@ class KeysightB2902A(Instrument, SourceMeter):
     Code for controlling a single channel of the Keysight B2902A through GPIB
     """
 
-    def __init__(self, channel=1, current_compliance=DEFAULT_CURRENT_COMPLIANCE, gpib=None):
+    def __init__(
+            self,
+            channel=1,
+            current_compliance=DEFAULT_CURRENT_COMPLIANCE,
+            gpib=None):
         """
         Note: the gpib is added as a parameter beacuse if we want to use two channels of the same
         SMU as two different source meters we would need to give the already initalized gpib (you cannot
@@ -41,7 +45,7 @@ class KeysightB2902A(Instrument, SourceMeter):
         try:
             if self.gpib is None:
                 self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Keysight Source meter')
 
         self.init_function()  # Set to voltage source with compliance
@@ -91,8 +95,8 @@ class KeysightB2902A(Instrument, SourceMeter):
     def set_voltage(self, voltage, turn_on=True):
         """
         Sets the specified voltage
-        :param voltage: 
-        :return: 
+        :param voltage:
+        :return:
         """
         if not (self.mode == 'VOLT'):
             self.turn_off()
@@ -111,13 +115,17 @@ class KeysightB2902A(Instrument, SourceMeter):
                 self.gpib.write(":sens%d:curr:aper:auto 1" % self.channel)
             else:
                 self.gpib.write(":sens%d:curr:aper:auto 0" % self.channel)
-                self.gpib.write(":sens%d:curr:aper %.3e" % (self.channel, int_time)) # Set integration time in seconds
+                self.gpib.write(
+                    ":sens%d:curr:aper %.3e" %
+                    (self.channel, int_time))  # Set integration time in seconds
         elif self.mode == 'CURR':
             if int_time == 'AUTO':
                 self.gpib.write(":sens%d:volt:aper:auto 1" % self.channel)
             else:
                 self.gpib.write(":sens%d:volt:aper:auto 0" % self.channel)
-                self.gpib.write(":sens%d:volt:aper %.3e" % (self.channel, int_time)) # Set integration time in seconds
+                self.gpib.write(
+                    ":sens%d:volt:aper %.3e" %
+                    (self.channel, int_time))  # Set integration time in seconds
 
     def set_current(self, current, turn_on=True):
         """
@@ -143,8 +151,12 @@ class KeysightB2902A(Instrument, SourceMeter):
         # self.gpib.write("*RST")
         self.set_func('VOLT')
         self.set_current_compliance(self.cur_compliance)
-        self.gpib.write(":SOUR%d:VOLT:RANG:AUTO ON" % self.channel)  # Auto voltage range
-        self.gpib.write(":SENS%d:CURR:RANG:AUTO:MODE NOR" % self.channel)  # Auto meaasurement params
+        self.gpib.write(
+            ":SOUR%d:VOLT:RANG:AUTO ON" %
+            self.channel)  # Auto voltage range
+        self.gpib.write(
+            ":SENS%d:CURR:RANG:AUTO:MODE NOR" %
+            self.channel)  # Auto meaasurement params
 
     def measure_current(self):
         self.gpib.write(":FORM:ELEM:SENS CURR")
@@ -177,7 +189,7 @@ class KeysightB2902A(Instrument, SourceMeter):
 
         meas = np.zeros((num_v, 2), float)
 
-        for i,v in enumerate(np.linspace(start_v, stop_v, num_v)):
+        for i, v in enumerate(np.linspace(start_v, stop_v, num_v)):
             meas[i, 0] = v
             meas[i, 1] = currents_f[i]
 
@@ -202,13 +214,15 @@ class KeysightB2902A(Instrument, SourceMeter):
 
         # Set auto range current measurement
         self.gpib.write(":sens%d:func curr" % self.channel)
-        # self.gpib.write(":sens:curr:nplc 0.1") # Set integration time in NPLC units
-        self.gpib.write(":sens%d:curr:aper 100e-3" % self.channel) # Set integration time in seconds
+        # self.gpib.write(":sens:curr:nplc 0.1") # Set integration time in NPLC
+        # units
+        self.gpib.write(":sens%d:curr:aper 100e-3" %
+                        self.channel)  # Set integration time in seconds
 
         # Generate num_V triggers by automatic internal algorithm
         self.gpib.write(":trig%d:sour aint" % self.channel)
         self.gpib.write(":trig%d:coun %d" % (self.channel, num_v))
-    
+
     def source_from_val_list(self, source, val_list, measure, step_time):
         """
         Sources a specified series of voltages or currents.
@@ -222,12 +236,16 @@ class KeysightB2902A(Instrument, SourceMeter):
 
         self.gpib.write(":sour%d:%s:mode list" % (self.channel, source))
         num_points = len(val_list)
-        self.gpib.write(":sour%d:%s:poin %d" % (self.channel, source, num_points))
+        self.gpib.write(
+            ":sour%d:%s:poin %d" %
+            (self.channel, source, num_points))
 
         # Set the list of points
         value_list = str(val_list)
         value_list = value_list[1:-1]
-        self.gpib.write(":sour%d:list:%s %s" % (self.channel, source, value_list))
+        self.gpib.write(
+            ":sour%d:list:%s %s" %
+            (self.channel, source, value_list))
 
         # Generate num_points triggers by automatic internal algorithm
         self.gpib.write(":trig%d:sour aint" % self.channel)
@@ -235,8 +253,11 @@ class KeysightB2902A(Instrument, SourceMeter):
 
         # Set auto range current measurement
         self.gpib.write(":sens%d:func %s" % (self.channel, measure))
-        # self.gpib.write(":sens:curr:nplc 0.1") # Set integration time in NPLC units
-        self.gpib.write(":sens%d:curr:aper %.4f" % (self.channel, step_time)) # Set integration time in seconds
+        # self.gpib.write(":sens:curr:nplc 0.1") # Set integration time in NPLC
+        # units
+        self.gpib.write(
+            ":sens%d:curr:aper %.4f" %
+            (self.channel, step_time))  # Set integration time in seconds
 
         # Start the sourcing
         self.gpib.write(":outp on")
@@ -257,32 +278,63 @@ class KeysightB2902A(Instrument, SourceMeter):
 
         return meas
 
+
 if __name__ == '__main__':
 
     smu = KeysightB2902A(channel=1, current_compliance=1)
     smu.initialize()
 
-    print(smu.source_from_val_list(source = 'CURR', val_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.4, 0.3, 0.2, 0.1, 0],
-     measure = 'CURR', step_time = 500e-3))
+    print(
+        smu.source_from_val_list(
+            source='CURR',
+            val_list=[
+                0,
+                0.1,
+                0.2,
+                0.3,
+                0.4,
+                0.5,
+                0.5,
+                0.5,
+                0.5,
+                0.5,
+                0.4,
+                0.3,
+                0.2,
+                0.1,
+                0],
+            measure='CURR',
+            step_time=500e-3))
     print('1st ramp done')
 
     time.sleep(2)
 
-    print(smu.source_from_val_list(source = 'CURR', val_list = [0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.4, -0.3, -0.2, -0.1, 0],
-     measure = 'CURR', step_time = 500e-3))
+    print(smu.source_from_val_list(source='CURR', val_list=[0, -
+                                                            0.1, -
+                                                            0.2, -
+                                                            0.3, -
+                                                            0.4, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.5, -
+                                                            0.4, -
+                                                            0.3, -
+                                                            0.2, -
+                                                            0.1, 0], measure='CURR', step_time=500e-3))
     print('2nd ramp done')
 
-    #print(smu.source_from_val_list(source = 'VOLT', val_list = [0, -0.2, -0.4, -0.6, -0.8, -1, -1.2, -1.2, -1.2, -1.2, -1, -0.8, -0.6, -0.4, -0.2, 0],
+    # print(smu.source_from_val_list(source = 'VOLT', val_list = [0, -0.2, -0.4, -0.6, -0.8, -1, -1.2, -1.2, -1.2, -1.2, -1, -0.8, -0.6, -0.4, -0.2, 0],
     # measure = 'CURR', step_time = 500e-3))
     #print('1st ramp done')
 
-    #time.sleep(2)
+    # time.sleep(2)
 
-    #print(smu.source_from_val_list(source = 'VOLT', val_list = [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.2, 1.2, 1.2, 1, 0.8, 0.6, 0.4, 0.2, 0],
+    # print(smu.source_from_val_list(source = 'VOLT', val_list = [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.2, 1.2, 1.2, 1, 0.8, 0.6, 0.4, 0.2, 0],
     # measure = 'CURR', step_time = 500e-3))
     #print('2nd ramp done')
 
     smu.close()
-
-
-

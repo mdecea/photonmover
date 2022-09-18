@@ -26,7 +26,8 @@ class RealPlotter:
 
         self.curr_pow_text = []
         for i in range(4):
-            self.curr_pow_text.append(p.figtext(.87, 0.85 - (0.85 / 4) * i, '', fontsize=15, color='white'))
+            self.curr_pow_text.append(
+                p.figtext(.87, 0.85 - (0.85 / 4) * i, '', fontsize=15, color='white'))
 
         fig.patch.set_facecolor('black')
 
@@ -35,19 +36,61 @@ class RealPlotter:
         self.ax3 = self.fig.add_subplot(4, 1, 3, facecolor='black')
         self.ax4 = self.fig.add_subplot(4, 1, 4, facecolor='black')
 
-        p.subplots_adjust(left=0.08, bottom=0.10, right=0.85, top=0.95, wspace=0.05, hspace=0.05)
+        p.subplots_adjust(
+            left=0.08,
+            bottom=0.10,
+            right=0.85,
+            top=0.95,
+            wspace=0.05,
+            hspace=0.05)
 
         self.line1 = self.ax1.plot([0], [0], 'w-', animated=False)[0]
         self.line2 = self.ax2.plot([0], [0], 'w-', animated=False)[0]
         self.line3 = self.ax3.plot([0], [0], 'w-', animated=False)[0]
         self.line4 = self.ax4.plot([0], [0], 'w-', animated=False)[0]
 
-        self.format_axis(self.ax1, 'yellow', '', False, 'green', 'Channel 1', True)
-        self.format_axis(self.ax2, 'yellow', '', False, 'red', 'Channel 2', True)
-        self.format_axis(self.ax3, 'yellow', '', False, 'cyan', 'Channel 3', True)
-        self.format_axis(self.ax4, 'yellow', 'Time [s]', True, 'magenta', 'Channel 4', True)
+        self.format_axis(
+            self.ax1,
+            'yellow',
+            '',
+            False,
+            'green',
+            'Channel 1',
+            True)
+        self.format_axis(
+            self.ax2,
+            'yellow',
+            '',
+            False,
+            'red',
+            'Channel 2',
+            True)
+        self.format_axis(
+            self.ax3,
+            'yellow',
+            '',
+            False,
+            'cyan',
+            'Channel 3',
+            True)
+        self.format_axis(
+            self.ax4,
+            'yellow',
+            'Time [s]',
+            True,
+            'magenta',
+            'Channel 4',
+            True)
 
-    def format_axis(self, ax, xcolor, xlabel, xticklabels, ycolor, ylabel, yticklabels):
+    def format_axis(
+            self,
+            ax,
+            xcolor,
+            xlabel,
+            xticklabels,
+            ycolor,
+            ylabel,
+            yticklabels):
         ax.spines['bottom'].set_color(xcolor)
         ax.spines['top'].set_color(xcolor)
         ax.spines['right'].set_color(ycolor)
@@ -84,7 +127,8 @@ class RealPlotter:
 
         y1_max = max(self.y1)
         y1_min = min(self.y1)
-        self.ax1.set_ylim(y1_min - abs(y1_min * 0.1), y1_max + abs(y1_max * 0.1))
+        self.ax1.set_ylim(y1_min - abs(y1_min * 0.1),
+                          y1_max + abs(y1_max * 0.1))
 
         # if new_y2 < self.ax2.get_ylim()[0]:
         # self.ax2.set_ylim(new_y2 - abs(new_y2 * 0.1), self.ax2.get_ylim()[1])
@@ -93,7 +137,8 @@ class RealPlotter:
 
         y2_max = max(self.y2)
         y2_min = min(self.y2)
-        self.ax2.set_ylim(y2_min - abs(y2_min * 0.1), y2_max + abs(y2_max * 0.1))
+        self.ax2.set_ylim(y2_min - abs(y2_min * 0.1),
+                          y2_max + abs(y2_max * 0.1))
 
         # if new_y3 < self.ax3.get_ylim()[0]:
         # self.ax3.set_ylim(new_y3 - abs(new_y3 * 0.1), self.ax3.get_ylim()[1])
@@ -102,7 +147,8 @@ class RealPlotter:
 
         y3_max = max(self.y3)
         y3_min = min(self.y3)
-        self.ax3.set_ylim(y3_min - abs(y3_min * 0.1), y3_max + abs(y3_max * 0.1))
+        self.ax3.set_ylim(y3_min - abs(y3_min * 0.1),
+                          y3_max + abs(y3_max * 0.1))
 
         # if new_y4 < self.ax4.get_ylim()[0]:
         # self.ax4.set_ylim(new_y4 - abs(new_y4 * 0.1), self.ax4.get_ylim()[1])
@@ -111,7 +157,8 @@ class RealPlotter:
 
         y4_max = max(self.y4)
         y4_min = min(self.y4)
-        self.ax4.set_ylim(y4_min - abs(y4_min * 0.1), y4_max + abs(y4_max * 0.1))
+        self.ax4.set_ylim(y4_min - abs(y4_min * 0.1),
+                          y4_max + abs(y4_max * 0.1))
 
         t_max = new_t
         t_cutoff = t_max - self.seconds_to_plot
@@ -148,5 +195,6 @@ class RealPlotter:
         self.t_start = time.time()
 
         # Start the animation
-        anim = animation.FuncAnimation(self.fig, self.animate, self.gen, interval=1, blit=False)
+        anim = animation.FuncAnimation(
+            self.fig, self.animate, self.gen, interval=1, blit=False)
         p.show()

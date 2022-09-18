@@ -36,7 +36,7 @@ import copy
 # Microscopy field of view in y: ~ 0.300 mm
 # Microscopy field of view in x: ~ 0.200 mm
 
-# Holography camera dimenions: x --> 5.325 mm, y --> 6.656 mm 
+# Holography camera dimenions: x --> 5.325 mm, y --> 6.656 mm
 
 def gen_grid(x_vec, y_vec):
     """
@@ -46,7 +46,7 @@ def gen_grid(x_vec, y_vec):
                              |
     <------------------------
     |
-    ------------------------->                     
+    ------------------------->
     """
 
     xv, yv = np.meshgrid(x_vec, y_vec)
@@ -55,10 +55,10 @@ def gen_grid(x_vec, y_vec):
     #xv = xv.flatten()
     #yv = yv.flatten()
 
-    ## Convert to the right format
+    # Convert to the right format
     #coord_list = list()
 
-    #for (a, b) in zip(xv, yv):
+    # for (a, b) in zip(xv, yv):
     #    coord_list.append((a, b))
 
     # ZIG ZAG VERSION ----------
@@ -72,10 +72,10 @@ def gen_grid(x_vec, y_vec):
 
         if i % 2 == 1:
             xs = np.flip(xs)
-        
+
         for (a, b) in zip(xs, ys):
             coord_list.append((a, b))
-        
+
     return coord_list
 
 
@@ -93,14 +93,13 @@ class MicroStage():
         # Move in x if necessary
         if pos[0] != current_pos[0]:
             print('moving %.2f in x' % (pos[0] - current_pos[0]))
-            #input()
+            # input()
             self.x_stage.move(pos[0] - current_pos[0])
-
 
         # Move in y if necessary
         if pos[1] != current_pos[1]:
             print('moving %.2f in y' % (pos[1] - current_pos[1]))
-            #input()
+            # input()
             self.y_stage.move(pos[1] - current_pos[1])
 
         # Movement in x is kind of brusque, so wait a bit
@@ -123,42 +122,54 @@ class HoloMicroGraphy(Experiment):
         # It is always good practice to initialize variables in the init
 
         # --------------------------------------------------------------------
-        # Instruments. 
+        # Instruments.
         # -------- Stage -----------
         # We need a daq and a source meter to drive the stage
         self.daq = None
         self.stage_smu = None
 
         # -------- Micrography -----
-        # We need a camera and an illumination source (a source meter to turn on the LED)
+        # We need a camera and an illumination source (a source meter to turn
+        # on the LED)
         self.micro_smu = None
         self.micro_camera = None
-        self.micro_stage = None # We need a motorized stage to be able to acquire multiple microscope images for the same sample
-                                # to cover the same field of view as the hologram
+        # We need a motorized stage to be able to acquire multiple microscope
+        # images for the same sample
+        self.micro_stage = None
+        # to cover the same field of view as the hologram
 
         # -------- Holography ------
-        # We need a camera and an illumination source (a source meter to turn on the LED)
+        # We need a camera and an illumination source (a source meter to turn
+        # on the LED)
         self.holo_smu = None
         self.holo_camera = None
 
         # --------------------------------------------------------------------
 
-        # Save the last data obtained when the experiment was performed (for plotting purposes)
+        # Save the last data obtained when the experiment was performed (for
+        # plotting purposes)
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
         The first SMU is the drive smu, the second on eis the measure SMU
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
-            if isinstance(instr, SourceMeter) or isinstance(instr, DCPowerSource) or isinstance(instr, LaserDriver):
+            if isinstance(
+                instr,
+                SourceMeter) or isinstance(
+                instr,
+                DCPowerSource) or isinstance(
+                instr,
+                    LaserDriver):
                 if self.stage_smu is None:
                     self.stage_smu = instr
                 elif self.micro_smu is None:
@@ -178,9 +189,14 @@ class HoloMicroGraphy(Experiment):
                 elif self.holo_camera is None:
                     self.holo_camera = instr
 
-        if (self.stage_smu is not None) and (self.daq is not None) and (self.micro_smu is not None) and \
-            (self.holo_smu is not None) and (self.micro_camera is not None) and (self.holo_camera is not None):
-                return True
+        if (
+            self.stage_smu is not None) and (
+            self.daq is not None) and (
+            self.micro_smu is not None) and (
+                self.holo_smu is not None) and (
+                    self.micro_camera is not None) and (
+                        self.holo_camera is not None):
+            return True
         else:
             return False
 
@@ -195,7 +211,7 @@ class HoloMicroGraphy(Experiment):
         Returns a string with the experiment name
         """
         return "Holomicrography"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -205,7 +221,7 @@ class HoloMicroGraphy(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "holo_to_micro_prams" --> Dictionnary with the settings to transition from the holography to the microscopy setup
                 "distance" --> Distance between the golography and microsopy paths in mm. Sign matters! This distance should move from the
@@ -225,11 +241,11 @@ class HoloMicroGraphy(Experiment):
             "holography_params" --> Dictionnary with the settings for the holography step
                 "v_bias" --> bias voltage for the illumination LED
                 "camera_settings" --> A dcitionnary with camera settings for the hologrpahy camera, or None if we want to use the currently set parameters.
-            "init_pos" --> indicates the current position. Either 'holo' (the setup is at the position for holography) or 'micro' 
-                           (the setup is at the position for microscopy)    
+            "init_pos" --> indicates the current position. Either 'holo' (the setup is at the position for holography) or 'micro'
+                           (the setup is at the position for microscopy)
             "return" --> If True, it returns the microscope to the original position (init_pos)
             "stop_before_moving" --> If True, it stops after toggling from microscopy to holography or opposite,
-                waits for the 'go' from the user     
+                waits for the 'go' from the user
         """
 
         params = self.check_all_params(params)
@@ -249,12 +265,12 @@ class HoloMicroGraphy(Experiment):
 
         # Set output voltages for illumination sources
         self.micro_smu.turn_off()  # just in case
-        self.holo_smu.turn_off() # just in case
+        self.holo_smu.turn_off()  # just in case
         self.micro_smu.set_voltage(microscopy_params['v_bias'])
         self.holo_smu.set_voltage(holography_params['v_bias'])
         self.micro_smu.turn_off()  # just in case
-        self.holo_smu.turn_off() # just in case
-        
+        self.holo_smu.turn_off()  # just in case
+
         # Go through the drill
         if init_pos == 'holo':
 
@@ -273,7 +289,7 @@ class HoloMicroGraphy(Experiment):
             print('Successfully moved to microscopy position')
             print('------------------------------')
 
-             # Take the microscope image(s)
+            # Take the microscope image(s)
             print('Starting microscopy acquisition')
             self.perform_micro_step(microscopy_params, filename)
             print('Micrograph(s) acquired')
@@ -285,10 +301,9 @@ class HoloMicroGraphy(Experiment):
                 print('Successfully moved to holography position')
                 print('------------------------------')
 
-
         elif init_pos == 'micro':
 
-             # Take the microscope image(s)
+            # Take the microscope image(s)
             print('Starting microscopy acquisition')
             self.perform_micro_step(microscopy_params, filename)
             print('Micrograph(s) acquired')
@@ -316,7 +331,8 @@ class HoloMicroGraphy(Experiment):
                 print('------------------------------')
 
         else:
-            print("Specified init pos is not 'holo' nor 'micro'. We don;t know where we are. Doing nothing.")
+            print(
+                "Specified init pos is not 'holo' nor 'micro'. We don;t know where we are. Doing nothing.")
             return
 
     def toggle_setups(self, holo_to_micro_params, go_to):
@@ -333,7 +349,7 @@ class HoloMicroGraphy(Experiment):
             # The distance in the holo_to_micro_params is the distance to go from the holography to the microscopy path.
             # If we want to go to the holography path we need to reverse it.
             params['distance'] = -1 * params['distance']
-        
+
         # move
         move_stage.perform_experiment(params)
         time.sleep(1)
@@ -345,7 +361,7 @@ class HoloMicroGraphy(Experiment):
 
         # Turn on illumination source
         self.holo_smu.turn_on()
-        #time.sleep(5)
+        # time.sleep(5)
 
         # Acquire image
         time_tuple = time.localtime()
@@ -362,8 +378,7 @@ class HoloMicroGraphy(Experiment):
 
         # Turn off illumination source
         self.holo_smu.turn_off()
-    
-    
+
     def perform_micro_step(self, params, filename):
         """
         performs the microscopy stage
@@ -378,34 +393,36 @@ class HoloMicroGraphy(Experiment):
         for pos in params['grid_pos']:
 
             if (pos != current_pos) and (self.micro_stage is not None):
-                current_pos = self.micro_stage.move(pos=pos, current_pos=current_pos)
+                current_pos = self.micro_stage.move(
+                    pos=pos, current_pos=current_pos)
 
             # Acquire image
             time_tuple = time.localtime()
             micro_filename = '%s--micro--pos=(%.2f,%.2f)--%d#%d#%d--%d#%d#%d.png' % (filename,
-                                                                pos[0],
-                                                                pos[1],
-                                                                time_tuple[0],
-                                                                time_tuple[1],
-                                                                time_tuple[2],
-                                                                time_tuple[3],
-                                                                time_tuple[4],
-                                                                time_tuple[5])
+                                                                                     pos[0],
+                                                                                     pos[1],
+                                                                                     time_tuple[0],
+                                                                                     time_tuple[1],
+                                                                                     time_tuple[2],
+                                                                                     time_tuple[3],
+                                                                                     time_tuple[4],
+                                                                                     time_tuple[5])
             self.micro_camera.get_frame(micro_filename)
-        
+
         # Go back to (0,0)
-        current_pos = self.micro_stage.move(pos=(0, 0), current_pos=current_pos)
+        current_pos = self.micro_stage.move(
+            pos=(0, 0), current_pos=current_pos)
         # Take pic to compare with initial pos
         time_tuple = time.localtime()
         micro_filename = '%s--micro--pos=(%.2f,%.2f)--after_scan--%d#%d#%d--%d#%d#%d.png' % (filename,
-                                                                pos[0],
-                                                                pos[1],
-                                                                time_tuple[0],
-                                                                time_tuple[1],
-                                                                time_tuple[2],
-                                                                time_tuple[3],
-                                                                time_tuple[4],
-                                                                time_tuple[5])
+                                                                                             pos[0],
+                                                                                             pos[1],
+                                                                                             time_tuple[0],
+                                                                                             time_tuple[1],
+                                                                                             time_tuple[2],
+                                                                                             time_tuple[3],
+                                                                                             time_tuple[4],
+                                                                                             time_tuple[5])
         self.micro_camera.get_frame(micro_filename)
 
         # Turn off illumination source
@@ -416,13 +433,28 @@ class HoloMicroGraphy(Experiment):
         Returns a list with the keys that need to be specified in the params dictionary, in order for
         a measurement to be performed
         """
-        return ["holo_to_micro_params", "microscopy_params", "holography_params"]
-    
+        return [
+            "holo_to_micro_params",
+            "microscopy_params",
+            "holography_params"]
+
     def default_params(self):
-        return {"holo_to_micro_params": {"distance_to_counts": 500, "drive_current": 0.55, "daq_channel": None}, 
-                "microscopy_params": {"v_bias": 5, "camera_settings": None, "grid_pos": [(0, 0)]}, 
-                "holography_params": {"v_bias": 3.55, "camera_settings": None},
-                "return": True, "stop_before_moving": True}
+        return {
+            "holo_to_micro_params": {
+                "distance_to_counts": 500,
+                "drive_current": 0.55,
+                "daq_channel": None},
+            "microscopy_params": {
+                "v_bias": 5,
+                "camera_settings": None,
+                "grid_pos": [
+                    (0,
+                     0)]},
+            "holography_params": {
+                "v_bias": 3.55,
+                "camera_settings": None},
+            "return": True,
+            "stop_before_moving": True}
 
     def plot_data(self, canvas_handle, data=None):
         # Nothing to plot
@@ -431,7 +463,7 @@ class HoloMicroGraphy(Experiment):
 
 if __name__ == '__main__':
 
-    ################ Create and connect to all the necessary instruments. 
+    # Create and connect to all the necessary instruments.
 
     # -------- Stages -----------
     # We need a daq and a source meter to drive the stage
@@ -441,29 +473,35 @@ if __name__ == '__main__':
     stage_smu.initialize()
 
     # -------- Micrography -----
-    # We need a camera and an illumination source (a source meter to turn on the LED)
+    # We need a camera and an illumination source (a source meter to turn on
+    # the LED)
     micro_smu = AgilentE3648A()
     micro_camera = ThorlabsCamera()
 
     # Klinger stage
     y_micro_stage = KlingerCC1()
     # Aerotech stage for the microscopy part
-    x_micro_stage = AerotechStage(stage_smu, daq, dist_to_counts=500, drive_current=0.55, daq_channel=None)
+    x_micro_stage = AerotechStage(
+        stage_smu,
+        daq,
+        dist_to_counts=500,
+        drive_current=0.55,
+        daq_channel=None)
     y_micro_stage.initialize()
     x_micro_stage.initialize()
 
-    #x_micro_stage.move(-70.0)
-    #input()
+    # x_micro_stage.move(-70.0)
+    # input()
 
     micro_stage = MicroStage(x_stage=x_micro_stage, y_stage=y_micro_stage)
-    
+
     # -------- Holography ------
     # We need a camera and an illumination source (a source meter to turn on the LED)
     # holo_smu = KeysightB2902A(channel=2, current_compliance=1, gpib=stage_smu.gpib)
     holo_smu = MockSourceMeter()
     holo_camera = ZWO(camera_id=0)
 
-    ################ Initialize all instruments 
+    # Initialize all instruments
 
     stage_smu.initialize()
     daq.initialize()
@@ -472,7 +510,7 @@ if __name__ == '__main__':
     holo_smu.initialize()
     holo_camera.initialize()
 
-    ############## Some settings
+    # Some settings
 
     stage_smu.set_voltage_compliance(10)
 
@@ -482,7 +520,13 @@ if __name__ == '__main__':
 
     #############
 
-    instr_list = [daq, stage_smu, micro_smu, micro_camera, holo_smu, holo_camera]
+    instr_list = [
+        daq,
+        stage_smu,
+        micro_smu,
+        micro_camera,
+        holo_smu,
+        holo_camera]
     if micro_stage is not None:
         instr_list.append(micro_stage)
 
@@ -506,24 +550,36 @@ if __name__ == '__main__':
     #x_pos = np.linspace(-2.66, 2.66, 5)
     #y_pos = np.linspace(-3, 3, 5)
     grid_pos = gen_grid(x_pos, y_pos)
-    #print(grid_pos)
-    #input()
+    # print(grid_pos)
+    # input()
 
-    params = {"holo_to_micro_params": {"distance": -82.0, "distance_to_counts": 500, "drive_current": 0.55, "daq_channel": None} ,
-              "microscopy_params": {"v_bias": 3, "camera_settings": None, "grid_pos": grid_pos} ,
-              "holography_params": {"v_bias": 3.55, "camera_settings": None},
-              "init_pos": 'micro',
-              "return": True, "stop_before_moving": False }
+    params = {
+        "holo_to_micro_params": {
+            "distance": -82.0,
+            "distance_to_counts": 500,
+            "drive_current": 0.55,
+            "daq_channel": None},
+        "microscopy_params": {
+            "v_bias": 3,
+            "camera_settings": None,
+            "grid_pos": grid_pos},
+        "holography_params": {
+            "v_bias": 3.55,
+            "camera_settings": None},
+        "init_pos": 'micro',
+        "return": True,
+        "stop_before_moving": False}
 
     # RUN IT
-    exp.perform_experiment(params, filename='./data/holomicro/dog_skeletal_muscle/dog_skel_mus')
+    exp.perform_experiment(
+        params, filename='./data/holomicro/dog_skeletal_muscle/dog_skel_mus')
 
-    ########## CLOSE INSTRUMENTS
+    # CLOSE INSTRUMENTS
     daq.close()
     stage_smu.close()
-    micro_smu.close() 
-    micro_camera.close() 
-    x_micro_stage.close() 
+    micro_smu.close()
+    micro_camera.close()
+    x_micro_stage.close()
     y_micro_stage.close()
-    holo_smu.close() 
+    holo_smu.close()
     holo_camera.close()

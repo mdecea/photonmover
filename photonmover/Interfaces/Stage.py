@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 # ABC means Abstract Base Class and is basically an interface
 
+
 class SingleAxisStage(ABC):
 
     def __init__(self):

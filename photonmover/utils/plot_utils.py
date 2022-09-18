@@ -4,11 +4,11 @@ import matplotlib.axes
 import pyqtgraph as pg
 
 # List of colors for when we plot multiple lines in the same plot
-COLOR_LIST = [(255, 0, 0), # r
-              (0, 255, 0), # g
-              (0, 0, 255), # b
-              (255, 255, 255), # w
-              (255, 140, 0), ] # orange
+COLOR_LIST = [(255, 0, 0),  # r
+              (0, 255, 0),  # g
+              (0, 0, 255),  # b
+              (255, 255, 255),  # w
+              (255, 140, 0), ]  # orange
 
 
 def filter_nans(x_data, y_data):
@@ -27,10 +27,18 @@ def filter_nans(x_data, y_data):
     return x_data, y_data
 
 
-def plot_graph(x_data, y_data, canvas_handle, xlabel=None, ylabel=None, title=None, legend=None):
+def plot_graph(
+        x_data,
+        y_data,
+        canvas_handle,
+        xlabel=None,
+        ylabel=None,
+        title=None,
+        legend=None):
     """
-    Plots the data given the parameters above. The main purpose of this function is to figure out
-    if we want to plot this in a matplotlib figure or a PyQt widget, and act accordingly
+    Plots the data given the parameters above. The main purpose of
+    this function is to figure out if we want to plot this in a
+    matplotlib figure or a PyQt widget, and act accordingly
     """
 
     y_data = np.array(y_data)
@@ -40,8 +48,8 @@ def plot_graph(x_data, y_data, canvas_handle, xlabel=None, ylabel=None, title=No
 
         if len(np.shape(y_data)) > 1:
             # There is more than one y_data line
-            for l in range(np.shape(y_data)[0]):
-                canvas_handle.plot(x_data, y_data[l, :], linewidth=3)
+            for li in range(np.shape(y_data)[0]):
+                canvas_handle.plot(x_data, y_data[li, :], linewidth=3)
         else:
             canvas_handle.plot(x_data, y_data, 'k', linewidth=3)
 
@@ -50,7 +58,7 @@ def plot_graph(x_data, y_data, canvas_handle, xlabel=None, ylabel=None, title=No
         if ylabel is not None:
             canvas_handle.set_ylabel(ylabel, fontsize=20)
         if title is not None:
-            canvas_handle.set_title(title, fontsize=20)    
+            canvas_handle.set_title(title, fontsize=20)
         if legend is not None:
             canvas_handle.legend(legend)
 
@@ -74,13 +82,11 @@ def plot_graph(x_data, y_data, canvas_handle, xlabel=None, ylabel=None, title=No
                 else:
                     canvas_handle.plot(x_dat, y_dat, pen=pen)
 
-
         else:
             pen = pg.mkPen(color=COLOR_LIST[0], width=3)
             # Remove nans, because if not the PyQtWidge shows nothing
             x_data, y_data = filter_nans(x_data, y_data)
             canvas_handle.plot(x_data, y_data, pen=pen)
-
 
         if xlabel is not None:
             canvas_handle.setLabel('bottom', text=xlabel)

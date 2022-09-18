@@ -19,4 +19,4 @@ class MSA(ABC):
         pass
 
     def get_id(self):
-        return("MicrowaveSpectrumAnalyzer")
+        return ("MicrowaveSpectrumAnalyzer")

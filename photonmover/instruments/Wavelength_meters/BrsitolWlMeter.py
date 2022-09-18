@@ -2,12 +2,12 @@ from ctypes import *
 from photonmover.Interfaces.WlMeter import WlMeter
 from photonmover.Interfaces.Instrument import Instrument
 
-DLL_PATH = "C:\BristolWavelengthMeterV2_31b\CLDevIFace.dll"
+DLL_PATH = "C:\\BristolWavelengthMeterV2_31b\\CLDevIFace.dll"
 
 
 class BristolWlMeter(Instrument, WlMeter):
 
-    def __init__(self, dll_path = DLL_PATH):
+    def __init__(self, dll_path=DLL_PATH):
         super().__init__()
 
         # It is good practice to initialize variables in the init
@@ -25,7 +25,8 @@ class BristolWlMeter(Instrument, WlMeter):
 
         # Load the wavemeter DLL
         self.bristoldll = CDLL(self.dll_path)
-        self.bristol_handle = self.bristoldll.CLOpenUSBSerialDevice(c_long(3))  # had been 4
+        self.bristol_handle = self.bristoldll.CLOpenUSBSerialDevice(
+            c_long(3))  # had been 4
         if self.bristol_handle == -1:
             print("ERROR OPENING WAVEMETER")
             self.bristol_get_wave = None
@@ -43,7 +44,8 @@ class BristolWlMeter(Instrument, WlMeter):
         :return:
         """
         print('Closing connnection to Bristol Wavelength meter')
-        wmeter_close_success = self.bristoldll.CLCloseDevice(self.bristol_handle)
+        wmeter_close_success = self.bristoldll.CLCloseDevice(
+            self.bristol_handle)
 
         if not wmeter_close_success == 0:
             print("ERROR CLOSING BRISTOL WAVELENGTH METER DEVICE")

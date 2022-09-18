@@ -19,8 +19,9 @@ class MockTunableFilter(TunableFilter, Instrument):
         Sets the sweep for the tunable filter
         :return:
         """
-        print("Setting and performing filter sweep. Start: %.2f nm; stop: %.2f nm, num: %d, time = %.2f s"
-              % (start_wav, stop_wav, num_wav, dwell_time))
+        print(
+            "Setting and performing filter sweep. Start: %.2f nm; stop: %.2f nm, num: %d, time = %.2f s" %
+            (start_wav, stop_wav, num_wav, dwell_time))
 
     def initialize(self):
         """

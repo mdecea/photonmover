@@ -25,19 +25,19 @@
 % T.Wychock, Keysight Technologies 2018
 %
 % Disclaimer of Warranties: THIS SOFTWARE HAS NOT COMPLETED KEYSIGHT'S FULL
-% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES 
+% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES
 % NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND WITH RESPECT TO THE SOFTWARE,
 % AND SPECIFICALLY DISCLAIMS THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 % FITNESS FOR A PARTICULAR PURPOSE.
-% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS. 
+% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS.
 """
 
-import scpi_sockets
-import time
-import os
 
 # Example code
 # Test Parameters
+import scpi_sockets
+import time
+import os
 debug_mode = 1  # Use debugging?
 
 # IO Parameters
@@ -55,21 +55,28 @@ try:
 
     # Connect
     print('\n#####################')
-    print('Connecting to address "' + ipv4_address_server + '" and port "' + str(socket_port_server) + '"...')
+    print(
+        'Connecting to address "' +
+        ipv4_address_server +
+        '" and port "' +
+        str(socket_port_server) +
+        '"...')
 
-    scpi_session_server = scpi_sockets.SCPISession(ipv4_address_string_in=ipv4_address_server,
-                                                   port_in=socket_port_server,
-                                                   enable_nagle_in=True,
-                                                   connect_in=False,
-                                                   debug_scpi_in=debug_mode,
-                                                   udp_in=udp_communication,
-                                                   udp_receive_port_in=socket_port_udp_receive)
+    scpi_session_server = scpi_sockets.SCPISession(
+        ipv4_address_string_in=ipv4_address_server,
+        port_in=socket_port_server,
+        enable_nagle_in=True,
+        connect_in=False,
+        debug_scpi_in=debug_mode,
+        udp_in=udp_communication,
+        udp_receive_port_in=socket_port_udp_receive)
 
-    scpi_session_server.connect(timeout_in_seconds_in=timeout_in_seconds_server)
+    scpi_session_server.connect(
+        timeout_in_seconds_in=timeout_in_seconds_server)
     is_connected = True
     time.sleep(1)
 
-    ####################################################################################################################
+    ##########################################################################
 
     # Perform basic functions
     # IDN?
@@ -80,7 +87,7 @@ try:
     # Reset
     scpi_session_server.write('*RST')
 
-    ####################################################################################################################
+    ##########################################################################
 
     # Command example, plotting a new figure with a few commands
     command_one = "'figure'"
@@ -92,13 +99,14 @@ try:
     input('Press enter to continue.\n')
 
     # Send the commands
-    scpi_session_server.write(':SCRIPT:EVAL ' + command_one)  # Eval one command at a time
+    scpi_session_server.write(':SCRIPT:EVAL ' +
+                              command_one)  # Eval one command at a time
     scpi_session_server.write(':SCRIPT:EVAL ' + command_two)
     scpi_session_server.write(':SCRIPT:EVAL ' + command_three)
     scpi_session_server.query('*OPC?')
     scpi_session_server.query(':SYST:ERR?')
 
-    ####################################################################################################################
+    ##########################################################################
 
     # Command example, plotting a new figure with a batch of commands
     command_one = "'figure'"
@@ -110,14 +118,16 @@ try:
     input('Press enter to continue.\n')
 
     # Send the commands
-    scpi_session_server.write(':SCRIPT:LIST:ADD ' + command_one)  # Add each command
+    scpi_session_server.write(
+        ':SCRIPT:LIST:ADD ' +
+        command_one)  # Add each command
     scpi_session_server.write(':SCRIPT:LIST:ADD ' + command_two)
     scpi_session_server.write(':SCRIPT:LIST:ADD ' + command_three)
     scpi_session_server.write(':SCRIPT:LIST:EXE')  # Eval the list
     scpi_session_server.query('*OPC?')
     scpi_session_server.query(':SYST:ERR?')
 
-    ####################################################################################################################
+    ##########################################################################
 
 except Exception as e:
     print('Error: ' + str(e))

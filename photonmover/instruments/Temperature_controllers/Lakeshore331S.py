@@ -28,7 +28,7 @@ class Lakeshore331S(Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Newport Temp controller')
 
         self.init_function()
@@ -80,5 +80,3 @@ if __name__ == '__main__':
     tec.set_temperature(200)
     # tec.turn_on()
     tec.close()
-
-

@@ -40,12 +40,13 @@ class spectrum_OSA_camera(Experiment):
         self.osa = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -82,12 +83,14 @@ class spectrum_OSA_camera(Experiment):
         """
 
         params = self.check_all_params(params)
-        
+
         res_bws = params["res_bws"]  # Resolution bandwidths (in nm)
         center_wls = params["center_wls"]  # Center wavelengths (in nm)
 
         # Set the OSA to the correct mode. We assume the camera is all set up.
-        self.osa.set_wl_axis(start_wl= "%.2fNM" % center_wls[0], end_wl= "%.2fNM" % center_wls[-1])
+        self.osa.set_wl_axis(start_wl="%.2fNM" %
+                             center_wls[0], end_wl="%.2fNM" %
+                             center_wls[-1])
         self.osa.set_mode('PRESEL')
 
         time.sleep(5)
@@ -96,18 +99,21 @@ class spectrum_OSA_camera(Experiment):
         # Iterate over resolution bandwidths and center wavelengths
         for res_bw in res_bws:
 
-            self.osa.set_acq_bandwidth( res_bw= ('%.2fNM' % res_bw) )
+            self.osa.set_acq_bandwidth(res_bw=('%.2fNM' % res_bw))
             print('Setting res bw of monochrometer to %.2f nm...' % res_bw)
 
             for wl in center_wls:
 
-                print('Setting center wavelength of monochrometer to %.4f nm...' % wl)
+                print(
+                    'Setting center wavelength of monochrometer to %.4f nm...' %
+                    wl)
                 self.osa.set_presel_wl(wl)
                 time.sleep(0.3)
 
                 # Take a picture with the camera
                 if filename is not None:
-                    fname = "%s--res_bw=%.2fnm--wl=%.4fnm.png" % (filename, res_bw, wl)
+                    fname = "%s--res_bw=%.2fnm--wl=%.4fnm.png" % (
+                        filename, res_bw, wl)
                     self.camera.get_frame(fname)
 
         return None
@@ -120,7 +126,8 @@ class spectrum_OSA_camera(Experiment):
         return ["res_bws", "center_wls"]
 
     def plot_data(self, canvas_handle, data=None):
-        raise Exception('No data to plot for soectrum OSA and camera experiment')
+        raise Exception(
+            'No data to plot for soectrum OSA and camera experiment')
 
 
 class spectrum_OSA_DAQ(Experiment):
@@ -144,12 +151,13 @@ class spectrum_OSA_DAQ(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -189,15 +197,26 @@ class spectrum_OSA_DAQ(Experiment):
 
         res_bws = params["res_bws"]  # Resolution bandwidths (in nm)
         center_wls = params["center_wls"]  # Center wavelengths (in nm)
-        daq_channel = params["daq_channel"]  # DAQ channel to which the PD output is connected
-        num_meas_per_wav = params["num_meas_per_wav"]  # Number of measurements to take per each wavelength setting
-        sampling_rate = params["sampling_rate"]  # Samples per second for the DAQ
+        # DAQ channel to which the PD output is connected
+        daq_channel = params["daq_channel"]
+        # Number of measurements to take per each wavelength setting
+        num_meas_per_wav = params["num_meas_per_wav"]
+        # Samples per second for the DAQ
+        sampling_rate = params["sampling_rate"]
 
         # Configure DAQ acquisition
-        self.daq.configure_nsampl_acq(input_channels=[daq_channel], clk_channel=None, num_points=num_meas_per_wav, max_sampling_freq=sampling_rate, min_vals=0.0, max_vals=10.0)
+        self.daq.configure_nsampl_acq(
+            input_channels=[daq_channel],
+            clk_channel=None,
+            num_points=num_meas_per_wav,
+            max_sampling_freq=sampling_rate,
+            min_vals=0.0,
+            max_vals=10.0)
 
         # Set the OSA to the correct mode.
-        self.osa.set_wl_axis(start_wl= "%.2fNM" % center_wls[0], end_wl= "%.2fNM" % center_wls[-1])
+        self.osa.set_wl_axis(start_wl="%.2fNM" %
+                             center_wls[0], end_wl="%.2fNM" %
+                             center_wls[-1])
         self.osa.set_mode('PRESEL')
 
         time.sleep(5)
@@ -212,18 +231,21 @@ class spectrum_OSA_DAQ(Experiment):
             # Matrix to save the data
             measurements = np.zeros((len(center_wls), 2), float)
 
-            self.osa.set_acq_bandwidth( res_bw= ('%.2fNM' % res_bw) )
+            self.osa.set_acq_bandwidth(res_bw=('%.2fNM' % res_bw))
             print('Setting res bw of monochrometer to %.2f nm...' % res_bw)
 
             for i, wl in enumerate(center_wls):
 
-                print('Setting center wavelength of monochrometer to %.4f nm...' % wl)
+                print(
+                    'Setting center wavelength of monochrometer to %.4f nm...' %
+                    wl)
                 self.osa.set_presel_wl(wl)
                 time.sleep(0.3)
 
                 # Measure the voltage from the PD with the DAQ
                 self.daq.start_task()
-                self.daq.wait_task(timeout=1.5*num_meas_per_wav/sampling_rate)
+                self.daq.wait_task(
+                    timeout=1.5 * num_meas_per_wav / sampling_rate)
                 daq_data = self.daq.read_data(num_meas_per_wav)
 
                 measurements[i, 0] = wl
@@ -236,22 +258,22 @@ class spectrum_OSA_DAQ(Experiment):
 
                 time_tuple = time.localtime()
                 filename = "%s-DAQ_spectrum--res_bw=%.2fnm--%.2fnm--%d-%.2fnm--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                            res_bw,
-                                                                            center_wls[0],
-                                                                            len(center_wls),
-                                                                            center_wls[-1],
-                                                                            time_tuple[0],
-                                                                            time_tuple[1],
-                                                                            time_tuple[2],
-                                                                            time_tuple[3],
-                                                                            time_tuple[4],
-                                                                            time_tuple[5])
+                                                                                                         res_bw,
+                                                                                                         center_wls[0],
+                                                                                                         len(center_wls),
+                                                                                                         center_wls[-1],
+                                                                                                         time_tuple[0],
+                                                                                                         time_tuple[1],
+                                                                                                         time_tuple[2],
+                                                                                                         time_tuple[3],
+                                                                                                         time_tuple[4],
+                                                                                                         time_tuple[5])
 
                 print("Saving data to ", filename)
                 io.savemat(filename, {'data': measurements})
 
         # Beep when done
-        winsound.Beep(2000, 1000) # frequency, duration
+        winsound.Beep(2000, 1000)  # frequency, duration
 
         all_plt_data = [measurements[:, 0]]
         all_plt_data.extend(all_meas_data)
@@ -260,14 +282,19 @@ class spectrum_OSA_DAQ(Experiment):
         return None
 
     def default_params(self):
-        return {"num_meas_per_wav":100, "sampling_rate": 100, "res_bws": [10]}
+        return {"num_meas_per_wav": 100, "sampling_rate": 100, "res_bws": [10]}
 
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["res_bws", "center_wls", "daq_channel", "num_meas_per_wav", "sampling_rate"]
+        return [
+            "res_bws",
+            "center_wls",
+            "daq_channel",
+            "num_meas_per_wav",
+            "sampling_rate"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -275,11 +302,19 @@ class spectrum_OSA_DAQ(Experiment):
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)', ylabel='Measured V', title='V vs wavelength', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Measured V',
+            title='V vs wavelength',
+            legend=self.legend)
 
 
 class spectrum_OSA_powermeter(Experiment):
@@ -303,12 +338,13 @@ class spectrum_OSA_powermeter(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -349,13 +385,15 @@ class spectrum_OSA_powermeter(Experiment):
         res_bws = params["res_bws"]  # Resolution bandwidths (in nm)
         center_wls = params["center_wls"]  # Center wavelengths (in nm)
         pm_channel = params["pm_channel"]  # Relevant power meter channel
-        int_time = params["int_time"] # Integration time
+        int_time = params["int_time"]  # Integration time
 
         # Configure power meter integration time
         self.power_meter.set_integration_time(pm_channel, int_time)
 
         # Set the OSA to the correct mode.
-        self.osa.set_wl_axis(start_wl= "%.2fNM" % center_wls[0], end_wl= "%.2fNM" % center_wls[-1])
+        self.osa.set_wl_axis(start_wl="%.2fNM" %
+                             center_wls[0], end_wl="%.2fNM" %
+                             center_wls[-1])
         self.osa.set_mode('PRESEL')
 
         time.sleep(5)
@@ -370,12 +408,14 @@ class spectrum_OSA_powermeter(Experiment):
             # Matrix to save the data
             measurements = np.zeros((len(center_wls), 2), float)
 
-            self.osa.set_acq_bandwidth( res_bw= ('%.2fNM' % res_bw) )
+            self.osa.set_acq_bandwidth(res_bw=('%.2fNM' % res_bw))
             print('Setting res bw of monochrometer to %.2f nm...' % res_bw)
 
             for i, wl in enumerate(center_wls):
 
-                print('Setting center wavelength of monochrometer to %.4f nm...' % wl)
+                print(
+                    'Setting center wavelength of monochrometer to %.4f nm...' %
+                    wl)
                 self.osa.set_presel_wl(wl)
                 self.power_meter.set_wavelength(wl)
                 time.sleep(0.3)
@@ -393,22 +433,22 @@ class spectrum_OSA_powermeter(Experiment):
 
                 time_tuple = time.localtime()
                 filename = "%s-DAQ_spectrum--res_bw=%.2fnm--%.2fnm--%d-%.2fnm--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                            res_bw,
-                                                                            center_wls[0],
-                                                                            len(center_wls),
-                                                                            center_wls[-1],
-                                                                            time_tuple[0],
-                                                                            time_tuple[1],
-                                                                            time_tuple[2],
-                                                                            time_tuple[3],
-                                                                            time_tuple[4],
-                                                                            time_tuple[5])
+                                                                                                         res_bw,
+                                                                                                         center_wls[0],
+                                                                                                         len(center_wls),
+                                                                                                         center_wls[-1],
+                                                                                                         time_tuple[0],
+                                                                                                         time_tuple[1],
+                                                                                                         time_tuple[2],
+                                                                                                         time_tuple[3],
+                                                                                                         time_tuple[4],
+                                                                                                         time_tuple[5])
 
                 print("Saving data to ", filename)
                 io.savemat(filename, {'data': measurements})
 
         # Beep when done
-        winsound.Beep(2000, 1000) # frequency, duration
+        winsound.Beep(2000, 1000)  # frequency, duration
 
         all_plt_data = [measurements[:, 0]]
         all_plt_data.extend(all_meas_data)
@@ -432,11 +472,19 @@ class spectrum_OSA_powermeter(Experiment):
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)', ylabel='Measured power (mW)', title='Power vs wavelength', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Measured power (mW)',
+            title='Power vs wavelength',
+            legend=self.legend)
 
 
 if __name__ == '__main__':
@@ -450,14 +498,14 @@ if __name__ == '__main__':
 
     osa.initialize()
     pm.initialize()
-    
+
     # EXPERIMENT PARAMETERS
-    res_bws = [1] # in nm
+    res_bws = [1]  # in nm
 
     start_wl = 1000
     end_wl = 1300
     wl_spacing = 0.5
-    center_wls = np.arange(start_wl, end_wl, wl_spacing) # in nm
+    center_wls = np.arange(start_wl, end_wl, wl_spacing)  # in nm
 
     int_time = 1
     pm_channel = 1
@@ -467,7 +515,11 @@ if __name__ == '__main__':
     # SET UP THE EXPERIMENT
     instr_list = [osa, pm]
     exp = spectrum_OSA_powermeter(instr_list)
-    params = {"res_bws": res_bws, "center_wls": center_wls, "pm_channel": pm_channel, "int_time": int_time}
+    params = {
+        "res_bws": res_bws,
+        "center_wls": center_wls,
+        "pm_channel": pm_channel,
+        "int_time": int_time}
 
     # RUN IT
     exp.perform_experiment(params, filename=base_file_name)
@@ -490,7 +542,7 @@ if __name__ == '__main__':
 
     # osa.initialize()
     # daq.initialize()
-    
+
     # # EXPERIMENT PARAMETERS
     # res_bws = [10] # in nm
 
@@ -532,7 +584,7 @@ if __name__ == '__main__':
 
     # osa.initialize()
     # camera.initialize()
-    
+
     # # EXPERIMENT PARAMETERS
     # res_bws = [10] # in nm
 

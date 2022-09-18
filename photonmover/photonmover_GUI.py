@@ -16,9 +16,13 @@ from functools import partial
 # Folder where all the experiment classes are stored
 EXPERIMENTS_FOLDER = './experiments/'
 
-REFRESHING_INTERVAL = 500  # in ms. Sets the time interval for refrsehing the GUI indicators.
-SMU_MEAS_INTERVAL = 10  # The SMU will be interrogated every SMU_MEAS_INTERVAL executions of the refresh loop,
-            # so the smu value will be refrsehed every SMU_MEAS_INTERVAL*REFRESHING_INTERVAL ms
+# in ms. Sets the time interval for refrsehing the GUI indicators.
+REFRESHING_INTERVAL = 500
+# The SMU will be interrogated every SMU_MEAS_INTERVAL executions of the
+# refresh loop,
+SMU_MEAS_INTERVAL = 10
+# so the smu value will be refrsehed every
+# SMU_MEAS_INTERVAL*REFRESHING_INTERVAL ms
 
 # Constants affecting the plotting of coupling vs time
 PLOT_PERSISTENCE = 100  # Total number of points to be shown in the trace
@@ -39,8 +43,8 @@ class photonmover_GUI(QMainWindow):
         self.tx_vs_time = []
 
         self.visa_lock = QMutex()  # Since all the extra threads deal with gpib commands,
-                                   # have a lock that will prevent multiple
-                                   # commands being sent at the same time
+        # have a lock that will prevent multiple
+        # commands being sent at the same time
 
         # THREAD 1 - FOR EXECUTING EXPERIMENTS
         self.exp_thread = QThread()
@@ -51,28 +55,31 @@ class photonmover_GUI(QMainWindow):
 
         # Create an InstrumentWorker that will deal with all the functions in
         # which a GUI operation directly sets an instrument setting. For example,
-        # turning the laser on and off, setting SMU voltage/current, TEC temperature...
+        # turning the laser on and off, setting SMU voltage/current, TEC
+        # temperature...
         self.instr_worker = InstrumentWorker(instr_list, self.visa_lock, None)
         # Have a thread exclusively for the instrument worker
         self.instr_worker_thread = QThread()
         self.instr_worker.moveToThread(self.instr_worker_thread)
 
         self.instr_worker.done.connect(self.instr_worker_thread.quit)
-        self.instr_worker.done.connect(self.__disconnect_instr_thread_start_events__)
+        self.instr_worker.done.connect(
+            self.__disconnect_instr_thread_start_events__)
 
         # THREAD 3 - FOR GETTING STATS
         self.stats_worker = InstrumentWorker(instr_list, self.visa_lock, None)
         self.stats_worker_thread = QThread()
         self.stats_worker.moveToThread(self.stats_worker_thread)
 
-        self.stats_worker.stats_vals.connect(self.refresh_GUI_stats)  # Update the stats when we have the info
+        # Update the stats when we have the info
+        self.stats_worker.stats_vals.connect(self.refresh_GUI_stats)
         self.stats_worker.done.connect(self.stats_worker_thread.quit)
 
         # Start timer for refreshing the stats in the GUI
         self.num_loop_exec = 0
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.refresh_stats)
-        self.timer.start(REFRESHING_INTERVAL) # in msec
+        self.timer.start(REFRESHING_INTERVAL)  # in msec
 
     def parse_params_list(self, setup_params_list):
         """
@@ -85,7 +92,8 @@ class photonmover_GUI(QMainWindow):
 
         # Default values
 
-        # By default we assume we operate the SMU as a source voltage - measure current
+        # By default we assume we operate the SMU as a source voltage - measure
+        # current
         self.smu_mode = 'meas_cur'
 
         # Assumes that there is no splitter after the output fiber (sometimes, we want a splitter after the output fiber
@@ -96,9 +104,9 @@ class photonmover_GUI(QMainWindow):
         # Check if some parameter is not the default
         if setup_params_list is not None:
             if 'smu_mode' in setup_params_list:
-               self.smu_mode = setup_params_list["smu_mode"]
+                self.smu_mode = setup_params_list["smu_mode"]
             if 'rec_splitter_ratio' in setup_params_list:
-               self.rec_splitter_ratio = setup_params_list["rec_splitter_ratio"]
+                self.rec_splitter_ratio = setup_params_list["rec_splitter_ratio"]
 
     def initialize_gui(self):
 
@@ -111,7 +119,7 @@ class photonmover_GUI(QMainWindow):
 
         # Plot-related objects
         self.pen = pg.mkPen(width=5)
-        self.label_styles = {'color':'white', 'font-size':'20px'}
+        self.label_styles = {'color': 'white', 'font-size': '20px'}
 
         self.setWindowIcon(QtGui.QIcon('./photonmover_logo.jpg'))
 
@@ -126,20 +134,31 @@ class photonmover_GUI(QMainWindow):
 
     def _create_menu_bar_(self):
 
-        # Creates the menu bar, which holds the basic actions AND the experiments
+        # Creates the menu bar, which holds the basic actions AND the
+        # experiments
         self.main_menu = self.menuBar()
 
         self.file_menu = self.main_menu.addMenu('&File')
         self.experiment_menu = self.main_menu.addMenu('&Experiments')
 
-        self.create_and_add_action("&Quit Application", self.file_menu, 
-            self.close_application, "Ctrl+Q", "Leave The App")
+        self.create_and_add_action(
+            "&Quit Application",
+            self.file_menu,
+            self.close_application,
+            "Ctrl+Q",
+            "Leave The App")
 
         self.create_and_add_action("&About", self.file_menu, self.show_about)
 
         self._create_experiments_menu_()
 
-    def create_and_add_action(self, label, menu, callback, shortcut=None, status_tip=None):
+    def create_and_add_action(
+            self,
+            label,
+            menu,
+            callback,
+            shortcut=None,
+            status_tip=None):
         """
         This function creates an action item in the menu specified.
         :param label: Label that will appear in the menu.
@@ -159,14 +178,14 @@ class photonmover_GUI(QMainWindow):
         menu.addAction(action)
 
     def _create_experiments_menu_(self):
-
         """
         Populates the experiments menu based on the connected instruments.
         """
 
         # First we need to parse the experiment files
         parser = ClassParser()
-        mod_list, experiment_class_list = parser.class_list(EXPERIMENTS_FOLDER, recursive=True)
+        mod_list, experiment_class_list = parser.class_list(
+            EXPERIMENTS_FOLDER, recursive=True)
 
         self.experiment_list = list()
 
@@ -180,32 +199,44 @@ class photonmover_GUI(QMainWindow):
             # Make sure this is an experiment
             if issubclass(cl, Experiment):
                 try:
-                    # If it is, check if the experiment can happen with the instruments available
+                    # If it is, check if the experiment can happen with the
+                    # instruments available
                     experiment_object = cl(self.instr_list, self.visa_lock)
 
                     self.experiment_list.append(experiment_object)
 
-                    # Move the experiment object to the experiment thread, which is where it will be executed.
+                    # Move the experiment object to the experiment thread,
+                    # which is where it will be executed.
                     experiment_object.moveToThread(self.exp_thread)
                     experiment_object.finished.connect(self.exp_thread.quit)
-                    experiment_object.finished.connect(self.__disconnect_exp_thread_start_events__)
-                    experiment_object.experiment_results_plt.connect(self.process_experiment_results)
+                    experiment_object.finished.connect(
+                        self.__disconnect_exp_thread_start_events__)
+                    experiment_object.experiment_results_plt.connect(
+                        self.process_experiment_results)
 
                     # This is the function that needs to be executed when the menu item is clicked.
                     # Need to be done this way for some weird issue
                     # (see https://stackoverflow.com/questions/1464548/pyqt-qmenu-dynamically-populated-and-clicked)
-                    receiver = lambda bVal, exp_obj=experiment_object: self.call_experiment(exp_obj)
+                    def receiver(
+                        bVal, exp_obj=experiment_object): return self.call_experiment(exp_obj)
 
                     # Add the menu entry
-                    self.create_and_add_action(experiment_object.get_name(), self.experiment_menu, receiver, 
-                                                shortcut=None, status_tip=experiment_object.get_description())
+                    self.create_and_add_action(
+                        experiment_object.get_name(),
+                        self.experiment_menu,
+                        receiver,
+                        shortcut=None,
+                        status_tip=experiment_object.get_description())
 
                 except ValueError:
-                    # It means that the experiment can't be done with the available instruments
-                    print(" The experiment %s can't be done with the instruments available. " % class_name)
+                    # It means that the experiment can't be done with the
+                    # available instruments
+                    print(
+                        " The experiment %s can't be done with the instruments available. " %
+                        class_name)
 
     def _create_indicators_(self):
-        """ 
+        """
         Creates the different indicators in the GUI.
         The shown indicators depend on the parameters needed by the experiments that can be carried out.
 
@@ -225,7 +256,7 @@ class photonmover_GUI(QMainWindow):
         -"meas_current", -"powers", -"num_averages", -"currents", -"power_range", - "voltages2",
 
         "amplitudes", "freqs",
-        "f1", "f2", "amp_comp", 
+        "f1", "f2", "amp_comp",
         """
 
         self.layout = QGridLayout()
@@ -237,17 +268,20 @@ class photonmover_GUI(QMainWindow):
         layout = QGridLayout()
         self.settings_group_box.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel('Tunable filter follows laser? '), 0, 0)
+        layout.addWidget(QtWidgets.QLabel(
+            'Tunable filter follows laser? '), 0, 0)
         self.tf_with_laser = QtWidgets.QCheckBox(self)
         self.tf_with_laser.setChecked(True)
         layout.addWidget(self.tf_with_laser, 0, 1)
 
         if "meas_current" in self.param_list:
-            layout.addWidget(QtWidgets.QLabel('Measure current in sweeps?'), 0, 2)
+            layout.addWidget(QtWidgets.QLabel(
+                'Measure current in sweeps?'), 0, 2)
             self.meas_current = QtWidgets.QCheckBox(self)
             self.meas_current.setChecked(False)
             layout.addWidget(self.meas_current, 0, 3)
-            self.indicator_param_map["meas_current"] = ([self.meas_current], 'checkbox')
+            self.indicator_param_map["meas_current"] = (
+                [self.meas_current], 'checkbox')
 
         if "use_DAQ" in self.param_list:
             layout.addWidget(QtWidgets.QLabel('Use DAQ? '), 1, 0)
@@ -261,9 +295,11 @@ class photonmover_GUI(QMainWindow):
             self.use_cal = QtWidgets.QCheckBox(self)
             self.use_cal.setChecked(True)
             layout.addWidget(self.use_cal, 1, 3)
-            self.indicator_param_map["calibrate"] = ([self.use_cal], 'checkbox')
+            self.indicator_param_map["calibrate"] = (
+                [self.use_cal], 'checkbox')
 
-        self.layout.addWidget(self.settings_group_box, row, 0, 2, 3)  # row, column, row span, column span
+        # row, column, row span, column span
+        self.layout.addWidget(self.settings_group_box, row, 0, 2, 3)
 
         row = row + 2
 
@@ -273,16 +309,18 @@ class photonmover_GUI(QMainWindow):
             layout = QtWidgets.QHBoxLayout()
             self.laser_group_box.setLayout(layout)
 
-            self.laser_power_button = QtWidgets.QPushButton("Toggle Laser State", self) 
+            self.laser_power_button = QtWidgets.QPushButton(
+                "Toggle Laser State", self)
             self.laser_power_button.clicked.connect(self.laser_on)
             layout.addWidget(self.laser_power_button)
 
             self.laser_state = QtWidgets.QLabel("")
-            self.laser_state.setStyleSheet("background-color : red; border: 1px solid black") 
+            self.laser_state.setStyleSheet(
+                "background-color : red; border: 1px solid black")
             layout.addWidget(self.laser_state)
 
             self.layout.addWidget(self.laser_group_box, row, 0, 1, 2)
-            
+
             row = row + 1
 
             self.tx_group_box = QGroupBox("Coupling and Tx")
@@ -294,7 +332,8 @@ class photonmover_GUI(QMainWindow):
             self.set_wl.returnPressed.connect(self.set_laser_wav)
             layout.addWidget(self.set_wl, 1, 1)
 
-            layout.addWidget(QtWidgets.QLabel('Measured Wavelength (nm): '), 1, 2)
+            layout.addWidget(QtWidgets.QLabel(
+                'Measured Wavelength (nm): '), 1, 2)
             self.meas_wl = QtWidgets.QLineEdit('1550.00')
             self.meas_wl.setReadOnly(1)
             layout.addWidget(self.meas_wl, 1, 3)
@@ -304,7 +343,8 @@ class photonmover_GUI(QMainWindow):
             self.set_power.returnPressed.connect(self.set_laser_power)
             layout.addWidget(self.set_power, 2, 1)
 
-            layout.addWidget(QtWidgets.QLabel('Measured input power (W): '), 2, 2)
+            layout.addWidget(QtWidgets.QLabel(
+                'Measured input power (W): '), 2, 2)
             self.meas_in_power = QtWidgets.QLineEdit('1.00')
             self.meas_in_power.setReadOnly(1)
             layout.addWidget(self.meas_in_power, 2, 3)
@@ -324,13 +364,16 @@ class photonmover_GUI(QMainWindow):
             self.in_out_loss.setReadOnly(1)
             layout.addWidget(self.in_out_loss, 4, 1)
 
-            layout.addWidget(QtWidgets.QLabel('Power meter range (dBm): '), 4, 2)
+            layout.addWidget(QtWidgets.QLabel(
+                'Power meter range (dBm): '), 4, 2)
             self.pm_range = QtWidgets.QLineEdit('AUTO')
             self.pm_range.returnPressed.connect(self.set_pm_range)
             layout.addWidget(self.pm_range, 4, 3)
-            self.indicator_param_map["power_range"] = [[self.pm_range], 'textbox']
+            self.indicator_param_map["power_range"] = [
+                [self.pm_range], 'textbox']
 
-            layout.addWidget(QtWidgets.QLabel('Set tunable filter Wavelength (nm): '), 5, 0)
+            layout.addWidget(QtWidgets.QLabel(
+                'Set tunable filter Wavelength (nm): '), 5, 0)
             self.set_tf_wl = QtWidgets.QLineEdit('1550.00')
             self.set_tf_wl.returnPressed.connect(self.set_tf_wav)
             layout.addWidget(self.set_tf_wl, 5, 1)
@@ -407,15 +450,18 @@ class photonmover_GUI(QMainWindow):
             self.num_wav = QtWidgets.QLineEdit('15')
             layout.addWidget(self.num_wav)
 
-            # In the case of a sweep setting, we pass the 3 values (start, end and num) as a list
-            self.indicator_param_map["wavs"] = ([self.init_wav, self.end_wav, self.num_wav], 'textbox')
+            # In the case of a sweep setting, we pass the 3 values (start, end
+            # and num) as a list
+            self.indicator_param_map["wavs"] = (
+                [self.init_wav, self.end_wav, self.num_wav], 'textbox')
 
-            self.layout.addWidget(self.wav_group_box, row, 0, 1, 4)  # row, column, row span, column span
+            # row, column, row span, column span
+            self.layout.addWidget(self.wav_group_box, row, 0, 1, 4)
 
             row = row + 1
 
         if "voltages" in self.param_list:
-            
+
             self.volt_group_box = QtWidgets.QGroupBox("V sweep settings")
             layout = QtWidgets.QHBoxLayout()
             self.volt_group_box.setLayout(layout)
@@ -436,14 +482,16 @@ class photonmover_GUI(QMainWindow):
             self.v_sweep_type.addItems(['linear', 'log', 'list'])
             layout.addWidget(self.v_sweep_type)
 
-            self.indicator_param_map["voltages"] = ([self.init_v, self.end_v, self.num_v, self.v_sweep_type], 'textbox')
+            self.indicator_param_map["voltages"] = (
+                [self.init_v, self.end_v, self.num_v, self.v_sweep_type], 'textbox')
 
-            self.layout.addWidget(self.volt_group_box, row, 0, 1, 4)  # row, column, row span, column span
+            # row, column, row span, column span
+            self.layout.addWidget(self.volt_group_box, row, 0, 1, 4)
 
             row = row + 1
 
         if "voltages2" in self.param_list:
-            
+
             self.volt2_group_box = QtWidgets.QGroupBox("V2 sweep settings")
             layout = QtWidgets.QHBoxLayout()
             self.volt2_group_box.setLayout(layout)
@@ -464,9 +512,11 @@ class photonmover_GUI(QMainWindow):
             self.v2_sweep_type.addItems(['linear', 'log', 'list'])
             layout.addWidget(self.v2_sweep_type)
 
-            self.indicator_param_map["voltages2"] = ([self.init_v2, self.end_v2, self.num_v2, self.v2_sweep_type], 'textbox')
+            self.indicator_param_map["voltages2"] = (
+                [self.init_v2, self.end_v2, self.num_v2, self.v2_sweep_type], 'textbox')
 
-            self.layout.addWidget(self.volt2_group_box, row, 0, 1, 4)  # row, column, row span, column span
+            # row, column, row span, column span
+            self.layout.addWidget(self.volt2_group_box, row, 0, 1, 4)
 
             row = row + 1
 
@@ -492,9 +542,11 @@ class photonmover_GUI(QMainWindow):
             self.power_sweep_type.addItems(['linear', 'log', 'list'])
             layout.addWidget(self.power_sweep_type)
 
-            self.indicator_param_map["powers"] = ([self.init_p, self.end_p, self.num_p, self.power_sweep_type], 'textbox')
+            self.indicator_param_map["powers"] = (
+                [self.init_p, self.end_p, self.num_p, self.power_sweep_type], 'textbox')
 
-            self.layout.addWidget(self.power_group_box, row, 0, 1, 4)  # row, column, row span, column span
+            # row, column, row span, column span
+            self.layout.addWidget(self.power_group_box, row, 0, 1, 4)
 
             row = row + 1
 
@@ -516,7 +568,8 @@ class photonmover_GUI(QMainWindow):
             self.num_T = QtWidgets.QLineEdit('15')
             layout.addWidget(self.num_T)
 
-            self.indicator_param_map["temperatures"] = ([self.init_T, self.end_T, self.num_T], 'textbox')
+            self.indicator_param_map["temperatures"] = (
+                [self.init_T, self.end_T, self.num_T], 'textbox')
 
             self.layout.addWidget(self.T_group_box, row, 0, 1, 4)
 
@@ -544,7 +597,8 @@ class photonmover_GUI(QMainWindow):
             self.cur_sweep_type.addItems(['linear', 'log', 'list'])
             layout.addWidget(self.cur_sweep_type)
 
-            self.indicator_param_map["currents"] = ([self.init_cur, self.end_cur, self.num_cur, self.cur_sweep_type], 'textbox')
+            self.indicator_param_map["currents"] = (
+                [self.init_cur, self.end_cur, self.num_cur, self.cur_sweep_type], 'textbox')
 
             self.layout.addWidget(self.I_group_box, row, 0, 1, 4)
 
@@ -555,7 +609,8 @@ class photonmover_GUI(QMainWindow):
         layout = QGridLayout()
         self.others_group_box.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel('Electrical attenuation (dB): '), 0, 0)
+        layout.addWidget(QtWidgets.QLabel(
+            'Electrical attenuation (dB): '), 0, 0)
         self.el_att = QtWidgets.QLineEdit('0.00')
         self.el_att.returnPressed.connect(self.set_el_att)
         layout.addWidget(self.el_att, 0, 1)
@@ -563,11 +618,13 @@ class photonmover_GUI(QMainWindow):
         others_row_span = 1
 
         if "num_averages" in self.param_list:
-            layout.addWidget(QtWidgets.QLabel('Num averages (VNA acq): '), 0, 2)
+            layout.addWidget(QtWidgets.QLabel(
+                'Num averages (VNA acq): '), 0, 2)
             self.num_avgs = QtWidgets.QLineEdit('4')
             layout.addWidget(self.num_avgs, 0, 3)
 
-            self.indicator_param_map["num_averages"] = ([self.num_avgs], 'textbox')
+            self.indicator_param_map["num_averages"] = (
+                [self.num_avgs], 'textbox')
 
         if "temperatures" in self.param_list:
             self.layout.addWidget(QtWidgets.QLabel('TEC T (deg C): '), 1, 0)
@@ -576,27 +633,37 @@ class photonmover_GUI(QMainWindow):
             layout.addWidget(self.tec_T, 1, 1)
             others_row_span = others_row_span + 1
 
-        self.layout.addWidget(self.others_group_box, row, 0, others_row_span, 4)
+        self.layout.addWidget(
+            self.others_group_box,
+            row,
+            0,
+            others_row_span,
+            4)
         row = row + others_row_span
 
         # Plotting indicators
-        self.plot_button = QtWidgets.QPushButton("Plot last experiment data", self)
+        self.plot_button = QtWidgets.QPushButton(
+            "Plot last experiment data", self)
         self.plot_button.setEnabled(False)
         self.plot_button.clicked.connect(self.toggle_plot)
         self.layout.addWidget(self.plot_button, 0, 9, 1, 3)
 
         self.plot_area = pg.PlotWidget()
         self.plot_area.showGrid(x=True, y=True)
-        self.plot_line = self.plot_area.plot([0], [0], pen=self.pen)  # Save a reference to the line because we will update it
-                        # every time when needed
+        # Save a reference to the line because we will update it
+        self.plot_line = self.plot_area.plot([0], [0], pen=self.pen)
+        # every time when needed
         self.title = self.plot_area.setTitle('Coupling vs Time', size='20pt')
-        self.layout.addWidget(self.plot_area, 1, 7, row, 7)  # init wor, inti col, row span, col span
-        self.xlabel = self.plot_area.setLabel('bottom',text='Time', **self.label_styles)
-        self.ylabel = self.plot_area.setLabel('left',text='Transmission [dB]', **self.label_styles)
-        font=QtGui.QFont()
+        # init wor, inti col, row span, col span
+        self.layout.addWidget(self.plot_area, 1, 7, row, 7)
+        self.xlabel = self.plot_area.setLabel(
+            'bottom', text='Time', **self.label_styles)
+        self.ylabel = self.plot_area.setLabel(
+            'left', text='Transmission [dB]', **self.label_styles)
+        font = QtGui.QFont()
         font.setPixelSize(20)
-        self.plot_area.getAxis("bottom").setStyle(tickFont = font)
-        self.plot_area.getAxis("left").setStyle(tickFont = font)
+        self.plot_area.getAxis("bottom").setStyle(tickFont=font)
+        self.plot_area.getAxis("left").setStyle(tickFont=font)
 
     def _get_all_params_list_(self):
         """
@@ -631,8 +698,9 @@ class photonmover_GUI(QMainWindow):
         dlg = QtWidgets.QDialog(self)
         layout = QtWidgets.QVBoxLayout()
         dlg.setWindowTitle("About")
-        layout.addWidget(QtWidgets.QLabel(""" This is the new version of photonmover. Written in python 3 and using 
-        PyQtgraph, uses the experiment-based approach. \n Mainly written by Marc de Cea, Fall 2020 (amidst a 
+        layout.addWidget(QtWidgets.QLabel(
+            """ This is the new version of photonmover. Written in python 3 and using
+        PyQtgraph, uses the experiment-based approach. \n Mainly written by Marc de Cea, Fall 2020 (amidst a
         global pandemic). """))
         dlg.setLayout(layout)
         dlg.exec_()
@@ -645,9 +713,9 @@ class photonmover_GUI(QMainWindow):
         """
         try:
             self.instr_worker_thread.started.disconnect()
-        except:
+        except BaseException:
             pass
-    
+
     def __disconnect_exp_thread_start_events__(self):
         """
         Disconnects any signal tied to the start of the experiment thread.
@@ -656,7 +724,7 @@ class photonmover_GUI(QMainWindow):
         """
         try:
             self.exp_thread.started.disconnect()
-        except:
+        except BaseException:
             pass
 
     def laser_on(self):
@@ -668,18 +736,21 @@ class photonmover_GUI(QMainWindow):
             if state_color == "#008000":
                 # Green, laser on --> Needs to turn off.
                 op = "turn_off"
-                self.laser_state.setStyleSheet("background-color : red; border: 1px solid black")
+                self.laser_state.setStyleSheet(
+                    "background-color : red; border: 1px solid black")
 
             else:
                 op = "turn_on"
-                self.laser_state.setStyleSheet("background-color : green; border: 1px solid black")
+                self.laser_state.setStyleSheet(
+                    "background-color : green; border: 1px solid black")
 
             # Turn laser on and off in another Thread
-            self.instr_worker_thread.started.connect( partial( self.instr_worker.laser_on, op) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.laser_on, op))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             print('Could not toggle the laser state')
 
     def set_laser_wav(self):
@@ -689,14 +760,17 @@ class photonmover_GUI(QMainWindow):
 
             # Set the wavelength in another Thread
             self.instr_worker_thread.started.connect(
-                partial( self.instr_worker.set_laser_wav, set_wav, self.tf_with_laser.isChecked() ))
+                partial(
+                    self.instr_worker.set_laser_wav,
+                    set_wav,
+                    self.tf_with_laser.isChecked()))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker
+            time.sleep(0.0001)  # yield to the InstrumentWorker
 
             if self.tf_with_laser.isChecked():
                 self.set_tf_wl.setText(str(set_wav))
 
-        except:
+        except BaseException:
             pass
 
     def set_tf_wav(self):
@@ -710,139 +784,149 @@ class photonmover_GUI(QMainWindow):
             self.instr_worker_thread.start()
             time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
-    
+
     def set_laser_power(self):
 
-        try: 
+        try:
             set_power = float(self.set_power.text())
 
             # Set the power in another Thread
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_laser_power, set_power ))
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_laser_power, set_power))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_pm_range(self):
 
         try:
             set_range = self.pm_range.text()
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_pm_range, set_range) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_pm_range, set_range))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_tec_T(self):
 
-        try: 
+        try:
             set_T = float(self.tec_T.text())
 
             # Set the temperature in another Thread
-            self.instr_worker_thread.started.connect(partial ( self.instr_worker.set_tec_T, set_T) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_tec_T, set_T))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu_volt(self):
 
-        try: 
+        try:
             set_volt = float(self.sm_volt.text())
 
             self.smu_mode = 'meas_cur'
 
             # Set the voltage in another Thread
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_smu_volt, set_volt, 1 ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_volt, set_volt, 1))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu_cur(self):
 
-        try: 
+        try:
             set_cur = float(self.sm_current.text())
 
             self.smu_mode = 'meas_volt'
 
             # Set the current in another Thread
-            self.instr_worker_thread.started.connect(partial ( self.instr_worker.set_smu_cur, set_cur, 1) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_cur, set_cur, 1))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu_channel(self):
 
-        try: 
+        try:
             set_chan = int(self.sm_channel.text())
 
             # Set the channel in another Thread
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_smu_channel, set_chan, 1 ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_channel, set_chan, 1))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu2_volt(self):
 
-        try: 
+        try:
             set_volt = float(self.sm_volt.text())
 
             # Set the voltage in another Thread
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_smu_volt, set_volt, 2 ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_volt, set_volt, 2))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu2_cur(self):
 
-        try: 
+        try:
             set_cur = float(self.sm_current.text())
 
             # Set the current in another Thread
-            self.instr_worker_thread.started.connect( partial ( self.instr_worker.set_smu_cur, set_cur, 2 ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_cur, set_cur, 2))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def set_smu2_channel(self):
 
-        try: 
+        try:
             set_chan = int(self.sm_channel.text())
 
             # Set the channel in another Thread
-            self.instr_worker_thread.started.connect(partial ( self.instr_worker.set_smu_channel, set_chan, 2 ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_smu_channel, set_chan, 2))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
-    
+
     def set_el_att(self):
 
-        try: 
+        try:
             set_att = float(self.el_att.text())
 
             # Set the attenuation in another Thread
-            self.instr_worker_thread.started.connect(partial ( self.instr_worker.set_el_att, set_att ) )
+            self.instr_worker_thread.started.connect(
+                partial(self.instr_worker.set_el_att, set_att))
             self.instr_worker_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
 
-        except:
+        except BaseException:
             pass
 
     def closeEvent(self, *args, **kwargs):
@@ -858,7 +942,7 @@ class photonmover_GUI(QMainWindow):
 
     def _find_instr_type_(self, category):
         """
-        Returns a list of the instruments with the specified category 
+        Returns a list of the instruments with the specified category
         category is one of the instrument interfaces. Ex: Laser
         """
         lst = []
@@ -868,7 +952,7 @@ class photonmover_GUI(QMainWindow):
                 lst.append(instr)
 
         return lst
-            
+
     def call_experiment(self, experiment_object):
         """
         Executes the experiment realized by the experiment_object stored in self.experiment_list at position experiment_index.
@@ -885,12 +969,17 @@ class photonmover_GUI(QMainWindow):
 
         self.last_experiment = experiment_object
 
-        # Run the experiment in the experiment thread (if there is a filename specified)
+        # Run the experiment in the experiment thread (if there is a filename
+        # specified)
         if filename:
-            self.exp_thread.started.connect(partial ( experiment_object.run_experiment, params, filename ) )
+            self.exp_thread.started.connect(
+                partial(
+                    experiment_object.run_experiment,
+                    params,
+                    filename))
             self.exp_thread.start()
-            time.sleep( 0.0001 )  # yield to the InstrumentWorker thread
-    
+            time.sleep(0.0001)  # yield to the InstrumentWorker thread
+
     def process_experiment_results(self, exp_results):
         """
         This is the method called when an experiment is done and we receive a signal from the experiments thread.
@@ -902,7 +991,7 @@ class photonmover_GUI(QMainWindow):
         self.plot_last_experiment_data()
 
         # Restart the refreshing execution for updating the stats
-        self.timer.start(REFRESHING_INTERVAL) # in msec
+        self.timer.start(REFRESHING_INTERVAL)  # in msec
 
     def _generate_params_dict_(self, experiment_object):
         """
@@ -913,10 +1002,10 @@ class photonmover_GUI(QMainWindow):
         """
         The parameters are agreed between the GUI and the experiments:
         -"voltages", -"wavs", -"use_DAQ", -"temperatures", -"calibrate"
-        -"measure_current", -"powers", -"num_averages", -"currents", -"power_range", - "voltages2", 
+        -"measure_current", -"powers", -"num_averages", -"currents", -"power_range", - "voltages2",
 
         "amplitudes", "freqs",
-        "f1", "f2", "amp_comp", 
+        "f1", "f2", "amp_comp",
         """
 
         params_dict = {}
@@ -931,9 +1020,11 @@ class photonmover_GUI(QMainWindow):
 
                 # This element is a tuple. The firs element is 1 or more indicators containing the relevant information
                 # The second element is the type of indicator ("checkbox" or "textbox")
-                # THe heuristics to sort through this element tuple are a bit complicated.
+                # THe heuristics to sort through this element tuple are a bit
+                # complicated.
 
-                # First, see if there is only one element specifying the parameter
+                # First, see if there is only one element specifying the
+                # parameter
                 if len(element[0]) == 1:
                     # We just need to extract the value if the indicator. Extracting the value depends on the
                     # tuple of indicator it is.
@@ -942,11 +1033,13 @@ class photonmover_GUI(QMainWindow):
                     elif element[1] == "textbox":
                         try:
                             params_dict[key] = float(element[0][0].text())
-                        except:
+                        except BaseException:
                             params_dict[key] = element[0][0].text()
 
                     else:
-                        raise ValueError("We don't know how to treat an indicator of type %s" % element[1])
+                        raise ValueError(
+                            "We don't know how to treat an indicator of type %s" %
+                            element[1])
 
                 elif len(element[0]) == 3:
 
@@ -961,7 +1054,8 @@ class photonmover_GUI(QMainWindow):
                 elif len(element[0]) == 4:
 
                     # This is the case where the first indicator sets the init value, the second the end
-                    # value, the third one the number of values and the last one the type of sweep
+                    # value, the third one the number of values and the last
+                    # one the type of sweep
                     sweep_type = element[0][3].currentText()
                     if sweep_type == 'linear':
                         init_val = float(element[0][0].text())
@@ -972,39 +1066,49 @@ class photonmover_GUI(QMainWindow):
                         init_val = float(element[0][0].text())
                         end_val = float(element[0][1].text())
                         num_val = int(element[0][2].text())
-                        vals = np.logspace(np.log10(init_val), np.log10(end_val), num_val)
+                        vals = np.logspace(
+                            np.log10(init_val), np.log10(end_val), num_val)
                     elif sweep_type == 'list':
-                        # In this case, the values are given in the first textbox as a list
+                        # In this case, the values are given in the first
+                        # textbox as a list
                         val_list = element[0][0].text()
                         val_list = [float(v) for v in val_list.split(" ")]
                         vals = np.array(val_list)
                     else:
-                        raise ValueError('Sweep type not recognized: %s' % sweep_type)
+                        raise ValueError(
+                            'Sweep type not recognized: %s' %
+                            sweep_type)
                     params_dict[key] = vals
 
                 else:
-                    raise ValueError("We don't know how to treat %d indicators to specify a param" % len(element[0]))
+                    raise ValueError(
+                        "We don't know how to treat %d indicators to specify a param" % len(
+                            element[0]))
 
             else:
                 # It means we don't have an indicator for the variable!
 
-                # We can check if the parameter we lack has a default value, in which case this is not a problem
+                # We can check if the parameter we lack has a default value, in
+                # which case this is not a problem
                 if key not in experiment_object.default_params():
-                    # There is no default value and no indicator - this is a problem
-                    raise ValueError("The experiment %s requires the param %s and there is no indicator or default value for it!" % 
+                    # There is no default value and no indicator - this is a
+                    # problem
+                    raise ValueError(
+                        "The experiment %s requires the param %s and there is no indicator or default value for it!" %
                         (experiment_object.get_name(), key))
 
         return params_dict
 
     def refresh_stats(self):
-        
+
         # Launch the information gathering in another thread and tie its ending
         # to a GUI refresh operation
 
         meas_smu = (self.num_loop_exec == 0)
 
         # Get the data in another thread
-        self.stats_worker_thread.started.connect( partial ( self.stats_worker.get_stats, self.smu_mode, meas_smu ) )
+        self.stats_worker_thread.started.connect(
+            partial(self.stats_worker.get_stats, self.smu_mode, meas_smu))
         self.stats_worker_thread.start()
         self.num_loop_exec = (self.num_loop_exec + 1) % SMU_MEAS_INTERVAL
 
@@ -1029,20 +1133,21 @@ class photonmover_GUI(QMainWindow):
                         self.sm_volt.setText("%.2f" % sm_val)
                     elif self.smu_mode == 'meas_cur':
                         self.sm_current.setText("%.3e" % sm_val)
-        except:
+        except BaseException:
             pass
 
         # Optical Power
-        self.tap_power.setText( "%.2e" % tap_power)
-        self.rec_power.setText( "%.2e" % rec_power)
+        self.tap_power.setText("%.2e" % tap_power)
+        self.rec_power.setText("%.2e" % rec_power)
         if self.use_cal.isChecked():
             calibrate = 1
         else:
             calibrate = 0
         wav = float(self.set_wl.text())
-        [through_loss, input_power] = analyze_powers(tap_power, rec_power, wav, calibrate, self.rec_splitter_ratio)
-        self.in_out_loss.setText( "%.2f" % through_loss )
-        self.meas_in_power.setText( "%.2e" % input_power )
+        [through_loss, input_power] = analyze_powers(
+            tap_power, rec_power, wav, calibrate, self.rec_splitter_ratio)
+        self.in_out_loss.setText("%.2f" % through_loss)
+        self.meas_in_power.setText("%.2e" % input_power)
 
         # Refresh the tx vs time plot if necessary
         if self.plot_tx:
@@ -1053,18 +1158,21 @@ class photonmover_GUI(QMainWindow):
             QApplication.processEvents()
 
     def toggle_plot(self):
-        
+
         if self.plot_button.text() == "Plot last experiment data":
             # Retrieve the last experiment data and plot it
             self.plot_last_experiment_data()
         else:
 
             self.plot_button.setText("Plot last experiment data")
-            self.xlabel = self.plot_area.setLabel('bottom', text='Time [au]', **self.label_styles)
-            self.ylabel = self.plot_area.setLabel('left', text='Transmission [dB]', **self.label_styles)
+            self.xlabel = self.plot_area.setLabel(
+                'bottom', text='Time [au]', **self.label_styles)
+            self.ylabel = self.plot_area.setLabel(
+                'left', text='Transmission [dB]', **self.label_styles)
             self.plot_area.clear()
             self.plot_line = self.plot_area.plot([0], [0], pen=self.pen)
-            self.title = self.plot_area.setTitle('Coupling vs Time', size='20pt')
+            self.title = self.plot_area.setTitle(
+                'Coupling vs Time', size='20pt')
             self.plot_tx = True
 
     def plot_last_experiment_data(self):
@@ -1074,9 +1182,10 @@ class photonmover_GUI(QMainWindow):
         self.tx_vs_time = []
 
         try:
-            # Plots the last experiment data in the plot area by calling the plot_data method of the experiment
+            # Plots the last experiment data in the plot area by calling the
+            # plot_data method of the experiment
             self.last_experiment.plot_data(self.plot_area, self.last_exp_data)
             self.plot_button.setText("Plot in-out loss")
 
-        except:
+        except BaseException:
             print('The experiment data cannot be plotted')

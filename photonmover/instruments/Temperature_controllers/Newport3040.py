@@ -32,7 +32,7 @@ class Newport3040(Instrument, TempController):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Newport Temp controller')
 
         self.init_function()
@@ -71,7 +71,8 @@ class Newport3040(Instrument, TempController):
         self.low_T_lim = low_temp_limit
 
     def set_mode(self, mode):
-        # Sets the TEC mode. 'ITE' for constant current, 'R' for constant R, 'T' for constant T
+        # Sets the TEC mode. 'ITE' for constant current, 'R' for constant R,
+        # 'T' for constant T
         if mode not in ['ITE', 'R', 'T']:
             print('Selected TEC mode not recognized. Doing nothing.')
             return
@@ -87,7 +88,8 @@ class Newport3040(Instrument, TempController):
 
     def set_sensor(self, sensor):
         # Selects the temperature sensor type.
-        # 0: None, 1: Thermistor at 100 uA drive, 2: Thermistor at 10 uA drive, 3: LM335, 4: AD590, 5: RTD
+        # 0: None, 1: Thermistor at 100 uA drive, 2: Thermistor at 10 uA drive,
+        # 3: LM335, 4: AD590, 5: RTD
         if sensor not in [0, 1, 2, 3, 4, 5]:
             print('Selected TEC sensor not recognized. DOing nothing.')
             return
@@ -112,5 +114,3 @@ if __name__ == '__main__':
         t = input("Enter T:")
         tec.set_temperature(float(t))
     tec.close()
-
-

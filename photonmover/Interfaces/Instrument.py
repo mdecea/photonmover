@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 # ABC means Abstract Base Class and is basically an interface
 
+
 class Instrument(ABC):
 
     def __init__(self):

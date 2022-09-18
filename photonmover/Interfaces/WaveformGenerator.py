@@ -29,7 +29,6 @@ class WaveformGenerator(ABC):
         :return:
         """
 
-
     @abstractmethod
     def set_frequency(self, freq):
         """
@@ -37,7 +36,6 @@ class WaveformGenerator(ABC):
         :param freq:
         :return:
         """
-
 
     @abstractmethod
     def set_duty_cycle(self, duty_cycle):
@@ -58,11 +56,12 @@ class WaveformGenerator(ABC):
     @abstractmethod
     def set_voltage(self, amplitude, offset):
         """
-        Sets the voltage settings. If any of them is None, they are not modified
+        Sets the voltage settings. If any of them is None, they are
+        not modified
         :param amplitude: peak to peak amplitude (V)
         :param offset: offset voltage (V)
         :return:
         """
 
     def get_id(self):
-        return("WaveformGenerator")
+        return ("WaveformGenerator")

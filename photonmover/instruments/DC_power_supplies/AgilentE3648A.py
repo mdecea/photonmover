@@ -10,10 +10,14 @@ DEFAULT_VOLTAGE_COMPLIANCE = 8  # Default current compliance in V
 
 class AgilentE3648A(Instrument, DCPowerSource):
     """
-    Code for controlling Agilent E3648A DC power supply through GPIB. 
+    Code for controlling Agilent E3648A DC power supply through GPIB.
     """
 
-    def __init__(self, channel=1, voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE, gpib=None):
+    def __init__(
+            self,
+            channel=1,
+            voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE,
+            gpib=None):
         """
         Note: the gpib is added as a parameter beacuse if we want to use two channels of the same
         SMU as two different source meters we would need to give the already initalized gpib (you cannot
@@ -39,14 +43,15 @@ class AgilentE3648A(Instrument, DCPowerSource):
         try:
             if self.gpib is None:
                 self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
-            raise ValueError('Cannot connect to the Agilent E3648A DC power source')
+        except BaseException:
+            raise ValueError(
+                'Cannot connect to the Agilent E3648A DC power source')
 
         self.init_function()
 
     def close(self):
         print('Disconnecting Agilent E3648A DC power source')
-        #self.turn_off()
+        # self.turn_off()
         self.gpib.close()
 
     def select_channel(self, channel):
@@ -56,12 +61,12 @@ class AgilentE3648A(Instrument, DCPowerSource):
 
         self.gpib.write('INST:SEL OUT%d' % channel)
         self.channel = channel
-    
+
     def init_function(self):
         """
         Initializes the source meter
         """
-        
+
         self.select_channel(self.channel)
         self.set_voltage_compliance(self.volt_compliance)
         self.activate_overvoltage_prot(1)
@@ -82,7 +87,7 @@ class AgilentE3648A(Instrument, DCPowerSource):
         """
 
         self.gpib.write("VOLT %.4E" % voltage)
-        
+
     def set_current(self, current):
         """
         Sets the specified current
@@ -128,7 +133,7 @@ class AgilentE3648A(Instrument, DCPowerSource):
         :return:
         """
         self.gpib.write(":OUTP OFF")
-        self.is_on = 0 
+        self.is_on = 0
 
 
 if __name__ == '__main__':

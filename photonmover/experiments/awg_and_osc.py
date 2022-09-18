@@ -7,7 +7,8 @@ from photonmover.Interfaces.WaveformGenerator import WaveformGenerator
 from photonmover.instruments.Oscilloscopes.RigolDS1000 import RigolDS1000
 
 # This is only necessary for the example
-from photonmover.instruments.Arbitrary_waveform_generators.Agilent33201A import Agilent33201A
+from photonmover.instruments.Arbitrary_waveform_generators.Agilent33201A \
+    import Agilent33201A
 
 # General imports
 import time
@@ -18,7 +19,8 @@ class AWG_and_OSC(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT: 
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -31,13 +33,14 @@ class AWG_and_OSC(Experiment):
         self.check_necessary_instruments(instrument_list)
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
-        :return: True if the necessary instruments are present, False otherwise.
+        Checks if the instruments to perform the experiment are present.
+        :param instrument_list: list of the available instruments
+        :return: True if the instruments are present, else False.
         """
         for instr in instrument_list:
             if isinstance(instr, WaveformGenerator):
@@ -54,20 +57,20 @@ class AWG_and_OSC(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return "Sweeps amplitude, bias and frequency of a square wave and records the resulting " \
-               "signal with an oscilloscope."
+        return "Sweeps amplitude, bias and frequency of a square wave " \
+               "and records the resultingsignal with an oscilloscope."
 
     def get_name(self):
         """
         Returns a string with the experiment name
         """
         return "AWG + OSC"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -93,19 +96,19 @@ class AWG_and_OSC(Experiment):
                     # Acquire and save data
 
                     if filename is not None:
-                        fname = "%s-Vgs_bias=%.3fV--Vgs_amp=%.3fV--Vgs_freq=%.3fkHz" % (filename, vgs_bias,
-                                                                                        vgs_amp,
-                                                                                        vgs_freq*1e-3)
+                        fname = "%s-Vgs_bias=%.3fV--Vgs_amp=%.3fV--Vgs_freq=%.3fkHz" % (
+                            filename, vgs_bias, vgs_amp, vgs_freq * 1e-3)
                     else:
                         fname = None
 
                     osc.read_waveform([1, 2], fname)
 
         return None
-    
+
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified
+         in the params dictionary, in order for
         a measurement to be performed
         """
         return ["voltages", "amplitudes", "freqs"]

@@ -21,8 +21,9 @@ class HP70843B(Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDRESS, timeout=5000)
-        except:
-            raise ValueError('Cannot connect to the HP70843B pattern generator')
+        except BaseException:
+            raise ValueError(
+                'Cannot connect to the HP70843B pattern generator')
 
     def close(self):
         print('Disconnecting HP70843B')
@@ -99,7 +100,7 @@ class HP70843B(Instrument):
 
         pattern_length = len(pattern)
 
-        #Construct formatted data block for PPG
+        # Construct formatted data block for PPG
         data_header = '#' + str(len(str(pattern_length))) + str(pattern_length)
         data = data_header
 
@@ -113,10 +114,10 @@ class HP70843B(Instrument):
             data = data + formatted_bit
 
         data = data + '\n'
-        self.gpib.write("PATT:FORM PACK,1") #set to 1 bit/byte
+        self.gpib.write("PATT:FORM PACK,1")  # set to 1 bit/byte
         self.gpib.write("PATT:UPAT%d %d" % (pattern_store, pattern_length))
         self.gpib.write("PATT:UPAT%d:DATA %s" % (pattern_store, data))
-        #query pattern in store
+        # query pattern in store
         #self.gpib.write("PATT:UPAT%d:DATA?" % pattern_store)
 
     def load_pattern_store(self, pattern_store):
@@ -130,7 +131,13 @@ class HP70843B(Instrument):
 
         self.gpib.write("SOUR1:PATT:SEL UPAT%d," % pattern_store)
 
-    def configure_pulse(self, repetition_rate, pulse_width, amplitude, hilevel, polarity):
+    def configure_pulse(
+            self,
+            repetition_rate,
+            pulse_width,
+            amplitude,
+            hilevel,
+            polarity):
         """
         Configure a pulse with the specified parameters, assuming 10 GHz clock rate (100 ps increments)
         :param repetition_rate: [Hz]
@@ -140,15 +147,16 @@ class HP70843B(Instrument):
         :param polarity: positive or negative
         """
 
-        #write to current pattern
+        # write to current pattern
         pattern_store = 0
         self.load_pattern_store(pattern_store)
 
-        #Pulse width step size
-        pulse_step = 100e-12 #[s]
+        # Pulse width step size
+        pulse_step = 100e-12  # [s]
 
-        #Convert repetition rate to pattern length
-        pattern_length = round(1 / (repetition_rate*pulse_step)) # Number of bits
+        # Convert repetition rate to pattern length
+        pattern_length = round(
+            1 / (repetition_rate * pulse_step))  # Number of bits
 
         on_bits = round(pulse_width / pulse_step)
         off_bits = pattern_length - on_bits
@@ -173,12 +181,17 @@ if __name__ == '__main__':
     ppg = HP70843B()
     ppg.initialize()
 
-    repetition_rate = 35e6 #10e6 #0.110e9 #[Hz]
-    pulse_width = 100e-12 #0.5*(1/repetition_rate)#5e-9 #100e-12 #[s]
-    amplitude = 0.9 #[V]
+    repetition_rate = 35e6  # 10e6 #0.110e9 #[Hz]
+    pulse_width = 100e-12  # 0.5*(1/repetition_rate)#5e-9 #100e-12 #[s]
+    amplitude = 0.9  # [V]
     hilevel = amplitude
     polarity = 'positive'
 
-    ppg.configure_pulse(repetition_rate, pulse_width, amplitude, hilevel, polarity)
+    ppg.configure_pulse(
+        repetition_rate,
+        pulse_width,
+        amplitude,
+        hilevel,
+        polarity)
     ppg.turn_on()
     ppg.close()

@@ -37,12 +37,13 @@ class BW_AWG_and_MSA(Experiment):
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -61,7 +62,7 @@ class BW_AWG_and_MSA(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return """ Performs a bandwidth measurement by sweeping the frequency of a sinusoid generated 
+        return """ Performs a bandwidth measurement by sweeping the frequency of a sinusoid generated
         by an AWG and measures the response using an MSA. It can also sweep amplitude and offset. """
 
     def get_name(self):
@@ -91,7 +92,9 @@ class BW_AWG_and_MSA(Experiment):
         for offset in biases:
             for amp in amps:
 
-                print('Starting freq sweep for offset %.4f mV, amplitude %.4f mV...' % (offset * 1e3, amp * 1e3))
+                print(
+                    'Starting freq sweep for offset %.4f mV, amplitude %.4f mV...' %
+                    (offset * 1e3, amp * 1e3))
 
                 # Configure AWG and turn on
                 self.awg.set_waveform('SIN', self.freq[0], amp, offset)
@@ -103,7 +106,7 @@ class BW_AWG_and_MSA(Experiment):
                 # Sweep frequency and get spectrum for each one
                 for freq in freqs:
 
-                    print('Measuring %.4f MHz...' % (freq*1e-6))
+                    print('Measuring %.4f MHz...' % (freq * 1e-6))
 
                     # Change the frequency of the applied signal
                     self.awg.set_frequency(freq)
@@ -112,16 +115,20 @@ class BW_AWG_and_MSA(Experiment):
                     time.sleep(1)
 
                     # Set the MSA to get the signal of interest
-                    freq_string = "%.4f MHZ" % (freq*1e-6)
-                    span_string = "%.4f MHZ" % np.minimum(np.maximum((2*freq*1e-6), 0.5), 1)
-                    self.msa.set_freq_axis(freq_string, span_string, None, None)
+                    freq_string = "%.4f MHZ" % (freq * 1e-6)
+                    span_string = "%.4f MHZ" % np.minimum(
+                        np.maximum((2 * freq * 1e-6), 0.5), 1)
+                    self.msa.set_freq_axis(
+                        freq_string, span_string, None, None)
                     time.sleep(2)
 
                     # Get peak information
                     f_peak, amp_val = self.msa.get_peak_info()
                     peak_freqs.append(f_peak)
                     peak_amps.append(amp_val)
-                    print('Peak at %.4f MHz with strength %.4f dB' % (f_peak*1e-6, amp_val))
+                    print(
+                        'Peak at %.4f MHz with strength %.4f dB' %
+                        (f_peak * 1e-6, amp_val))
                     print('Got peak data')
 
                     # Get the spectrum and save it
@@ -129,15 +136,15 @@ class BW_AWG_and_MSA(Experiment):
 
                     if filename is not None:
                         file_name = "%s-freq=%.4fMHz-Vgs_amp=%.3fV-Vgs_offs=%.3fV--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                                        freq*1e-6,
-                                                                                                        amp,
-                                                                                                        offset,
-                                                                                                        time_tuple[0],
-                                                                                                        time_tuple[1],
-                                                                                                        time_tuple[2],
-                                                                                                        time_tuple[3],
-                                                                                                        time_tuple[4],
-                                                                                                        time_tuple[5])
+                                                                                                             freq * 1e-6,
+                                                                                                             amp,
+                                                                                                             offset,
+                                                                                                             time_tuple[0],
+                                                                                                             time_tuple[1],
+                                                                                                             time_tuple[2],
+                                                                                                             time_tuple[3],
+                                                                                                             time_tuple[4],
+                                                                                                             time_tuple[5])
                     else:
                         file_name = None
 
@@ -148,14 +155,14 @@ class BW_AWG_and_MSA(Experiment):
 
                 if filename is not None:
                     summary_filename = "%s-peaks_vs_freq_summary-Vgs_amp=%.3fV-Vgs_offs=%.3fV--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                                                    amp,
-                                                                                                                    offset,
-                                                                                                                    time_tuple[0],
-                                                                                                                    time_tuple[1],
-                                                                                                                    time_tuple[2],
-                                                                                                                    time_tuple[3],
-                                                                                                                    time_tuple[4],
-                                                                                                                    time_tuple[5])
+                                                                                                                         amp,
+                                                                                                                         offset,
+                                                                                                                         time_tuple[0],
+                                                                                                                         time_tuple[1],
+                                                                                                                         time_tuple[2],
+                                                                                                                         time_tuple[3],
+                                                                                                                         time_tuple[4],
+                                                                                                                         time_tuple[5])
                     # Save the peak vs frequency data
                     with open(summary_filename, 'w+') as csvfile:
                         writer = csv.writer(csvfile)
@@ -175,17 +182,25 @@ class BW_AWG_and_MSA(Experiment):
         return ["voltages", "amplitudes", "freqs"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-              
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         peak_freqs = data[0]
         peak_amps = data[1]
 
-        plot_graph(x_data=peak_freqs, y_data=peak_amps, canvas_handle=canvas_handle, xlabel='Peak Frequency (Hz)', ylabel='Peak amplitude (dBm)', title='AWG+MSA', legend=None)
+        plot_graph(
+            x_data=peak_freqs,
+            y_data=peak_amps,
+            canvas_handle=canvas_handle,
+            xlabel='Peak Frequency (Hz)',
+            ylabel='Peak amplitude (dBm)',
+            title='AWG+MSA',
+            legend=None)
 
 
 if __name__ == '__main__':
@@ -207,7 +222,10 @@ if __name__ == '__main__':
     num_freq = 3
     log_sweep = True  # If True, it does a logarithmic sweep
     if log_sweep:
-        freq_list = np.logspace(np.log10(start_freq), np.log10(end_freq), num_freq)
+        freq_list = np.logspace(
+            np.log10(start_freq),
+            np.log10(end_freq),
+            num_freq)
     else:
         freq_list = np.linspace(start_freq, end_freq, num_freq)
 
@@ -216,7 +234,10 @@ if __name__ == '__main__':
     # SET UP THE EXPERIMENT
     instr_list = [msa, awg]
     exp = BW_AWG_and_MSA(instr_list)
-    params = {"voltages": vgs_offset, "amplitudes": vgs_amp, "freqs": freq_list}
+    params = {
+        "voltages": vgs_offset,
+        "amplitudes": vgs_amp,
+        "freqs": freq_list}
 
     # RUN IT
     exp.perform_experiment(params, filename=base_file_name)

@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 # ABC means Abstract Base Class and is basically an interface
 
+
 class Laser(ABC):
 
     def __init__(self):
@@ -32,18 +33,18 @@ class Laser(ABC):
         :return:
         """
         pass
-    
+
     @abstractmethod
     def get_state(self):
         """
         Returns a list with the following elements:
-        1. The current power 
+        1. The current power
         2. If the laser is on or off.
         """
         pass
 
     def get_id(self):
-        return("Laser")
+        return ("Laser")
 
 
 class TunableLaser(Laser):
@@ -64,7 +65,7 @@ class TunableLaser(Laser):
         """
         Returns a list wiht the following elements:
         1. The current wavelength
-        2. The current power 
+        2. The current power
         3. If the laser is on or off.
         """
         pass

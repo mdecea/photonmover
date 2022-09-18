@@ -46,18 +46,20 @@ class TXSweep(Experiment):
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
             if isinstance(instr, TunableLaser):
-                # We need to account for the chance that the HPLightWave is not the laser
+                # We need to account for the chance that the HPLightWave is not
+                # the laser
                 if isinstance(instr, HPLightWave):
                     if instr.is_laser:
                         self.laser = instr
@@ -72,7 +74,8 @@ class TXSweep(Experiment):
             if isinstance(instr, SourceMeter):
                 self.smu = instr
 
-        if ( (self.pm is not None) or (self.daq is not None) ) and (self.laser is not None):
+        if ((self.pm is not None) or (self.daq is not None)) and (
+                self.laser is not None):
             return True
         else:
             return False
@@ -88,7 +91,7 @@ class TXSweep(Experiment):
         Returns a string with the experiment name
         """
         return "Tx"
-    
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -111,35 +114,48 @@ class TXSweep(Experiment):
         wavs = params["wavs"]
         use_DAQ = params["use_DAQ"]
         calibrate = params["calibrate"]
-        meas_current = params["meas_current"]  # Current can only be measured with the mainframe
+        # Current can only be measured with the mainframe
+        meas_current = params["meas_current"]
         rec_splitter_ratio = params["rec_splitter_ratio"]
 
         if (self.daq is not None) and use_DAQ:
             power_range = params["power_range"]
-            meas = self.perform_tx_measurement_daq(wavs, power_range, calibrate, rec_splitter_ratio, filename)
+            meas = self.perform_tx_measurement_daq(
+                wavs, power_range, calibrate, rec_splitter_ratio, filename)
         elif self.pm is not None:
             # See if we use the HP lightwave or the MPM200
             if isinstance(self.laser, SantecMPM200):
                 print('Tx measurent with MPM200')
-                meas = self.perform_tx_measurement_MPM200(wavs, calibrate, rec_splitter_ratio, filename)
+                meas = self.perform_tx_measurement_MPM200(
+                    wavs, calibrate, rec_splitter_ratio, filename)
             elif isinstance(self.laser, HPLightWave):
                 print('Tx measurent with HPLightwave')
-                meas = self.perform_tx_measurement_mainframe(wavs, calibrate, meas_current, rec_splitter_ratio,
-                                                             filename)
+                meas = self.perform_tx_measurement_mainframe(
+                    wavs, calibrate, meas_current, rec_splitter_ratio, filename)
             else:
                 print('Tx measurent with HPLightwave')
-                meas = self.perform_tx_measurement_mainframe(wavs, calibrate, meas_current, rec_splitter_ratio,
-                                                             filename)
+                meas = self.perform_tx_measurement_mainframe(
+                    wavs, calibrate, meas_current, rec_splitter_ratio, filename)
 
         self.data = meas
 
         return meas
 
     def default_params(self):
-        return {"calibrate": True, "meas_current": False, "use_DAQ": False, "power_range": None,
-                "rec_splitter_ratio": 1}
+        return {
+            "calibrate": True,
+            "meas_current": False,
+            "use_DAQ": False,
+            "power_range": None,
+            "rec_splitter_ratio": 1}
 
-    def perform_tx_measurement_mainframe(self, wavs, calibrate, meas_current, rec_splitter_ratio, filename=None):
+    def perform_tx_measurement_mainframe(
+            self,
+            wavs,
+            calibrate,
+            meas_current,
+            rec_splitter_ratio,
+            filename=None):
         """
         Performs a wavelength sweep using the mainframe to interrogate the received power
         """
@@ -147,7 +163,8 @@ class TXSweep(Experiment):
         # Initialize the matrix to save the data
         measurements = np.zeros((len(wavs), 7), float)
 
-        # Save current state so that we can get back to it after the measurement
+        # Save current state so that we can get back to it after the
+        # measurement
         [prev_wl, _, laser_active] = self.laser.get_state()
 
         # Turn laser on if necessary
@@ -164,9 +181,9 @@ class TXSweep(Experiment):
             time.sleep(self.laser.sweep_dwell_time)
 
             tap_power, measured_received_power = self.pm.get_powers()
-            through_loss, measured_input_power = analyze_powers(tap_power, measured_received_power, wav, calibrate,
-                                                                rec_splitter_ratio)
-            
+            through_loss, measured_input_power = analyze_powers(
+                tap_power, measured_received_power, wav, calibrate, rec_splitter_ratio)
+
             if self.wav_meter is not None:
                 meas_wavelength = self.wav_meter.get_wavelength()
             else:
@@ -198,15 +215,15 @@ class TXSweep(Experiment):
 
             time_tuple = time.localtime()
             filename = "%s-tx_wav_sweep-%.2f-%d-%.2f--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                          wavs[0],
-                                                                          len(wavs),
-                                                                          wavs[-1],
-                                                                          time_tuple[0],
-                                                                          time_tuple[1],
-                                                                          time_tuple[2],
-                                                                          time_tuple[3],
-                                                                          time_tuple[4],
-                                                                          time_tuple[5])
+                                                                                wavs[0],
+                                                                                len(wavs),
+                                                                                wavs[-1],
+                                                                                time_tuple[0],
+                                                                                time_tuple[1],
+                                                                                time_tuple[2],
+                                                                                time_tuple[3],
+                                                                                time_tuple[4],
+                                                                                time_tuple[5])
 
             print("Saving data to ", filename)
             io.savemat(filename, {'scattering': measurements})
@@ -222,7 +239,13 @@ class TXSweep(Experiment):
 
         return measurements
 
-    def perform_tx_measurement_daq(self, wavs, power_range, calibrate, rec_splitter_ratio, filename=None):
+    def perform_tx_measurement_daq(
+            self,
+            wavs,
+            power_range,
+            calibrate,
+            rec_splitter_ratio,
+            filename=None):
         """
         Performs a wavelength sweep using the NI DAQ to interrogate the received power
         """
@@ -233,7 +256,8 @@ class TXSweep(Experiment):
         if not laser_active:
             self.laser.turn_on()
 
-        sweep_time, true_num_wavs = self.laser.configure_sweep(wavs[0], wavs[-1], len(wavs))  # Configure the laser wavelength sweep
+        sweep_time, true_num_wavs = self.laser.configure_sweep(
+            wavs[0], wavs[-1], len(wavs))  # Configure the laser wavelength sweep
 
         # We need to account for the case that the power range is set to AUTO, in which case we need
         # to fix it
@@ -242,19 +266,21 @@ class TXSweep(Experiment):
             pm_auto = True  # To put it back to auto afterwards
             # Get the current received power and decide the range based on that
             _, measured_received_power = self.pm.get_powers()
-            meas_power_dBm = 10*np.log10(measured_received_power*1e3)
-            power_range = np.ceil(meas_power_dBm/10)*10
+            meas_power_dBm = 10 * np.log10(measured_received_power * 1e3)
+            power_range = np.ceil(meas_power_dBm / 10) * 10
             self.pm.set_range(self.pm.rec_channel, power_range)
 
         else:
             self.pm.set_range(self.pm.rec_channel, power_range)
-        self.pm.set_range(self.pm.tap_channel, 0)  # 0 dBm power range will work for the tap channel
+        # 0 dBm power range will work for the tap channel
+        self.pm.set_range(self.pm.tap_channel, 0)
 
-        self.daq.configure_nsampl_acq([AIN_RECEIVED, AIN_TAP], PFI_CLK, true_num_wavs)
+        self.daq.configure_nsampl_acq(
+            [AIN_RECEIVED, AIN_TAP], PFI_CLK, true_num_wavs)
 
         self.daq.start_task()
         self.laser.start_sweep()
-        self.daq.wait_task(timeout= sweep_time + 10)
+        self.daq.wait_task(timeout=sweep_time + 10)
         daq_data = self.daq.read_data(true_num_wavs)
         # Matrix to save the data
         measurements = np.zeros((true_num_wavs, 7), float)
@@ -265,11 +291,13 @@ class TXSweep(Experiment):
 
             # Need to convert voltage to power, based on the range
 
-            measured_received_power = daq_data[0][i]*np.power(10, (power_range/10))*1e-3  # power in W
-            tap_power = daq_data[1][i]*np.power(10, (0/10))*1e-3
+            # power in W
+            measured_received_power = daq_data[0][i] * \
+                np.power(10, (power_range / 10)) * 1e-3
+            tap_power = daq_data[1][i] * np.power(10, (0 / 10)) * 1e-3
 
-            through_loss, measured_input_power = analyze_powers(tap_power, measured_received_power, wavs[i], calibrate,
-                                                                rec_splitter_ratio)
+            through_loss, measured_input_power = analyze_powers(
+                tap_power, measured_received_power, wavs[i], calibrate, rec_splitter_ratio)
 
             measurements[i, 0] = 0.0   # We don't measure the wavelength
             measurements[i, 1] = through_loss
@@ -282,21 +310,21 @@ class TXSweep(Experiment):
 
             time_tuple = time.localtime()
             filename = "%s-tx_wav_sweep_DAQ-%.2f-%d-%.2f--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                          wavs[0],
-                                                                          len(wavs),
-                                                                          wavs[-1],
-                                                                          time_tuple[0],
-                                                                          time_tuple[1],
-                                                                          time_tuple[2],
-                                                                          time_tuple[3],
-                                                                          time_tuple[4],
-                                                                          time_tuple[5])
+                                                                                    wavs[0],
+                                                                                    len(wavs),
+                                                                                    wavs[-1],
+                                                                                    time_tuple[0],
+                                                                                    time_tuple[1],
+                                                                                    time_tuple[2],
+                                                                                    time_tuple[3],
+                                                                                    time_tuple[4],
+                                                                                    time_tuple[5])
 
             print("Saving data to ", filename)
             io.savemat(filename, {'scattering': measurements})
 
         # Beep when done
-        winsound.Beep(2000, 1000) # frequency, duration
+        winsound.Beep(2000, 1000)  # frequency, duration
 
         # Return to previous state
         self.laser.set_wavelength(prev_wl)
@@ -310,7 +338,12 @@ class TXSweep(Experiment):
 
         return measurements
 
-    def perform_tx_measurement_MPM200(self, wavs, calibrate, rec_splitter_ratio, filename=None):
+    def perform_tx_measurement_MPM200(
+            self,
+            wavs,
+            calibrate,
+            rec_splitter_ratio,
+            filename=None):
         """
         Performs a wavelength sweep using the MPM200 to interrogate the power
         """
@@ -321,13 +354,14 @@ class TXSweep(Experiment):
         end_wav = wavs[-1]
         num_wav = len(wavs) + 1
 
-        if (end_wav-init_wav) > 20:
+        if (end_wav - init_wav) > 20:
             wav_speed = 15
-        #elif (end_wav-init_wav)/num_wav < 0.005:
+        # elif (end_wav-init_wav)/num_wav < 0.005:
         #    wav_speed = 0.5
         else:
             wav_speed = 1
-        #wav_speed = np.min([15, np.max([num_wav*0.1e-3, (end_wav-init_wav)/15])])  # speed in nm/s
+        # wav_speed = np.min([15, np.max([num_wav*0.1e-3,
+        # (end_wav-init_wav)/15])])  # speed in nm/s
 
         # Turn laser on if necessary
         if not laser_active:
@@ -354,15 +388,17 @@ class TXSweep(Experiment):
         rec_powers = self.pm.get_logged_data(port=self.pm.rec_port)
 
         # In the continuous sweep it is necessary to calibrate the power data
-        po = self.power_meter.get_power_offsets(port=self.pm.rec_port,
-                                                wavelengths=np.linspace(init_wav, end_wav, num_wav), wave_ref=init_wav)
+        po = self.power_meter.get_power_offsets(
+            port=self.pm.rec_port, wavelengths=np.linspace(
+                init_wav, end_wav, num_wav), wave_ref=init_wav)
         rec_cal_powers = list(map(lambda x, y: x + y, rec_powers, po))
 
         if self.pm.tap_port is not None:
-            ref_powers = self.power_meter.get_logged_data(port=self.pm.tap_port)
-            po = self.power_meter.get_power_offsets(port=self.pm.tap_port,
-                                                    wavelengths=np.linspace(init_wav, end_wav, num_wav),
-                                                    wave_ref=init_wav)
+            ref_powers = self.power_meter.get_logged_data(
+                port=self.pm.tap_port)
+            po = self.power_meter.get_power_offsets(
+                port=self.pm.tap_port, wavelengths=np.linspace(
+                    init_wav, end_wav, num_wav), wave_ref=init_wav)
             ref_cal_powers = list(map(lambda x, y: x + y, ref_powers, po))
         else:
             ref_cal_powers = None
@@ -376,14 +412,14 @@ class TXSweep(Experiment):
 
         for i in range(len(wavs)):
 
-            rec_power = np.power(10, rec_cal_powers[i]/10)*1e-3
+            rec_power = np.power(10, rec_cal_powers[i] / 10) * 1e-3
             if self.pm.tap_port is not None:
-                tap_power = np.power(10, ref_cal_powers[i]/10)*1e-3
+                tap_power = np.power(10, ref_cal_powers[i] / 10) * 1e-3
             else:
                 tap_power = None
 
-            through_loss, measured_input_power = analyze_powers(tap_power, rec_power, wavs[i], calibrate,
-                                                                rec_splitter_ratio)
+            through_loss, measured_input_power = analyze_powers(
+                tap_power, rec_power, wavs[i], calibrate, rec_splitter_ratio)
 
             measurements[i, 0] = 0.0  # We don't measure the wavelength
             measurements[i, 1] = through_loss
@@ -393,18 +429,18 @@ class TXSweep(Experiment):
             measurements[i, 5] = tap_power
 
         if filename is not None:
-           
+
             time_tuple = time.localtime()
             filename = "%s-tx_wav_sweep-%.2f-%d-%.2f--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                          init_wav,
-                                                                          num_wav,
-                                                                          end_wav,
-                                                                          time_tuple[0],
-                                                                          time_tuple[1],
-                                                                          time_tuple[2],
-                                                                          time_tuple[3],
-                                                                          time_tuple[4],
-                                                                          time_tuple[5])
+                                                                                init_wav,
+                                                                                num_wav,
+                                                                                end_wav,
+                                                                                time_tuple[0],
+                                                                                time_tuple[1],
+                                                                                time_tuple[2],
+                                                                                time_tuple[3],
+                                                                                time_tuple[4],
+                                                                                time_tuple[5])
 
             print("Saving data to ", filename)
             io.savemat(filename, {'scattering': measurements})
@@ -425,20 +461,33 @@ class TXSweep(Experiment):
         Returns a list with the keys that need to be specified in the params dictionary, in order for
         a measurement to be performed
         """
-        return ["wavs", "use_DAQ", "calibrate", "meas_current", "power_range", "rec_splitter_ratio"]
+        return [
+            "wavs",
+            "use_DAQ",
+            "calibrate",
+            "meas_current",
+            "power_range",
+            "rec_splitter_ratio"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
-        wavs = data[:,3]
-        tx = data[:,1]
-        plot_graph(x_data=wavs, y_data=tx, canvas_handle=canvas_handle, xlabel='Wavelength (nm)',
-                   ylabel='Tx (dB)', title='Tx spectrum', legend=None)
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
+        wavs = data[:, 3]
+        tx = data[:, 1]
+        plot_graph(
+            x_data=wavs,
+            y_data=tx,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Tx (dB)',
+            title='Tx spectrum',
+            legend=None)
 
 
 class TXBiasVSweep(Experiment):
@@ -463,18 +512,20 @@ class TXBiasVSweep(Experiment):
         self.legend = None  # To save the legend for plotting
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
             if isinstance(instr, TunableLaser):
-                # We need to account for the chance that the HPLightWave is not the laser
+                # We need to account for the chance that the HPLightWave is not
+                # the laser
                 if isinstance(instr, HPLightWave):
                     if instr.is_laser:
                         self.laser = instr
@@ -489,7 +540,8 @@ class TXBiasVSweep(Experiment):
             if isinstance(instr, WlMeter):
                 self.wav_meter = instr
 
-        if ( (self.pm is not None) or (self.daq is not None) ) and (self.laser is not None) and (self.smu is not None):
+        if ((self.pm is not None) or (self.daq is not None)) and (
+                self.laser is not None) and (self.smu is not None):
             return True
         else:
             return False
@@ -505,7 +557,7 @@ class TXBiasVSweep(Experiment):
         Returns a string with the experiment name
         """
         return "Tx vs V"
-    
+
     def perform_experiment(self, params, filename=None):
 
         params = self.check_all_params(params)
@@ -517,7 +569,7 @@ class TXBiasVSweep(Experiment):
         meas_current = params["meas_current"]
         calibrate = params["calibrate"]
         rec_splitter_ratio = params["rec_splitter_ratio"]
-        
+
         [prev_wl, _, laser_active] = self.laser.get_state()
         prev_bias = self.smu.measure_voltage()
 
@@ -534,33 +586,37 @@ class TXBiasVSweep(Experiment):
             self.smu.set_voltage(v_set)
             i_bias = self.smu.measure_current()
 
-            self.legend.append('V = %d mV' % (v_set*1e3))
+            self.legend.append('V = %d mV' % (v_set * 1e3))
 
-            tx_sing_v = TXSweep([self.laser, self.smu, self.pm, self.daq, self.wav_meter])
-            measurement = tx_sing_v.perform_experiment(params={"wavs": wavs, "use_DAQ": use_DAQ,
-                                                               "power_range": power_range,
-                                                               "meas_current": meas_current,
-                                                               "calibrate": calibrate,
-                                                               "rec_splitter_ratio": rec_splitter_ratio},
-                                                       filename=None)
+            tx_sing_v = TXSweep(
+                [self.laser, self.smu, self.pm, self.daq, self.wav_meter])
+            measurement = tx_sing_v.perform_experiment(
+                params={
+                    "wavs": wavs,
+                    "use_DAQ": use_DAQ,
+                    "power_range": power_range,
+                    "meas_current": meas_current,
+                    "calibrate": calibrate,
+                    "rec_splitter_ratio": rec_splitter_ratio},
+                filename=None)
 
             all_meas_data.append(measurement[:, 1])
 
             if filename is not None:
                 time_tuple = time.localtime()
                 filename_comp = "%s-TxvsV-%d%s-I_meas=%.2eA-%.2fnm-%d-%.2fnm--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                    1000 * v_set,
-                                                                                    "mV",
-                                                                                    i_bias,
-                                                                                    wavs[0],
-                                                                                    len(wavs),
-                                                                                    wavs[-1],
-                                                                                    time_tuple[0],
-                                                                                    time_tuple[1],
-                                                                                    time_tuple[2],
-                                                                                    time_tuple[3],
-                                                                                    time_tuple[4],
-                                                                                    time_tuple[5])
+                                                                                                         1000 * v_set,
+                                                                                                         "mV",
+                                                                                                         i_bias,
+                                                                                                         wavs[0],
+                                                                                                         len(wavs),
+                                                                                                         wavs[-1],
+                                                                                                         time_tuple[0],
+                                                                                                         time_tuple[1],
+                                                                                                         time_tuple[2],
+                                                                                                         time_tuple[3],
+                                                                                                         time_tuple[4],
+                                                                                                         time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'scattering': measurement})
@@ -582,28 +638,46 @@ class TXBiasVSweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"calibrate": True, "meas_current": False, "use_DAQ": False, "power_range": None,
-                "rec_splitter_ratio": 1}
-    
+        return {
+            "calibrate": True,
+            "meas_current": False,
+            "use_DAQ": False,
+            "power_range": None,
+            "rec_splitter_ratio": 1}
+
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["wavs", "use_DAQ", "calibrate", "meas_current", "voltages", "power_range", "rec_splitter_ratio"]
+        return [
+            "wavs",
+            "use_DAQ",
+            "calibrate",
+            "meas_current",
+            "voltages",
+            "power_range",
+            "rec_splitter_ratio"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)',
-                   ylabel='Tx (dB)', title='Tx spectrum vs V', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Tx (dB)',
+            title='Tx spectrum vs V',
+            legend=self.legend)
 
 
 class TXBiasISweep(Experiment):
@@ -627,18 +701,20 @@ class TXBiasISweep(Experiment):
         self.legend = None  # To save the legend for plotting
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
             if isinstance(instr, TunableLaser):
-                # We need to account for the chance that the HPLightWave is not the laser
+                # We need to account for the chance that the HPLightWave is not
+                # the laser
                 if isinstance(instr, HPLightWave):
                     if instr.is_laser:
                         self.laser = instr
@@ -653,7 +729,8 @@ class TXBiasISweep(Experiment):
             if isinstance(instr, WlMeter):
                 self.wav_meter = instr
 
-        if ( (self.pm is not None) or (self.daq is not None) ) and (self.laser is not None) and (self.smu is not None):
+        if ((self.pm is not None) or (self.daq is not None)) and (
+                self.laser is not None) and (self.smu is not None):
             return True
         else:
             return False
@@ -669,7 +746,7 @@ class TXBiasISweep(Experiment):
         Returns a string with the experiment name
         """
         return "Tx vs I"
-    
+
     def perform_experiment(self, params, filename=None):
 
         params = self.check_all_params(params)
@@ -680,7 +757,7 @@ class TXBiasISweep(Experiment):
         power_range = params["power_range"]
         calibrate = params["calibrate"]
         rec_splitter_ratio = params["rec_splitter_ratio"]
-        
+
         [prev_wl, _, laser_active] = self.laser.get_state()
         prev_bias = self.smu.measure_current()
 
@@ -699,30 +776,34 @@ class TXBiasISweep(Experiment):
 
             self.legend.append('I = %.2e A' % (i_set))
 
-            tx_sing_v = TXSweep([self.laser, self.smu, self.pm, self.daq, self.wav_meter])
-            measurement = tx_sing_v.perform_experiment(params={"wavs": wavs, "use_DAQ": use_DAQ,
-                                                               "power_range": power_range,
-                                                               "meas_current": False,
-                                                               "calibrate": calibrate,
-                                                               "rec_splitter_ratio": rec_splitter_ratio},
-                                                       filename=None)
+            tx_sing_v = TXSweep(
+                [self.laser, self.smu, self.pm, self.daq, self.wav_meter])
+            measurement = tx_sing_v.perform_experiment(
+                params={
+                    "wavs": wavs,
+                    "use_DAQ": use_DAQ,
+                    "power_range": power_range,
+                    "meas_current": False,
+                    "calibrate": calibrate,
+                    "rec_splitter_ratio": rec_splitter_ratio},
+                filename=None)
 
             all_meas_data.append(measurement[:, 1])
 
             if filename is not None:
                 time_tuple = time.localtime()
                 filename_comp = "%s-TxvsI-%.2eA-Vmeas=%.2eV-%.2fnm-%d-%.2fnm--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                    i_set,
-                                                                                    v_meas,
-                                                                                    wavs[0],
-                                                                                    len(wavs),
-                                                                                    wavs[-1],
-                                                                                    time_tuple[0],
-                                                                                    time_tuple[1],
-                                                                                    time_tuple[2],
-                                                                                    time_tuple[3],
-                                                                                    time_tuple[4],
-                                                                                    time_tuple[5])
+                                                                                                         i_set,
+                                                                                                         v_meas,
+                                                                                                         wavs[0],
+                                                                                                         len(wavs),
+                                                                                                         wavs[-1],
+                                                                                                         time_tuple[0],
+                                                                                                         time_tuple[1],
+                                                                                                         time_tuple[2],
+                                                                                                         time_tuple[3],
+                                                                                                         time_tuple[4],
+                                                                                                         time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'scattering': measurement})
@@ -744,27 +825,44 @@ class TXBiasISweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"calibrate": True, "use_DAQ": False, "power_range": None, "rec_splitter_ratio": 1}
-    
+        return {
+            "calibrate": True,
+            "use_DAQ": False,
+            "power_range": None,
+            "rec_splitter_ratio": 1}
+
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["wavs", "use_DAQ", "calibrate", "currents", "power_range", "rec_splitter_ratio"]
+        return [
+            "wavs",
+            "use_DAQ",
+            "calibrate",
+            "currents",
+            "power_range",
+            "rec_splitter_ratio"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)',
-                   ylabel='Tx (dB)', title='Tx spectrum vs V', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Tx (dB)',
+            title='Tx spectrum vs V',
+            legend=self.legend)
 
 
 class TXPowerSweep(Experiment):
@@ -789,18 +887,20 @@ class TXPowerSweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
             if isinstance(instr, TunableLaser):
-                # We need to account for the chance that the HPLightWave is not the laser
+                # We need to account for the chance that the HPLightWave is not
+                # the laser
                 if isinstance(instr, HPLightWave):
                     if instr.is_laser:
                         self.laser = instr
@@ -815,7 +915,8 @@ class TXPowerSweep(Experiment):
             if isinstance(instr, WlMeter):
                 self.wav_meter = instr
 
-        if ( (self.pm is not None) or (self.daq is not None) ) and (self.laser is not None):
+        if ((self.pm is not None) or (self.daq is not None)) and (
+                self.laser is not None):
             return True
         else:
             return False
@@ -831,7 +932,7 @@ class TXPowerSweep(Experiment):
         Returns a string with the experiment name
         """
         return "Tx vs Power"
-    
+
     def perform_experiment(self, params=None, filename=None):
 
         params = self.check_all_params(params)
@@ -859,29 +960,34 @@ class TXPowerSweep(Experiment):
 
             self.legend.append('P = %.2f mW' % p_set)
 
-            tx_sing_p = TXSweep([self.laser, self.smu, self.pm, self.daq, self.wav_meter])
-            measurement = tx_sing_p.perform_experiment(params={"wavs": wavs, "use_DAQ": use_DAQ,
-                                                               "power_range": power_range, "meas_current": meas_current,
-                                                               "calibrate": calibrate,
-                                                               "rec_splitter_ratio": rec_splitter_ratio},
-                                                       filename=None)
+            tx_sing_p = TXSweep(
+                [self.laser, self.smu, self.pm, self.daq, self.wav_meter])
+            measurement = tx_sing_p.perform_experiment(
+                params={
+                    "wavs": wavs,
+                    "use_DAQ": use_DAQ,
+                    "power_range": power_range,
+                    "meas_current": meas_current,
+                    "calibrate": calibrate,
+                    "rec_splitter_ratio": rec_splitter_ratio},
+                filename=None)
 
             all_meas_data.append(measurement[:, 1])
 
             if filename is not None:
                 time_tuple = time.localtime()
                 filename_comp = "%s-TxvsV-%.2f%s-%.2fnm-%d-%.2fnm--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                    p_set,
-                                                                                    "mW",
-                                                                                    wavs[0],
-                                                                                    len(wavs),
-                                                                                    wavs[-1],
-                                                                                    time_tuple[0],
-                                                                                    time_tuple[1],
-                                                                                    time_tuple[2],
-                                                                                    time_tuple[3],
-                                                                                    time_tuple[4],
-                                                                                    time_tuple[5])
+                                                                                              p_set,
+                                                                                              "mW",
+                                                                                              wavs[0],
+                                                                                              len(wavs),
+                                                                                              wavs[-1],
+                                                                                              time_tuple[0],
+                                                                                              time_tuple[1],
+                                                                                              time_tuple[2],
+                                                                                              time_tuple[3],
+                                                                                              time_tuple[4],
+                                                                                              time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'scattering': measurement})
@@ -898,33 +1004,51 @@ class TXPowerSweep(Experiment):
         all_plt_data = [measurement[:, 3]]
         all_plt_data.extend(all_meas_data)
 
-        self.data= all_plt_data
+        self.data = all_plt_data
 
         return all_plt_data
 
     def default_params(self):
-        return {"calibrate": True, "meas_current": False, "use_DAQ": False, "power_range": None,
-                "rec_splitter_ratio": 1}
+        return {
+            "calibrate": True,
+            "meas_current": False,
+            "use_DAQ": False,
+            "power_range": None,
+            "rec_splitter_ratio": 1}
 
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["wavs", "use_DAQ", "calibrate", "meas_current", "powers", "power_range", "rec_splitter_ratio"]
+        return [
+            "wavs",
+            "use_DAQ",
+            "calibrate",
+            "meas_current",
+            "powers",
+            "power_range",
+            "rec_splitter_ratio"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)',
-                   ylabel='Tx (dB)', title='Tx spectrum vs Power', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Tx (dB)',
+            title='Tx spectrum vs Power',
+            legend=self.legend)
 
 
 class TXDoubleBiasVSweep(Experiment):
@@ -955,18 +1079,20 @@ class TXDoubleBiasVSweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
             if isinstance(instr, TunableLaser):
-                # We need to account for the chance that the HPLightWave is not the laser
+                # We need to account for the chance that the HPLightWave is not
+                # the laser
                 if isinstance(instr, HPLightWave):
                     if instr.is_laser:
                         self.laser = instr
@@ -984,7 +1110,8 @@ class TXDoubleBiasVSweep(Experiment):
             if isinstance(instr, WlMeter):
                 self.wav_meter = instr
 
-        if ( (self.pm is not None) or (self.daq is not None) ) and (self.laser is not None) and (self.smu1 is not None) and (self.smu2 is not None):
+        if ((self.pm is not None) or (self.daq is not None)) and (
+                self.laser is not None) and (self.smu1 is not None) and (self.smu2 is not None):
             return True
         else:
             return False
@@ -1000,7 +1127,7 @@ class TXDoubleBiasVSweep(Experiment):
         Returns a string with the experiment name
         """
         return "Tx vs V (2 SMUs)"
-    
+
     def perform_experiment(self, params, filename=None):
 
         params = self.check_all_params(params)
@@ -1011,20 +1138,22 @@ class TXDoubleBiasVSweep(Experiment):
         use_DAQ = params["use_DAQ"]
         rec_splitter_ratio = params["rec_splitter_ratio"]
         comb_mode = params["combine_mode"]
-            # Type of combinatin of the two voltages
-            # If 'all_to_all', we measure all the combinations of voltages and voltages2
-            # If 'one_by_one', we measure (voltages[0], voltages2[0]), then (voltages[1], voltages2[1])...
+        # Type of combinatin of the two voltages
+        # If 'all_to_all', we measure all the combinations of voltages and voltages2
+        # If 'one_by_one', we measure (voltages[0], voltages2[0]), then
+        # (voltages[1], voltages2[1])...
         if (comb_mode == 'one_by_one') and (len(volts1) != len(volts2)):
-            raise ValueError('The length of V1s and V2s is not the same (error in Tx vs V 2 SMUs)')
+            raise ValueError(
+                'The length of V1s and V2s is not the same (error in Tx vs V 2 SMUs)')
 
         power_range = params["power_range"]
         meas_current = params["meas_current"]
         calibrate = params["calibrate"]
-        
+
         [prev_wl, _, laser_active] = self.laser.get_state()
         prev_bias1 = self.smu1.measure_voltage()
         prev_bias2 = self.smu2.measure_voltage()
-        
+
         # Turn laser on if necessary
         if not laser_active:
             self.laser.turn_on()
@@ -1047,15 +1176,21 @@ class TXDoubleBiasVSweep(Experiment):
                     i_meas2 = self.smu2.measure_current()
                     i_meas1 = self.smu1.measure_current()
 
-                    self.legend.append('V1 = %d mV, V2 = %d mV' % (v_set1*1e3, v_set2*1e3))
+                    self.legend.append(
+                        'V1 = %d mV, V2 = %d mV' %
+                        (v_set1 * 1e3, v_set2 * 1e3))
 
-                    tx_sing_v = TXSweep([self.laser, self.smu1, self.pm, self.daq, self.wav_meter])
-                    measurement = tx_sing_v.perform_experiment(params={"wavs": wavs, "use_DAQ": use_DAQ,
-                                                                       "power_range": power_range,
-                                                                       "meas_current": meas_current,
-                                                                       "calibrate": calibrate,
-                                                                       "rec_splitter_ratio": rec_splitter_ratio},
-                                                               filename=None)
+                    tx_sing_v = TXSweep(
+                        [self.laser, self.smu1, self.pm, self.daq, self.wav_meter])
+                    measurement = tx_sing_v.perform_experiment(
+                        params={
+                            "wavs": wavs,
+                            "use_DAQ": use_DAQ,
+                            "power_range": power_range,
+                            "meas_current": meas_current,
+                            "calibrate": calibrate,
+                            "rec_splitter_ratio": rec_splitter_ratio},
+                        filename=None)
 
                     all_meas_data.append(measurement[:, 1])
 
@@ -1063,21 +1198,21 @@ class TXDoubleBiasVSweep(Experiment):
                         time_tuple = time.localtime()
                         filename_comp = "%s-TxvsV2-V1=%d%s-V2=%d%s-Imeas1=%.2eA-Imeas2=%.2eA-%.2fnm-%d-%.2fnm" \
                                         "--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                    1000 * v_set1,
-                                                                    "mV",
-                                                                    1000 * v_set2,
-                                                                    "mV",
-                                                                    i_meas1,
-                                                                    i_meas2,
-                                                                    wavs[0],
-                                                                    len(wavs),
-                                                                    wavs[-1],
-                                                                    time_tuple[0],
-                                                                    time_tuple[1],
-                                                                    time_tuple[2],
-                                                                    time_tuple[3],
-                                                                    time_tuple[4],
-                                                                    time_tuple[5])
+                                                                      1000 * v_set1,
+                                                                      "mV",
+                                                                      1000 * v_set2,
+                                                                      "mV",
+                                                                      i_meas1,
+                                                                      i_meas2,
+                                                                      wavs[0],
+                                                                      len(wavs),
+                                                                      wavs[-1],
+                                                                      time_tuple[0],
+                                                                      time_tuple[1],
+                                                                      time_tuple[2],
+                                                                      time_tuple[3],
+                                                                      time_tuple[4],
+                                                                      time_tuple[5])
 
                         print("Saving data to ", filename_comp)
                         io.savemat(filename_comp, {'scattering': measurement})
@@ -1092,15 +1227,21 @@ class TXDoubleBiasVSweep(Experiment):
                 self.smu2.set_voltage(v_set2)
                 i_meas2 = self.smu2.measure_current()
 
-                self.legend.append('V1 = %d mV, V2 = %d mV' % (v_set1*1e3, v_set2*1e3))
+                self.legend.append(
+                    'V1 = %d mV, V2 = %d mV' %
+                    (v_set1 * 1e3, v_set2 * 1e3))
 
-                tx_sing_v = TXSweep([self.laser, self.smu1, self.pm, self.daq, self.wav_meter])
-                measurement = tx_sing_v.perform_experiment(params={"wavs": wavs, "use_DAQ": use_DAQ,
-                                                                   "power_range": power_range,
-                                                                   "meas_current": meas_current,
-                                                                   "calibrate": calibrate,
-                                                                   "rec_splitter_ratio": rec_splitter_ratio},
-                                                           filename=None)
+                tx_sing_v = TXSweep(
+                    [self.laser, self.smu1, self.pm, self.daq, self.wav_meter])
+                measurement = tx_sing_v.perform_experiment(
+                    params={
+                        "wavs": wavs,
+                        "use_DAQ": use_DAQ,
+                        "power_range": power_range,
+                        "meas_current": meas_current,
+                        "calibrate": calibrate,
+                        "rec_splitter_ratio": rec_splitter_ratio},
+                    filename=None)
 
                 all_meas_data.append(measurement[:, 1])
 
@@ -1108,25 +1249,24 @@ class TXDoubleBiasVSweep(Experiment):
                     time_tuple = time.localtime()
                     filename_comp = "%s-TxvsV2-V1=%d%s-V2=%d%s-Imeas1=%.2eA-Imeas2=%.2eA-%.2fnm-%d-%.2fnm" \
                                     "--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                        1000 * v_set1,
-                                                                                        "mV",
-                                                                                        1000 * v_set2,
-                                                                                        "mV",
-                                                                                        i_meas1,
-                                                                                        i_meas2,
-                                                                                        wavs[0],
-                                                                                        len(wavs),
-                                                                                        wavs[-1],
-                                                                                        time_tuple[0],
-                                                                                        time_tuple[1],
-                                                                                        time_tuple[2],
-                                                                                        time_tuple[3],
-                                                                                        time_tuple[4],
-                                                                                        time_tuple[5])
+                                                                  1000 * v_set1,
+                                                                  "mV",
+                                                                  1000 * v_set2,
+                                                                  "mV",
+                                                                  i_meas1,
+                                                                  i_meas2,
+                                                                  wavs[0],
+                                                                  len(wavs),
+                                                                  wavs[-1],
+                                                                  time_tuple[0],
+                                                                  time_tuple[1],
+                                                                  time_tuple[2],
+                                                                  time_tuple[3],
+                                                                  time_tuple[4],
+                                                                  time_tuple[5])
 
                     print("Saving data to ", filename_comp)
                     io.savemat(filename_comp, {'scattering': measurement})
-
 
         # Return to previous state
         self.laser.set_wavelength(prev_wl)
@@ -1146,29 +1286,49 @@ class TXDoubleBiasVSweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"calibrate": True, "meas_current": False, "use_DAQ": False, "power_range": None,
-                "combine_mode": "all_to_all", "rec_splitter_ratio": 1}
-    
+        return {
+            "calibrate": True,
+            "meas_current": False,
+            "use_DAQ": False,
+            "power_range": None,
+            "combine_mode": "all_to_all",
+            "rec_splitter_ratio": 1}
+
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["wavs", "use_DAQ", "calibrate", "meas_current", "voltages", "voltages2", "power_range", "combine_mode",
-                "rec_splitter_ratio"]
-    
+        return [
+            "wavs",
+            "use_DAQ",
+            "calibrate",
+            "meas_current",
+            "voltages",
+            "voltages2",
+            "power_range",
+            "combine_mode",
+            "rec_splitter_ratio"]
+
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-                
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data=x_data, y_data=y_data, canvas_handle=canvas_handle, xlabel='Wavelength (nm)',
-                   ylabel='Tx (dB)', title='Tx spectrum vs 2V', legend=self.legend)
+        plot_graph(
+            x_data=x_data,
+            y_data=y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Tx (dB)',
+            title='Tx spectrum vs 2V',
+            legend=self.legend)
 
 
 if __name__ == '__main__':
@@ -1210,17 +1370,26 @@ if __name__ == '__main__':
     # Regular op
     #voltages = [-4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5, -0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     #voltages2 = [-4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-    #params = {"wavs": wavs, "use_DAQ": True, "calibrate": True, "meas_current": False, "voltages": voltages, "voltages2": voltages2, 
+    # params = {"wavs": wavs, "use_DAQ": True, "calibrate": True, "meas_current": False, "voltages": voltages, "voltages2": voltages2,
     #    "combine_mode": "one_by_one", "power_range": -20}
 
     # BJT op
     voltages = [4, 3, 2, 1, 0, -0.25, -0.5, -0.6, -0.7, -0.8, -0.9, -1]
     voltages2 = [4, 3, 2, 1, 0, -0.25, -0.5, -0.6, -0.7, -0.8, -0.9, -1]
-    params = {"wavs": wavs, "use_DAQ": True, "calibrate": True, "meas_current": False, "voltages": voltages,
-              "voltages2": voltages2, "combine_mode": "all_to_all", "power_range": None, "rec_splitter_ratio": 0.1}
+    params = {
+        "wavs": wavs,
+        "use_DAQ": True,
+        "calibrate": True,
+        "meas_current": False,
+        "voltages": voltages,
+        "voltages2": voltages2,
+        "combine_mode": "all_to_all",
+        "power_range": None,
+        "rec_splitter_ratio": 0.1}
 
     # RUN IT
-    exp.perform_experiment(params, filename='BJT_mod--1550--npn--eos_det_dopings--BJT_operation')
+    exp.perform_experiment(
+        params, filename='BJT_mod--1550--npn--eos_det_dopings--BJT_operation')
 
     # CLOSE INSTRUMENTS
     laser.close()

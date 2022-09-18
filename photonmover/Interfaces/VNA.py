@@ -22,4 +22,4 @@ class VNA(ABC):
         pass
 
     def get_id(self):
-        return("VectorNetworkAnalyzer")
+        return ("VectorNetworkAnalyzer")

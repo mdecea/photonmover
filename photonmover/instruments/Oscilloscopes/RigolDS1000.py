@@ -20,7 +20,6 @@ class RigolDS1000(Instrument):
         # It is good practice to initialize variables in init
         self.gpib = None
 
-
     def initialize(self):
         """
         Initializes the instrument
@@ -31,9 +30,8 @@ class RigolDS1000(Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=10000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Rigol Oscilloscope')
-
 
     def close(self):
         print('Disconnecting Rigol Oscilloscope')
@@ -89,7 +87,8 @@ class RigolDS1000(Instrument):
             num_avg = 1024
 
         if num_avg % 2 != 0:
-            print("The number of averages has to be a power of 2. Setting to the closest.")
+            print(
+                "The number of averages has to be a power of 2. Setting to the closest.")
             num_avg = round(np.log2(num_avg))
 
         self.gpib.write("ACQ:AVER %d" % num_avg)
@@ -115,7 +114,7 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -137,7 +136,7 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -155,7 +154,7 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -175,7 +174,7 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -201,7 +200,7 @@ class RigolDS1000(Instrument):
         :return: the specified item value
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -211,7 +210,10 @@ class RigolDS1000(Instrument):
 
         self.gpib.write(":MEAS:ITEM %s,CHAN%d" % (item, channel))
         time.sleep(1)
-        return float(self.gpib.query_ascii_values(":MEAS:ITEM? %s,CHAN%d" % (item, channel))[0])
+        return float(
+            self.gpib.query_ascii_values(
+                ":MEAS:ITEM? %s,CHAN%d" %
+                (item, channel))[0])
 
     def set_trigger(self, mode, coupling, trig_number, channel, level):
         """
@@ -224,7 +226,15 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if mode in ["EDGE", "PULSE", "RUNT", "WIND", "SLOPE", "NEDG", "PATT", "DEL"]:
+        if mode in [
+            "EDGE",
+            "PULSE",
+            "RUNT",
+            "WIND",
+            "SLOPE",
+            "NEDG",
+            "PATT",
+                "DEL"]:
             self.gpib.write(":TRIG:MODE %s" % mode)
 
         if coupling in ["AC", "DC", "LFR", "HFR"]:
@@ -268,21 +278,22 @@ class RigolDS1000(Instrument):
 
             self.gpib.write("WAV:DATA?")
             data = self.gpib.read_raw()
-            #print(data)
+            # print(data)
             num_bytes = int(data[7:11])
-            #print(num_bytes)
+            # print(num_bytes)
             raw_data = data[11:]
-            #print(raw_data)
-            #input()
+            # print(raw_data)
+            # input()
 
             wav_data_str = (str(raw_data)[2:-3]).split(',')
 
             wav_data = [float(i) for i in wav_data_str]
-            #print(wav_data)
+            # print(wav_data)
 
             preamble = self.gpib.query_ascii_values("WAV:PRE?")
 
-            # Save the data if necessary. Each channel will be stored in a different file
+            # Save the data if necessary. Each channel will be stored in a
+            # different file
             if file_name is not None:
 
                 # Create the csv file
@@ -305,22 +316,8 @@ if __name__ == '__main__':
     osc.initialize()
 
     print(osc.measure_item(1, "VPP"))
-    #osc.autoscale()
-    #time.sleep(1)
+    # osc.autoscale()
+    # time.sleep(1)
     #osc.read_waveform([1], 'trial')
 
     osc.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-

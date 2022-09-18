@@ -27,7 +27,7 @@ class HP70951B(MSA, Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDRESS, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the HP OSA')
 
         self.init_func()
@@ -43,7 +43,7 @@ class HP70951B(MSA, Instrument):
         if unit not in ['W', 'V', 'DBM']:
             print('Specified units not valid. Doing nothing.')
             return
-        
+
         self.write('AUNITS %s;' % unit)
 
     def automeasure(self):
@@ -64,7 +64,7 @@ class HP70951B(MSA, Instrument):
         """
 
         if center is not None:
-            self.gpib.write('CENTERWL %s;' % center )
+            self.gpib.write('CENTERWL %s;' % center)
 
         if span is not None:
             self.gpib.write('SP %s;' % span)
@@ -94,7 +94,7 @@ class HP70951B(MSA, Instrument):
         - OSAPULSE: Operation mode that is optimized for making accurate fast pulse measurements.
         - PRESEL: acts as a fixed-tuned, variable wavelength, variable bandwidth, bandpass filter.
         - SR: Stimulus-response.
-        - PD: Photodiode test. Used to get PD responsivity. 
+        - PD: Photodiode test. Used to get PD responsivity.
         """
 
         if mode not in ['OSA', 'PWRMTR', 'OSAPULSE', 'PRESEL', 'SR', 'PD']:
@@ -112,7 +112,7 @@ class HP70951B(MSA, Instrument):
 
     def set_presel_wl(self, wl):
         """
-        Sets the center wavelength of the filter in PRESEL mode. 
+        Sets the center wavelength of the filter in PRESEL mode.
         wl is the wavelength in nm.
         """
         self.gpib.write('MKTUNE %.2fNM;' % wl)
@@ -124,10 +124,12 @@ class HP70951B(MSA, Instrument):
         """
 
         if print_info:
-            print('When you press enter, the PD measurement will be taken. Before that, you should have:')
+            print(
+                'When you press enter, the PD measurement will be taken. Before that, you should have:')
             print('1. Connected the front-panel MONOCHROMATOR OUTPUT to the PHOTODETECTOR INPUT with a fiber-optic cable.')
             print('2. Pressed STORE THRU --> B')
-            input('3. Connected the PD output to the TRANS-Z IN of the rear panel of the OSA')
+            input(
+                '3. Connected the PD output to the TRANS-Z IN of the rear panel of the OSA')
 
         self.gpib.write('PDMEAS ON;')
 
@@ -160,7 +162,8 @@ class HP70951B(MSA, Instrument):
             self.gpib.write('RLPOS %d;' % ref_pos)
 
     def set_sensitivity(self, sens):
-        # Sensitivity is in the amplitude units (either W (if linear mode) or dBm (if log mode))
+        # Sensitivity is in the amplitude units (either W (if linear mode) or
+        # dBm (if log mode))
         self.write('SENS %.4f;' % sens)
 
     def set_sweep_time(self, sweep_time):
@@ -185,19 +188,19 @@ class HP70951B(MSA, Instrument):
         self.gpib.write('TS;DONE?;')
         self.gpib.write('VIEW TR%s;' % trace)
 
-        #print(self.gpib.query_ascii_values('DONE?;'))
-        #while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
+        # print(self.gpib.query_ascii_values('DONE?;'))
+        # while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
         #    time.sleep(0.2)
-
 
         amps = self.gpib.query_ascii_values("TR%s?;" % trace)
 
-        #while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
+        # while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
         #    time.sleep(0.2)
 
         wavs = np.linspace(init_wl, end_wl, len(amps))
 
-        # Save the data if necessary. Each channel will be stored in a different file
+        # Save the data if necessary. Each channel will be stored in a
+        # different file
         if filename is not None:
             with open(filename, 'w+') as csvfile:
                 writer = csv.writer(csvfile)
@@ -217,11 +220,11 @@ class HP70951B(MSA, Instrument):
         if num_avg == 1:
             self.gpib.write('VAVG OFF;SNGLS;TS;')
         else:
-            self.gpib.write('VAVG %d;VAVG ON;TS;' % num_avg )
+            self.gpib.write('VAVG %d;VAVG ON;TS;' % num_avg)
 
     def activate_TIA_input(self, turn_on=True):
         """
-        Allows input via the rear-panel TRANS-Z INPUT connector. Normally, the output of the optical spectrum analyzer's internal photodetector connects to a transimpedance 
+        Allows input via the rear-panel TRANS-Z INPUT connector. Normally, the output of the optical spectrum analyzer's internal photodetector connects to a transimpedance
         amplifier. Using the ON argument switches the amplifier's input from the photodetector to the rear-panel TRANS-Z INPUTconnector.
         """
         if turn_on:
@@ -258,14 +261,25 @@ class HP70951B(MSA, Instrument):
 
         return [wl[0], amp[0]]
 
-    def perform_PD_measurement(self, init_wl, end_wl, sensitivity, video_bw = 'AUTO', res_bw = '10NM', filename=None):
+    def perform_PD_measurement(
+            self,
+            init_wl,
+            end_wl,
+            sensitivity,
+            video_bw='AUTO',
+            res_bw='10NM',
+            filename=None):
         """
         Sets up a PD responsivity measurement and performs it. If filename is specified, it saves a csv file with the measured data.
         If we don't want to affect any of the parameters, simply set it to None,
         """
 
         # First, set up measurement
-        self.set_wl_axis(center=None, span=None, start_wl=init_wl, end_wl=end_wl)
+        self.set_wl_axis(
+            center=None,
+            span=None,
+            start_wl=init_wl,
+            end_wl=end_wl)
         if sensitivity is not None:
             self.set_sensitivity(sensitivity)
         self.set_acq_bandwidth(res_bw=res_bw, video_bw=video_bw)
@@ -277,7 +291,7 @@ class HP70951B(MSA, Instrument):
         input('4. Connected the PD output to the TRANS-Z IN of the rear panel of the OSA.')
         input('5. Press enter and the measurement will be performed')
 
-        self.acquire_pd_measurement(print_info=False)       
+        self.acquire_pd_measurement(print_info=False)
         self.gpib.write('DONE?;')
 
         # Now gather the data
@@ -290,13 +304,15 @@ class HP70951B(MSA, Instrument):
         if filename is not None:
             with open(filename, 'w+') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow(['Input light wavelength (row 1) and power (row 2):'])                
+                writer.writerow(
+                    ['Input light wavelength (row 1) and power (row 2):'])
                 writer.writerow(in_wl)
                 writer.writerow(in_power)
-                writer.writerow(['PD wavelength (row 3) and responsivity (row 4):'])                
+                writer.writerow(
+                    ['PD wavelength (row 3) and responsivity (row 4):'])
                 writer.writerow(out_wl)
                 writer.writerow(R_pd)
-        
+
         return [out_wl, R_pd, in_wl, in_power]
 
 
@@ -305,7 +321,5 @@ if __name__ == '__main__':
     hp = HP70951B()
     hp.initialize()
     hp.read_data(filename='thorlabs_810nmLED_spectrum--Ibias=1A.csv')
-    #print(hp.read_data())
+    # print(hp.read_data())
     hp.close()
-
-

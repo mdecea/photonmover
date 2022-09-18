@@ -1,5 +1,6 @@
 
-# Uses an SMU to drive the aerotech stage, and uses an NiDAQ to implement the feedback and know when to stop.
+# Uses an SMU to drive the aerotech stage, and uses an NiDAQ to implement
+# the feedback and know when to stop.
 
 from photonmover.Interfaces.Experiment import Experiment
 from photonmover.utils.plot_utils import plot_graph
@@ -32,21 +33,23 @@ class AerotechControl(Experiment):
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. 
+        # Instruments.
         self.smu = None
         self.daq = None
 
-        # Save the last data obtained when the experiment was performed (for plotting purposes)
+        # Save the last data obtained when the experiment was performed (for
+        # plotting purposes)
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
         The first SMU is the drive smu, the second on eis the measure SMU
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -72,7 +75,7 @@ class AerotechControl(Experiment):
         Returns a string with the experiment name
         """
         return "Aerotech control"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -82,7 +85,7 @@ class AerotechControl(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "distance" --> Distance to move in mm
             "distance_to_counts" --> Conversion between distance and counts on the encoder (in counts/mm)
@@ -107,7 +110,7 @@ class AerotechControl(Experiment):
                 bias_cur = bias_cur[1]
         else:
             if dist < 0:
-                bias_cur = -1*bias_cur
+                bias_cur = -1 * bias_cur
             else:
                 bias_cur = bias_cur
 
@@ -124,29 +127,39 @@ class AerotechControl(Experiment):
         daq_task.start()
         self.smu.turn_on()
 
-        # Monitor the task and stop when we have reached the required number of counts
-        desired_counts = abs(dist)*dist_to_counts
+        # Monitor the task and stop when we have reached the required number of
+        # counts
+        desired_counts = abs(dist) * dist_to_counts
         cts = 0
 
         while (cts < desired_counts):
             cts = daq_task.read()
-            #print(cts)
-        
+            # print(cts)
+
         self.smu.turn_off()
         final_counts = daq_task.read()
         daq_task.close()
 
-        print('We wanted %d counts and we got %d.' % (desired_counts, final_counts))
+        print(
+            'We wanted %d counts and we got %d.' %
+            (desired_counts, final_counts))
 
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionary, in order for
         a measurement to be performed
         """
-        return ["distance", "distance_to_counts", "drive_current", "daq_channel"]
-    
+        return [
+            "distance",
+            "distance_to_counts",
+            "drive_current",
+            "daq_channel"]
+
     def default_params(self):
-        return {"distance_to_counts": 500, "drive_current": 0.5, "daq_channel": None}
+        return {
+            "distance_to_counts": 500,
+            "drive_current": 0.5,
+            "daq_channel": None}
 
     def plot_data(self, canvas_handle, data=None):
         # Nothing to plot
@@ -170,18 +183,21 @@ if __name__ == '__main__':
     while (True):
         dist = float(input('Enter distance to move in mm: '))
 
-        params = {"distance": dist, "distance_to_counts": 500, "drive_current": 0.55, "daq_channel": None}
+        params = {
+            "distance": dist,
+            "distance_to_counts": 500,
+            "drive_current": 0.55,
+            "daq_channel": None}
 
         # RUN IT
         exp.perform_experiment(params)
 
-    #time.sleep(5)
-
+    # time.sleep(5)
 
     #params = {"distance": 10.0, "distance_to_counts": 500, "drive_current": 0.55, "daq_channel": None}
 
     # RUN IT
-    #exp.perform_experiment(params)
+    # exp.perform_experiment(params)
 
     # CLOSE INSTRUMENTS
     smu.close()

@@ -12,18 +12,18 @@
 % T.Wychock, Keysight Technologies 2018
 %
 % Disclaimer of Warranties: THIS SOFTWARE HAS NOT COMPLETED KEYSIGHT'S FULL
-% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES 
+% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES
 % NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND WITH RESPECT TO THE SOFTWARE,
 % AND SPECIFICALLY DISCLAIMS THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 % FITNESS FOR A PARTICULAR PURPOSE.
-% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS. 
+% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS.
 """
 
-import scpi_sockets
-import time
 
 # Example code
 # IO Parameters
+import scpi_sockets
+import time
 debug_mode = 1
 ipv4_address_server = '127.0.0.1'
 socket_port_server = 30000
@@ -36,13 +36,20 @@ scpi_session_server = []
 try:
     # Connect
     print('\n#####################')
-    print('Connecting to address "' + ipv4_address_server + '" and port "' + str(socket_port_server) + '"...')
-    scpi_session_server = scpi_sockets.SCPISession(ipv4_address_string_in=ipv4_address_server,
-                                                   port_in=socket_port_server,
-                                                   enable_nagle_in=True,
-                                                   connect_in=False,
-                                                   debug_scpi_in=True)
-    scpi_session_server.connect(timeout_in_seconds_in=timeout_in_seconds_server)
+    print(
+        'Connecting to address "' +
+        ipv4_address_server +
+        '" and port "' +
+        str(socket_port_server) +
+        '"...')
+    scpi_session_server = scpi_sockets.SCPISession(
+        ipv4_address_string_in=ipv4_address_server,
+        port_in=socket_port_server,
+        enable_nagle_in=True,
+        connect_in=False,
+        debug_scpi_in=True)
+    scpi_session_server.connect(
+        timeout_in_seconds_in=timeout_in_seconds_server)
     is_connected = True
     time.sleep(1)
 
@@ -75,7 +82,6 @@ try:
     scpi_session_server.query(':SYST:ERR?')
     scpi_session_server.query(':SYST:ERR?')
     scpi_session_server.query(':SYST:ERR?')
-
 
     # Generate pulse, 10 us, no modulation
     print('Generating pulse generic 10 us: ' + return_string)
@@ -218,7 +224,9 @@ try:
     scpi_session_server.write(':GEN:PULS:FALL ' + str(fall_time_in_seconds))
     scpi_session_server.write(':GEN:PULS:MOD ' + str(modulation_type))
     scpi_session_server.write(':GEN:PULS:FSPA ' + str(chirp_deviation_in_hz))
-    scpi_session_server.write(':GEN:PULS:FREQOF ' + str(frequency_offset_in_hz))
+    scpi_session_server.write(
+        ':GEN:PULS:FREQOF ' +
+        str(frequency_offset_in_hz))
     scpi_session_server.write(':GEN:PULS:PTRAN ' + str(phase_transition))
     scpi_session_server.write(':GEN:PULS:FSAV ' + local_path)
     scpi_session_server.write(':GEN:PULS:SAVE')

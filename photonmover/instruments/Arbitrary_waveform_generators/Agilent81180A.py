@@ -2,7 +2,7 @@ import pyvisa as visa
 from photonmover.Interfaces.WaveformGenerator import WaveformGenerator
 from photonmover.Interfaces.Instrument import Instrument
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
 GPIB_ADDR = "GPIB1::2::INSTR"  # GPIB adress
 
@@ -31,7 +31,7 @@ class Agilent81180A(Instrument, WaveformGenerator):
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
             self.select_channel(self.channel)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Agilent Waveform Generator')
 
     def select_channel(self, channel):
@@ -163,7 +163,7 @@ class Agilent81180A(Instrument, WaveformGenerator):
     def set_load(self, load):
         pass
 
-    def load_PRBS(self, N, freq, Vpp, offset, samples_per_bit = 32):
+    def load_PRBS(self, N, freq, Vpp, offset, samples_per_bit=32):
         """
         Loads a PRBS signal into the arbitrary waveform memory, and sets the sample clock so that
         the output PRBS has the frequency freq.
@@ -175,7 +175,7 @@ class Agilent81180A(Instrument, WaveformGenerator):
         :return:
         """
 
-       	print('To load arbitrary waveforms, use the matlab code in <iqtools> folder. ')
+        print('To load arbitrary waveforms, use the matlab code in <iqtools> folder. ')
 
 
 if __name__ == '__main__':

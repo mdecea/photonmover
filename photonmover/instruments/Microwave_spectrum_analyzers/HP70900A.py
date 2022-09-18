@@ -26,7 +26,7 @@ class HP70900A(MSA, Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDRESS, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the HP MSA')
 
         self.init_func()
@@ -37,7 +37,6 @@ class HP70900A(MSA, Instrument):
     def close(self):
         print('Disconnecting HP MSA')
         self.gpib.close()
-
 
     def set_freq_axis(self, center, span, start_freq, end_freq):
         """
@@ -51,7 +50,7 @@ class HP70900A(MSA, Instrument):
         """
 
         if center is not None:
-            self.gpib.write('CF %s;' % center )
+            self.gpib.write('CF %s;' % center)
 
         if span is not None:
             self.gpib.write('SP %s;' % span)
@@ -178,7 +177,7 @@ class HP70900A(MSA, Instrument):
         if num_avg == 1:
             self.gpib.write('VAVG OFF;SNGLS;TS;')
         else:
-            self.gpib.write('VAVG %d;VAVG ON;TS' % num_avg )
+            self.gpib.write('VAVG %d;VAVG ON;TS' % num_avg)
 
     def read_data(self, filename=None):
 
@@ -194,19 +193,19 @@ class HP70900A(MSA, Instrument):
         self.gpib.write('TS;DONE?;')
         self.gpib.write('VIEW TRA;')
 
-        #print(self.gpib.query_ascii_values('DONE?;'))
-        #while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
+        # print(self.gpib.query_ascii_values('DONE?;'))
+        # while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
         #    time.sleep(0.2)
-
 
         amps = self.gpib.query_ascii_values("TRA?;")
 
-        #while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
+        # while int(self.gpib.query_ascii_values('DONE?;')[0]) != 1:
         #    time.sleep(0.2)
 
         freqs = np.linspace(init_freq, end_freq, len(amps))
 
-        # Save the data if necessary. Each channel will be stored in a different file
+        # Save the data if necessary. Each channel will be stored in a
+        # different file
         if filename is not None:
             with open(filename, 'w+') as csvfile:
                 writer = csv.writer(csvfile)
@@ -225,15 +224,13 @@ if __name__ == '__main__':
     #freq = 500e3
     #freq_string = "%.4f MHZ" % (freq*1e-6)
     #span_string = "%.4f MHZ" % np.maximum((2*freq*1e-6), 0.5)
-    #print(freq_string)
-    #print(span_string)
-    #input()
+    # print(freq_string)
+    # print(span_string)
+    # input()
     #hp.set_freq_axis(freq_string, span_string, None, None)
-    #input()
-    #print(hp.get_peak_info())
-    #input()
+    # input()
+    # print(hp.get_peak_info())
+    # input()
     hp.read_data('gain_pv_mod-Pin=4mW-no_EDFA-Vpp=0.0005V-f=0.5MHz.csv')
-    #print(hp.read_data())
+    # print(hp.read_data())
     hp.close()
-
-

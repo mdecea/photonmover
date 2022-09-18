@@ -22,19 +22,19 @@
 % T.Wychock, Keysight Technologies 2018
 %
 % Disclaimer of Warranties: THIS SOFTWARE HAS NOT COMPLETED KEYSIGHT'S FULL
-% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES 
+% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES
 % NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND WITH RESPECT TO THE SOFTWARE,
 % AND SPECIFICALLY DISCLAIMS THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 % FITNESS FOR A PARTICULAR PURPOSE.
-% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS. 
+% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS.
 """
 
-import scpi_sockets
-import time
-import os
 
 # Example code
 # Test Parameters
+import scpi_sockets
+import time
+import os
 debug_mode = 1  # Use debugging?
 file_save_folder = r'C:\Temp'
 instrument_mode = 'Wideband Vector'  # Also can select 'Vector'
@@ -55,15 +55,22 @@ try:
 
     # Connect
     print('\n#####################')
-    print('Connecting to address "' + ipv4_address_server + '" and port "' + str(socket_port_server) + '"...')
+    print(
+        'Connecting to address "' +
+        ipv4_address_server +
+        '" and port "' +
+        str(socket_port_server) +
+        '"...')
 
-    scpi_session_server = scpi_sockets.SCPISession(ipv4_address_string_in=ipv4_address_server,
-                                                   port_in=socket_port_server,
-                                                   enable_nagle_in=True,
-                                                   connect_in=False,
-                                                   debug_scpi_in=debug_mode)
+    scpi_session_server = scpi_sockets.SCPISession(
+        ipv4_address_string_in=ipv4_address_server,
+        port_in=socket_port_server,
+        enable_nagle_in=True,
+        connect_in=False,
+        debug_scpi_in=debug_mode)
 
-    scpi_session_server.connect(timeout_in_seconds_in=timeout_in_seconds_server)
+    scpi_session_server.connect(
+        timeout_in_seconds_in=timeout_in_seconds_server)
     is_connected = True
     time.sleep(1)
 
@@ -81,13 +88,20 @@ try:
     return_string = scpi_session_server.query(':INST:MODE?')
     print('Mode: ' + return_string)
 
-    ####################################################################################################################
+    ##########################################################################
     # Insert Code Here
 
     sample_rate_in_hz = 2E9
     width_in_seconds_list = [2E-6, 1E-6, 1E-6, 2E-6, 5E-6, 10E-6, 3E-6]
     dwell_in_seconds_list = [3E-6, 2E-6, 2E-6, 3E-6, 6E-6, 11E-6, 4E-6]
-    modulation_type_list = ["{'None'}", "{'None'}", "{'None'}", "{'None'}", "{'None'}", "{'None'}", "{'None'}"]
+    modulation_type_list = [
+        "{'None'}",
+        "{'None'}",
+        "{'None'}",
+        "{'None'}",
+        "{'None'}",
+        "{'None'}",
+        "{'None'}"]
     pri_in_seconds_list = [50E-6, 10E-6, 20E-6, 50E-6, 100E-6, 100E-6, 50E-6]
     amplitude_in_db_list = [0, -6, -3, -10, -20, 0, 0]
     f_offset_hz_list = [1E6, -5E6, 20E6, -50E6, 100E6, -250E6, 500E6]
@@ -112,21 +126,30 @@ try:
         scpi_session_server.write(':GEN:PULS:SRAT ' + str(sample_rate_in_hz))
         scpi_session_server.write(':GEN:PULS:DWEL ' + str(dwell_current))
         scpi_session_server.write(':GEN:PULS:WIDT ' + str(width_current))
-        scpi_session_server.write(':GEN:PULS:MOD ' + str(modulation_type_current))
+        scpi_session_server.write(
+            ':GEN:PULS:MOD ' +
+            str(modulation_type_current))
         scpi_session_server.write(':GEN:PULS:FREQOF ' + str(f_current))
         scpi_session_server.query('*OPC?')
         scpi_session_server.query(':SYST:ERR?')
 
         for time_idx in range(int(length_in_time_in_seconds / pri_current)):
-            scpi_session_server.write(':GEN:PULS:COMB:TSTART ' + str(time_current + time_idx * pri_current))
-            scpi_session_server.write(':GEN:PULS:COMB:AMP ' + str(amplitude_current))
+            scpi_session_server.write(
+                ':GEN:PULS:COMB:TSTART ' + str(time_current + time_idx * pri_current))
+            scpi_session_server.write(
+                ':GEN:PULS:COMB:AMP ' +
+                str(amplitude_current))
             scpi_session_server.write(':GEN:PULS:COMB:ADD')
             scpi_session_server.query('*OPC?')
 
     # Preview and save
     # Set the timeout a little longer
     scpi_session_server.timeout_in_seconds = 100
-    scpi_session_server.write(':GEN:PULS:COMB:FSAV ' + file_save_folder + '\\' + file_save_name)
+    scpi_session_server.write(
+        ':GEN:PULS:COMB:FSAV ' +
+        file_save_folder +
+        '\\' +
+        file_save_name)
     scpi_session_server.write(':GEN:PULS:COMB:SAVE')
     scpi_session_server.write(':GEN:PULS:COMB:VSA')
     scpi_session_server.query('*OPC?')
@@ -136,7 +159,7 @@ try:
     print("Modified time: " + return_string + " s")
 
     # Insert Code Here
-    ####################################################################################################################
+    ##########################################################################
 
 except Exception as e:
     print('Error: ' + str(e))

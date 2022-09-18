@@ -14,7 +14,11 @@ class Newport500B(Instrument, LaserDriver):
     Code for controlling Newport 500B laser driver through GPIB
     """
 
-    def __init__(self, mode='constant_cur', cur_comp=DEFAULT_CURRENT_COMPLIANCE, current_range=DEFAULT_CURRENT_RANGE):
+    def __init__(
+            self,
+            mode='constant_cur',
+            cur_comp=DEFAULT_CURRENT_COMPLIANCE,
+            current_range=DEFAULT_CURRENT_RANGE):
         super().__init__()
 
         # It is good practice to initialize variables in init
@@ -34,7 +38,7 @@ class Newport500B(Instrument, LaserDriver):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=30000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Keysight Source meter')
 
         self.init_function()
@@ -47,11 +51,11 @@ class Newport500B(Instrument, LaserDriver):
         if range not in ['high', 'low']:
             print('Range for Newport 500B not recognized. Doing nothing.')
             return
-        
+
         rng = 0 if range == 'high' else 1
 
         self.gpib.write('LAS:RANGE %d' % rng)
-    
+
     def init_function(self):
         """
         Initializes the source meter
@@ -70,7 +74,7 @@ class Newport500B(Instrument, LaserDriver):
         if mode not in ['constant_cur', 'constant_pow']:
             print('Mode for Newport laser driver not recognized. Doing nothing.')
             return
-        
+
         md = 'I' if mode == 'constant_cur' else 'MDI'
 
         self.gpib.write('LAS:MODE:%s' % md)
@@ -102,7 +106,8 @@ class Newport500B(Instrument, LaserDriver):
         Sets the current compliance. limit_i is in A.
         """
 
-        self.gpib.write('LAS:LIM:LDI %.4f' % limit_i*1e3)  # In the command the current limit is in mA
+        # In the command the current limit is in mA
+        self.gpib.write('LAS:LIM:LDI %.4f' % limit_i * 1e3)
         self.cur_comp = limit_i
 
     def set_current(self, current):
@@ -114,13 +119,13 @@ class Newport500B(Instrument, LaserDriver):
         """
 
         if self.mode == 'constant_cur':
-            self.gpib.write('LAS:LDI %.4f' % current*1e3)  # Command takes mA
+            self.gpib.write('LAS:LDI %.4f' % current * 1e3)  # Command takes mA
         elif self.mode == 'constant_pow':
-            self.gpib.write('LAS:MDI %.4f' % current*1e3)  # Command takes mA
+            self.gpib.write('LAS:MDI %.4f' % current * 1e3)  # Command takes mA
 
     def measure_current(self):
         # Returns the current in A
-        return float(self.gpib.query_ascii_values('LAS:LDI?')[0]*1e-3)
+        return float(self.gpib.query_ascii_values('LAS:LDI?')[0] * 1e-3)
 
     def measure_voltage(self):
         # Returns the voltage in V
@@ -135,4 +140,3 @@ if __name__ == '__main__':
     time.sleep(5)
     sm.turn_off()
     sm.close()
-

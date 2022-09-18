@@ -5,9 +5,15 @@ from photonmover.Interfaces.PowMeter import PowerMeter
 GPIB_ADDR = "GPIB1::19::INSTR"  # VISA adress
 
 # Power meter with GPIB interface
+
+
 class HP8153A(Instrument, PowerMeter):
 
-    def __init__(self, rec_channel=1, tap_channel=None, gpib_address=GPIB_ADDR):
+    def __init__(
+            self,
+            rec_channel=1,
+            tap_channel=None,
+            gpib_address=GPIB_ADDR):
 
         super().__init__()
         self.gpib_address = gpib_address
@@ -24,7 +30,7 @@ class HP8153A(Instrument, PowerMeter):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=10000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to HP8153A power meter')
 
         self.init_func()
@@ -53,10 +59,10 @@ class HP8153A(Instrument, PowerMeter):
     def set_wavelength(self, wavelength):
         if self.tap_channel is not None:
             self.gpib.write("SENS%d::POW:WAV %.7ENM" %
-                        (self.tap_channel, wavelength))
+                            (self.tap_channel, wavelength))
         if self.rec_channel is not None:
             self.gpib.write("SENS%d::POW:WAV %.7ENM" %
-                        (self.rec_channel, wavelength))
+                            (self.rec_channel, wavelength))
 
     def get_powers(self):
         """
@@ -69,7 +75,8 @@ class HP8153A(Instrument, PowerMeter):
 
         if self.tap_channel is not None:
             self.gpib.write("INIT%d:IMM" % self.tap_channel)
-            power_tap_string = self.gpib.query("FETC%d:POW?" % self.tap_channel)
+            power_tap_string = self.gpib.query(
+                "FETC%d:POW?" % self.tap_channel)
             try:
                 power_tap = max(0.0, float(power_tap_string))
             except ValueError:
@@ -79,7 +86,8 @@ class HP8153A(Instrument, PowerMeter):
 
         if self.rec_channel is not None:
             self.gpib.write("INIT%d:IMM" % self.rec_channel)
-            received_power_string = self.gpib.query("FETC%d:POW?" % self.rec_channel)
+            received_power_string = self.gpib.query(
+                "FETC%d:POW?" % self.rec_channel)
 
             try:
                 received_power = max(0.0, float(received_power_string))
@@ -130,7 +138,9 @@ class HP8153A(Instrument, PowerMeter):
                 power_range = 10
 
             self.gpib.write("SENS%d:POW:RANG:AUTO 0" % channel)
-            self.gpib.write("SENS%d:POW:RANG %dDBM" % (channel, int(power_range)))
+            self.gpib.write(
+                "SENS%d:POW:RANG %dDBM" %
+                (channel, int(power_range)))
 
 
 if __name__ == '__main__':

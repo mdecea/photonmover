@@ -29,4 +29,3 @@ class MockMSA(MSA, Instrument):
         f = np.linspace(50, 30e9, 201)
         data = f
         return [f, data]
-

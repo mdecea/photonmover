@@ -1,10 +1,11 @@
 import yaml
 import importlib
 
+
 def parse_instr_yaml_file(filename):
     """
-    Parses the instrument yaml file, creates the instrument objects and returns a list with all
-    of them
+    Parses the instrument yaml file, creates the instrument objects
+    and returns a list with all of them
     """
 
     with open(filename) as file:
@@ -40,12 +41,3 @@ def parse_instr_yaml_file(filename):
         vars_list = None
 
     return instr_obj_list, vars_list
-
-
-#def trial(a, b, c = '3'):
-#    print('a: %s, b: %s, c: %s' % (a, b, c))
-
-#trial('a', 'b', 'c')
-#trial(**{'a': 'a', 'b':'b'})
-
-

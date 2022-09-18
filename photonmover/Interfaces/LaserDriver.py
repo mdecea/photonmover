@@ -49,4 +49,4 @@ class LaserDriver(ABC):
         pass
 
     def get_id(self):
-        return("LaserDriver")
+        return ("LaserDriver")

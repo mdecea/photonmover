@@ -39,7 +39,8 @@ class KJLKPDR900(Instrument):
         self.ser.write(message.encode('ascii'))
         self.ser.flush()
 
-        # Get the last data point, and restart the data logger (so it does not get full)
+        # Get the last data point, and restart the data logger (so it does not
+        # get full)
         pressure_data_prev = 'AA'.encode('ascii')
         pressure_data = 'AA'.encode('ascii')
 
@@ -54,9 +55,9 @@ class KJLKPDR900(Instrument):
         # Now parse the response to get the actual pressure value.
         # Since it is always the same format, we know the bytes we care about
 
-        #if len(pressure_data) > 12:
+        # if len(pressure_data) > 12:
         #    last_point = pressure_data[-12:-5].decode('ascii')
-        #else:
+        # else:
         #    part2 = pressure_data[-12:-5].decode('ascii')
         #    part1 = pressure_data_prev[-(12-len(pressure_data)):].decode('ascii')
         #    last_point = part1 + part2
@@ -66,18 +67,20 @@ class KJLKPDR900(Instrument):
         pressure_data_prev = pressure_data_prev.decode('ascii')
         all_pressure_data = pressure_data_prev + pressure_data
 
-        match = re.search( ';-?[\d.]+(?:E-?\d+)?\r\x03;FF', all_pressure_data)
+        match = re.search(';-?[\\d.]+(?:E-?\\d+)?\r\x03;FF', all_pressure_data)
         pressure = match.group()
         pressure = pressure[1:-5]
-        #print(pressure)
-        #input()
+        # print(pressure)
+        # input()
         self.flush()
 
         try:
             pressure = float(pressure)
-        except:
+        except BaseException:
             pressure = 1e10
-            print('Error reading pressure: %s, %s' % (pressure_data, pressure_data_prev))
+            print(
+                'Error reading pressure: %s, %s' %
+                (pressure_data, pressure_data_prev))
 
         return pressure
 
@@ -88,13 +91,13 @@ class KJLKPDR900(Instrument):
         self.ser.write(message.encode('ascii'))
         self.ser.flush()
         self.ser.read(15)
-        #print(self.ser.read(15))
+        # print(self.ser.read(15))
 
         message = '@001DLC!START;FF'
         self.ser.write(message.encode('ascii'))
         self.ser.flush()
         self.ser.read(15)
-        #print(self.ser.read(15))
+        # print(self.ser.read(15))
 
 
 if __name__ == '__main__':
@@ -103,4 +106,3 @@ if __name__ == '__main__':
     while True:
         print(ps.get_pressure())
     ps.close()
-

@@ -1,6 +1,8 @@
 # NewPort Conex-CC class
-# Adapted from Itay Shahak's code (https://gist.github.com/ishahak/bd025295dd8f6976dc962c6a02dec86b)
+# Adapted from Itay Shahak's code
+# (https://gist.github.com/ishahak/bd025295dd8f6976dc962c6a02dec86b)
 
+import CommandInterfaceConexCC
 from photonmover.Interfaces.Instrument import Instrument
 
 # dependant on 'clr' which is PythonNet package
@@ -10,12 +12,12 @@ from time import sleep
 import ctypes
 # We assume Newport.CONEXCC.CommandInterface.dll is copied to our folder
 clr.AddReference('./Newport.CONEXCC.CommandInterface')
-import CommandInterfaceConexCC
 
 DEV = 1                # hardcoded here to the first device
 MAX_VELOCITY = 0.4     # mm/s, by spec of NewPort TRA25CC DC Servo Motor
 
 COM_ADDRESS = 'COM4'
+
 
 class ConexCC(Instrument):
 
@@ -34,7 +36,7 @@ class ConexCC(Instrument):
         #self.dll = ctypes.cdll.LoadLibrary('./Newport.CONEXCC.CommandInterface.dll')
         #self.driver = self.dll.ConexCC()
         #self.dll.OpenInstrument.restype = ctypes.c_int
-        #input()
+        # input()
 
         self.driver = CommandInterfaceConexCC.ConexCC()
         ret = self.driver.OpenInstrument(self.com_port)
@@ -63,7 +65,9 @@ class ConexCC(Instrument):
                 print('<%s>' % self.controller_state, end='', flush=True)
             sleep(sleep_interval)
             if count >= last_count:
-                print('failed to become ready. existing for timeout = %d seconds.' % timeout)
+                print(
+                    'failed to become ready. existing for timeout = %d seconds.' %
+                    timeout)
                 return False
         print('ok')
         return True
@@ -80,7 +84,8 @@ class ConexCC(Instrument):
             sleep(0.4)
 
         # ('32','33','34') means in READY state
-        ready = self.positioner_error == '' and self.controller_state in ('32', '33', '34')
+        ready = self.positioner_error == '' and self.controller_state in (
+            '32', '33', '34')
         return ready
 
     @classmethod
@@ -108,8 +113,8 @@ class ConexCC(Instrument):
             – 3E: DISABLE from TRACKING.
             – 3F: DISABLE from READY T.
             – 46: TRACKING from READY T.
-            – 47: TRACKING from TRACKING.  
-            ===========================================      
+            – 47: TRACKING from TRACKING.
+            ===========================================
         '''
         for s in help_text.split('\n'):
             print(s.strip(' '))
@@ -119,14 +124,18 @@ class ConexCC(Instrument):
         resp = 0
         res, resp, err_str = self.driver.SL_Get(DEV, resp, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Negative SW Limit: result=%d,response=%.2f,errString=\'%s\'' % (res, resp, err_str))
+            print(
+                'Oops: Negative SW Limit: result=%d,response=%.2f,errString=\'%s\'' %
+                (res, resp, err_str))
         else:
             print('Negative SW Limit = %.1f' % resp)
             self.min_limit = resp
 
         res, resp, err_str = self.driver.SR_Get(DEV, resp, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Positive SW Limit: result=%d,response=%.2f,errString=\'%s\'' % (res, resp, err_str))
+            print(
+                'Oops: Positive SW Limit: result=%d,response=%.2f,errString=\'%s\'' %
+                (res, resp, err_str))
         else:
             print('Positive SW Limit = %.1f' % resp)
             self.max_limit = resp
@@ -136,7 +145,9 @@ class ConexCC(Instrument):
         resp = 0
         res, resp, err_str = self.driver.TP(DEV, resp, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Current Position: result=%d,response=%.2f,errString=\'%s\'' % (res, resp, err_str))
+            print(
+                'Oops: Current Position: result=%d,response=%.2f,errString=\'%s\'' %
+                (res, resp, err_str))
         else:
             print('Current Position = %.3f' % resp)
             self.cur_pos = resp
@@ -146,7 +157,9 @@ class ConexCC(Instrument):
         resp = 0
         res, resp, err_str = self.driver.VA_Get(DEV, resp, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Current Velocity: result=%d,response=%.2f,errString=\'%s\'' % (res, resp, err_str))
+            print(
+                'Oops: Current Velocity: result=%d,response=%.2f,errString=\'%s\'' %
+                (res, resp, err_str))
         else:
             print('Current Velocity = %.3f' % resp)
 
@@ -156,11 +169,14 @@ class ConexCC(Instrument):
         resp2 = ''
         res, resp, resp2, errString = self.driver.TS(DEV, resp, resp2, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Read controller Err/State: result=%d,response=Err=\'%s\'/State=\'%s\',err_str=\'%s\'' % (
-                res, resp, resp2, err_str))
+            print(
+                'Oops: Read controller Err/State: result=%d,response=Err=\'%s\'/State=\'%s\',err_str=\'%s\'' %
+                (res, resp, resp2, err_str))
         else:
             if not silent:
-                print('Controller State = \'%s\', Error = \'%s\'' % (resp2, resp))
+                print(
+                    'Controller State = \'%s\', Error = \'%s\'' %
+                    (resp2, resp))
             self.positioner_error = resp
             self.controller_state = resp2
 
@@ -169,7 +185,9 @@ class ConexCC(Instrument):
         state = 1  # enable
         res, err_str = self.driver.MM_Set(DEV, state, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Leave Disable: result=%d,errString=\'%s\'' % (res, err_str))
+            print(
+                'Oops: Leave Disable: result=%d,errString=\'%s\'' %
+                (res, err_str))
         else:
             print('Exiting DISABLE state')
 
@@ -177,7 +195,9 @@ class ConexCC(Instrument):
         err_str = ''
         res, err_str = self.driver.OR(DEV, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Find Home: result=%d,errString=\'%s\'' % (res, err_str))
+            print(
+                'Oops: Find Home: result=%d,errString=\'%s\'' %
+                (res, err_str))
         else:
             print('Finding Home')
 
@@ -187,7 +207,9 @@ class ConexCC(Instrument):
         err_str = ''
         res, err_str = self.driver.OH_Set(DEV, velocity, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Homing velocity: result=%d,errString=\'%s\'' % (res, err_str))
+            print(
+                'Oops: Homing velocity: result=%d,errString=\'%s\'' %
+                (res, err_str))
         else:
             print('Homing velocity set to %.1f mm/s' % velocity)
 
@@ -197,7 +219,9 @@ class ConexCC(Instrument):
         err_str = ''
         res, err_str = self.driver.VA_Set(DEV, velocity, err_str)
         if res != 0 or err_str != '':
-            print('Oops: Set velocity: result=%d,errString=\'%s\'' % (res, err_str))
+            print(
+                'Oops: Set velocity: result=%d,errString=\'%s\'' %
+                (res, err_str))
         else:
             print('velocity Set to %.1f mm/s' % velocity)
 
@@ -206,7 +230,9 @@ class ConexCC(Instrument):
             err_str = ''
             res, err_str = self.driver.PR_Set(DEV, distance, err_str)
             if res != 0 or err_str != '':
-                print('Oops: Move Relative: result=%d,errString=\'%s\'' % (res, err_str))
+                print(
+                    'Oops: Move Relative: result=%d,errString=\'%s\'' %
+                    (res, err_str))
             else:
                 print('Moving Relative %.3f mm' % distance)
 
@@ -215,7 +241,9 @@ class ConexCC(Instrument):
             err_str = ''
             res, err_str = self.driver.PA_Set(DEV, new_pos, err_str)
             if res != 0 or err_str != '':
-                print('Oops: Move Absolute: result=%d,errString=\'%s\'' % (res, err_str))
+                print(
+                    'Oops: Move Absolute: result=%d,errString=\'%s\'' %
+                    (res, err_str))
             else:
                 print('Moving to position %.3f mm' % new_pos)
 

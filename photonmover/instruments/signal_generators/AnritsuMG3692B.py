@@ -13,7 +13,7 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
         super().__init__()
 
         self.gpib = None
-        self.gpib_address=gpib_address
+        self.gpib_address = gpib_address
 
     def initialize(self):
         """
@@ -25,7 +25,7 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(self.gpib_address, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Anritsu Signal Generator')
 
     def turn_on(self):
@@ -54,12 +54,13 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
         :return:
         """
         if not -20 <= power <= 30:
-            raise ValueError( 'The input power setpoint is outside the instrument range (-20 to 30 dBm).' )
+            raise ValueError(
+                'The input power setpoint is outside the instrument range (-20 to 30 dBm).')
         else:
-            self.gpib.write( 'RF0' )
-            self.gpib.write( 'LOG' )
-            self.gpib.write( 'L1' )
-            self.gpib.write( '{:f} DM'.format(power) )
+            self.gpib.write('RF0')
+            self.gpib.write('LOG')
+            self.gpib.write('L1')
+            self.gpib.write('{:f} DM'.format(power))
 
     def set_voltage(self, amplitude):
         """
@@ -73,7 +74,8 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
         """
         maxvolt = 10
         if not -20 <= amplitude <= maxvolt:
-            raise ValueError( 'The supplied voltage amplitude outside the instrument range' )
+            raise ValueError(
+                'The supplied voltage amplitude outside the instrument range')
         else:
             self.gpib.write('RF0')
             self.gpib.write('LIN')
@@ -89,9 +91,9 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
             print('Specified frequency is too high. No change')
             return
 
-        self.gpib.write('F1') # Select F1 frequency parameter
-        self.gpib.write('{:d} HZ'.format(int(freq ))) # set parameter in Hz
-        self.gpib.write('CLO') # Close parameter F1
+        self.gpib.write('F1')  # Select F1 frequency parameter
+        self.gpib.write('{:d} HZ'.format(int(freq)))  # set parameter in Hz
+        self.gpib.write('CLO')  # Close parameter F1
 
     def close(self):
         print('Disconnecting Anritsu Signal Generator')
@@ -102,13 +104,11 @@ class AnritsuMG3692B(Instrument, SignalGenerator):
         """
 
 
-
-
 if __name__ == '__main__':
 
     sig_gen = AnritsuMG3692B()
     sig_gen.initialize()
     sig_gen.turn_on()
-    sig_gen.set_frequency( 10e9 )
+    sig_gen.set_frequency(10e9)
     sig_gen.turn_off()
     sig_gen.close()

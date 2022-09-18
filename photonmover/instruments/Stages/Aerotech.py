@@ -22,7 +22,13 @@ import numpy as np
 
 class AerotechStage(Instrument, SingleAxisStage):
 
-    def __init__(self, smu, daq, dist_to_counts=500, drive_current=0.55, daq_channel=None):
+    def __init__(
+            self,
+            smu,
+            daq,
+            dist_to_counts=500,
+            drive_current=0.55,
+            daq_channel=None):
         """
         :param smu: an already initialized SourceMeter that applies current to the stage
         :param daq: a DAQ that reads the feedback from the encoder
@@ -37,7 +43,7 @@ class AerotechStage(Instrument, SingleAxisStage):
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. 
+        # Instruments.
         self.smu = smu
         self.daq = daq
 
@@ -64,10 +70,10 @@ class AerotechStage(Instrument, SingleAxisStage):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "distance" --> Distance to move in mm
-            
+
         """
 
         if isinstance(self.bias_cur, list):
@@ -77,7 +83,7 @@ class AerotechStage(Instrument, SingleAxisStage):
                 bias_set = self.bias_cur[1]
         else:
             if dist < 0:
-                bias_set = -1*self.bias_cur
+                bias_set = -1 * self.bias_cur
             else:
                 bias_set = self.bias_cur
 
@@ -94,19 +100,22 @@ class AerotechStage(Instrument, SingleAxisStage):
         daq_task.start()
         self.smu.turn_on()
 
-        # Monitor the task and stop when we have reached the required number of counts
-        desired_counts = abs(dist)*self.dist_to_counts
+        # Monitor the task and stop when we have reached the required number of
+        # counts
+        desired_counts = abs(dist) * self.dist_to_counts
         cts = 0
 
         while (cts < desired_counts):
             cts = daq_task.read()
             # print(cts)
-        
+
         self.smu.turn_off()
         final_counts = daq_task.read()
         daq_task.close()
 
-        print('We wanted %d counts and we got %d.' % (desired_counts, final_counts))
+        print(
+            'We wanted %d counts and we got %d.' %
+            (desired_counts, final_counts))
 
     def close(self):
         # We don't really need to do anything
@@ -124,7 +133,12 @@ if __name__ == '__main__':
     smu.set_voltage_compliance(10)
 
     instr_list = [smu, daq]
-    stage = AerotechStage(smu, daq, dist_to_counts=500, drive_current=0.55, daq_channel=None)
+    stage = AerotechStage(
+        smu,
+        daq,
+        dist_to_counts=500,
+        drive_current=0.55,
+        daq_channel=None)
 
     # RUN IT
     stage.move(70)

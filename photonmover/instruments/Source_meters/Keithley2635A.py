@@ -14,7 +14,8 @@ class Keithley2635A(Instrument, SourceMeter):
     Code for controlling Keysight B2902A through GPIB
     """
 
-    def __init__(self, current_compliance=DEFAULT_CURRENT_COMPLIANCE, voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE):
+    def __init__(self, current_compliance=DEFAULT_CURRENT_COMPLIANCE,
+                 voltage_compliance=DEFAULT_VOLTAGE_COMPLIANCE):
         super().__init__()
 
         # It is good practice to initialize variables in init
@@ -34,7 +35,7 @@ class Keithley2635A(Instrument, SourceMeter):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=30000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Keysight Source meter')
 
         self.init_function()
@@ -69,7 +70,9 @@ class Keithley2635A(Instrument, SourceMeter):
             print('Source meter mode not correct. NO action taken')
             return
 
-        self.gpib.write('smua.source.func = smua.OUTPUT_DC%s' % mode)  # set voltage
+        self.gpib.write(
+            'smua.source.func = smua.OUTPUT_DC%s' %
+            mode)  # set voltage
         self.mode = mode
 
     def set_voltage_compliance(self, v_comp):
@@ -164,7 +167,9 @@ class Keithley2635A(Instrument, SourceMeter):
             meas_current = self.measure_current()
             measurements[row, 0] = v
             measurements[row, 1] = meas_current
-            print('Set Voltage: %.4f mV ; Measured Current: %.4E mA' % (v*1000, meas_current*1000))
+            print(
+                'Set Voltage: %.4f mV ; Measured Current: %.4E mA' %
+                (v * 1000, meas_current * 1000))
             sys.stdout.flush()
             row = row + 1
 
@@ -195,16 +200,18 @@ class Keithley2635A(Instrument, SourceMeter):
             print('Specified integration NPLC is smaller than the min. Setting to min.')
             nplc = 1
         self.gpib.write('smua.measure.nplc = %d' % nplc)
-    
+
     def set_filter(self, enable=True, type='repeat_average', count=10):
-        # Configures the digital filter that can be used to reduce readout noise.
+        # Configures the digital filter that can be used to reduce readout
+        # noise.
 
         # If enable = True, it turns on the digital filtering.
         # There are 3 different types:
         # - repeat_average: makes 'count' measurements and takes the average
         # - moving_average: takes the moving average of 'count' measurements
         # - median: takes the median of 'count measurements
-        # Count: the number of measurements neede for one reading. Has to be between 1 and 100
+        # Count: the number of measurements neede for one reading. Has to be
+        # between 1 and 100
 
         if type == 'repeat_average':
             type_str = 'FILTER_REPEAT_AVG'
@@ -237,5 +244,3 @@ if __name__ == '__main__':
         print(sm.measure_current())
         time.sleep(1)
     sm.close()
-
-

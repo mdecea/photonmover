@@ -47,8 +47,9 @@ class ActonSP300i(Instrument):
         :return:
         """
 
-        print("Setting sweep to start: %.2f nm; stop: %.2f nm, rate = %.2f nm/min"
-              % (start_wav, stop_wav, num_wav, sweep_rate))
+        print(
+            "Setting sweep to start: %.2f nm; stop: %.2f nm, rate = %.2f nm/min" %
+            (start_wav, stop_wav, num_wav, sweep_rate))
 
         # Go to start wavelenth
         self.set_wavelength(start_wav)
@@ -67,8 +68,8 @@ class ActonSP300i(Instrument):
         print(self.ser.read())
 
         # Wait for the sweep to be done
-        sweep_time = (np.abs((stop_wav-start_wav))/sweep_rate)*60
-        time.sleep(sweep_time*1.1)
+        sweep_time = (np.abs((stop_wav - start_wav)) / sweep_rate) * 60
+        time.sleep(sweep_time * 1.1)
 
     def set_diverter_mirror(self, pos):
         """
@@ -80,7 +81,7 @@ class ActonSP300i(Instrument):
         if pos not in ['FRONT', 'SIDE']:
             print('Specified mirror position is not supported. DOing nothing.')
             return
-        
+
         message = '%s' % pos
         self.ser.write(message.encode('ascii'))
         self.ser.flush()
@@ -96,4 +97,3 @@ if __name__ == '__main__':
         sp.set_wavelength(float(wav))
         print('Wavelength set')
     sp.close()
-

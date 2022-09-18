@@ -36,7 +36,7 @@ class MockPowerMeter(Instrument, PowerMeter):
         the actual power_meter implementation.
         :return: A 2 element list with the power in mW
         """
-        return np.ndarray.tolist(np.random.rand(1,2)[0,:])
+        return np.ndarray.tolist(np.random.rand(1, 2)[0, :])
 
     def set_range(self, channel, range):
         print("Range set")

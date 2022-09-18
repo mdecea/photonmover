@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 SANTEC_TSL550_GPIB_ADDRESS = 28
 
 # Tunable Laser Source
+
+
 class SantecTSL550(Instrument, TunableLaser):
 
     def __init__(self, gpib_address=SANTEC_TSL550_GPIB_ADDRESS, wait=0.5):
@@ -93,7 +95,8 @@ class SantecTSL550(Instrument, TunableLaser):
     def cfg_mode(self, mode):
         self.gpib.write("SOUR:WAV:SWE:MOD " + str(mode))
 
-    # Sets the sweep speed in the continuous sweep (in nm/s, between 0.5 and 100)
+    # Sets the sweep speed in the continuous sweep (in nm/s, between 0.5 and
+    # 100)
     def cfg_speed(self, speed):
         self.gpib.write("SOUR:WAV:SWE:SPE " + str(speed))
 
@@ -136,7 +139,14 @@ class SantecTSL550(Instrument, TunableLaser):
     # mode = 0: One-way sweep. Mode = 1: two way sweep
     # delay: time between sweeps (in s)
     # speed: speed of the sweep (in nm/s)
-    def cfg_cont_sweep(self, init_wav, end_wav, speed, delay=1, mode=0, num_sweeps=1):
+    def cfg_cont_sweep(
+            self,
+            init_wav,
+            end_wav,
+            speed,
+            delay=1,
+            mode=0,
+            num_sweeps=1):
 
         self.cfg_num_sweeps(num_sweeps)
         self.cfg_delay(delay)
@@ -151,7 +161,14 @@ class SantecTSL550(Instrument, TunableLaser):
     # COnfigures the TSL to do a sweep by stepping the wavelength
     # mode = 0: One-way sweep. Mode = 1: two way sweep
     # dwell: time spent in each step (in s)
-    def cfg_step_sweep(self, init_wav, end_wav, step, dwell, mode=0, num_sweeps=1):
+    def cfg_step_sweep(
+            self,
+            init_wav,
+            end_wav,
+            step,
+            dwell,
+            mode=0,
+            num_sweeps=1):
         self.cfg_num_sweeps(num_sweeps)
         self.cfg_dwell(dwell)
         self.cfg_sweep_step(step)
@@ -167,20 +184,21 @@ class SantecTSL550(Instrument, TunableLaser):
         """
         Returns a list wiht the following elements:
         1. The current wavelength
-        2. The current power 
+        2. The current power
         3. If the laser is on or off.
         """
-        
-        power = self.gpib.query_ascii_values(":SOUR:POW:LEV?" )
+
+        power = self.gpib.query_ascii_values(":SOUR:POW:LEV?")
         power = float(power[0])
 
-        wav = self.gpib.query_ascii_values(":SOUR:WAV?" )
+        wav = self.gpib.query_ascii_values(":SOUR:WAV?")
         wav = float(wav[0])
 
         state = self.gpib.query_ascii_values(":SOUR:POW:SHUT?")
         state = int(state[0])
 
         return [wav, power, state]
+
 
 if __name__ == '__main__':
     myLaser = SantecTSL550(SANTEC_TSL550_GPIB_ADDRESS)
@@ -190,7 +208,7 @@ if __name__ == '__main__':
     myLaser.turn_on()
 
     input()
-    #while True:
+    # while True:
     #    wavelength = input("Enter desired wavelength: ")
     #   print("Setting wavelength " + wavelength)
     #    myLaser.set_wavelength(float(wavelength))
@@ -201,4 +219,3 @@ if __name__ == '__main__':
     input()
     myLaser.start_sweep()
     myLaser.close()
-

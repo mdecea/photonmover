@@ -24,23 +24,24 @@
 % T.Wychock, Keysight Technologies 2018
 %
 % Disclaimer of Warranties: THIS SOFTWARE HAS NOT COMPLETED KEYSIGHT'S FULL
-% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES 
+% QUALITY ASSURANCE PROGRAM AND MAY HAVE ERRORS OR DEFECTS. KEYSIGHT MAKES
 % NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND WITH RESPECT TO THE SOFTWARE,
 % AND SPECIFICALLY DISCLAIMS THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 % FITNESS FOR A PARTICULAR PURPOSE.
-% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS. 
+% THIS SOFTWARE MAY ONLY BE USED IN CONJUNCTION WITH KEYSIGHT INSTRUMENTS.
 """
 
+
+# Example code
+# Test Parameters
 import scpi_sockets
 import time
 import os
 import datetime
-
-# Example code
-# Test Parameters
 debug_mode = 1  # Use debugging?
 file_save_folder = r'C:\Temp'
-instrument_mode = 'Vector Internal'  # Also can select 'Vector' or 'Wideband Vector', 'M8190A_12bit', M8190A_14bit'
+# Also can select 'Vector' or 'Wideband Vector', 'M8190A_12bit', M8190A_14bit'
+instrument_mode = 'Vector Internal'
 sample_rate_in_hz = 250E6  # Vector max is 250E6, Wideband is 2E9
 
 cal_frequency_span = 200E6  # The calibration span for each point
@@ -74,21 +75,28 @@ try:
 
     # Connect
     print('\n#####################')
-    print('Connecting to address "' + ipv4_address_server + '" and port "' + str(socket_port_server) + '"...')
+    print(
+        'Connecting to address "' +
+        ipv4_address_server +
+        '" and port "' +
+        str(socket_port_server) +
+        '"...')
 
-    scpi_session_server = scpi_sockets.SCPISession(ipv4_address_string_in=ipv4_address_server,
-                                                   port_in=socket_port_server,
-                                                   enable_nagle_in=True,
-                                                   connect_in=False,
-                                                   debug_scpi_in=debug_mode,
-                                                   udp_in=udp_communication,
-                                                   udp_receive_port_in=socket_port_udp_receive)
+    scpi_session_server = scpi_sockets.SCPISession(
+        ipv4_address_string_in=ipv4_address_server,
+        port_in=socket_port_server,
+        enable_nagle_in=True,
+        connect_in=False,
+        debug_scpi_in=debug_mode,
+        udp_in=udp_communication,
+        udp_receive_port_in=socket_port_udp_receive)
 
-    scpi_session_server.connect(timeout_in_seconds_in=timeout_in_seconds_server)
+    scpi_session_server.connect(
+        timeout_in_seconds_in=timeout_in_seconds_server)
     is_connected = True
     time.sleep(1)
 
-    ####################################################################################################################
+    ##########################################################################
 
     # Perform basic functions
     # IDN?
@@ -164,8 +172,13 @@ try:
             print('Calibrate Power: ' + str(amplitude_current) + ' dBm')
             print('Calibrating...')
 
-            file_save_current = 'Corrections_' + str(int(frequency_current)) + '_' + str(int(amplitude_current)) + '.mat'
-            scpi_session_server.write(':CAL:FSAV ' + file_save_folder + '\\' + file_save_current)
+            file_save_current = 'Corrections_' + \
+                str(int(frequency_current)) + '_' + str(int(amplitude_current)) + '.mat'
+            scpi_session_server.write(
+                ':CAL:FSAV ' +
+                file_save_folder +
+                '\\' +
+                file_save_current)
 
             # Calibrate and save
             scpi_session_server.write(':CAL:EXE')
@@ -184,7 +197,7 @@ try:
         print('Calibration complete.')
         print('Calibration time: ' + str(time_delta.seconds) + ' seconds.')
 
-    ####################################################################################################################
+    ##########################################################################
 
 except Exception as e:
     print('Error: ' + str(e))

@@ -37,17 +37,19 @@ class AwgWSmu(Experiment):
         self.drive_smu = None
         self.meas_smu = None
 
-        # Save the last data obtained when the experiment was performed (for plotting purposes)
+        # Save the last data obtained when the experiment was performed (for
+        # plotting purposes)
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
         The first SMU is the drive smu, the second on eis the measure SMU
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -82,21 +84,27 @@ class AwgWSmu(Experiment):
         Currently supported shapes: 'square', 'triangle', 'sine'
         """
 
-        low_value = shape_params['low_value']  # This is the lowest value of the shape
-        high_value = shape_params['high_value']  # This is the highest value of the shape
-        points_per_period = shape_params['points_per_period']  # Number of points per period of the shape
-        num_periods = shape_params['num_periods']  # Number of periods to generate
+        # This is the lowest value of the shape
+        low_value = shape_params['low_value']
+        # This is the highest value of the shape
+        high_value = shape_params['high_value']
+        # Number of points per period of the shape
+        points_per_period = shape_params['points_per_period']
+        # Number of periods to generate
+        num_periods = shape_params['num_periods']
 
         if shape == 'square':
-           
-            points_per_half_period = round(points_per_period/2)
-            single_period = [low_value] * points_per_half_period + [high_value] * points_per_half_period
+
+            points_per_half_period = round(points_per_period / 2)
+            single_period = [low_value] * points_per_half_period + \
+                [high_value] * points_per_half_period
             waveform_points = single_period * num_periods
 
         elif shape == 'triangle':
 
-            points_per_half_period = round(points_per_period/2) + 1
-            up_ramp = np.linspace(low_value, high_value, points_per_half_period)
+            points_per_half_period = round(points_per_period / 2) + 1
+            up_ramp = np.linspace(
+                low_value, high_value, points_per_half_period)
             down_ramp = np.flip(up_ramp)
             down_ramp = down_ramp[1:-1]
 
@@ -104,8 +112,8 @@ class AwgWSmu(Experiment):
             waveform_points = np.tile(single_period, num_periods)
 
         elif shape == 'sine':
-            w = 2*np.pi/points_per_period
-            single_period = np.sin(w*np.arange(points_per_period))
+            w = 2 * np.pi / points_per_period
+            single_period = np.sin(w * np.arange(points_per_period))
             waveform_points = np.tile(single_period, num_periods)
 
         else:
@@ -113,7 +121,7 @@ class AwgWSmu(Experiment):
             raise ValueError('The specified shape is not supported')
 
         return waveform_points
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -123,12 +131,12 @@ class AwgWSmu(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "shape" --> Name of the waveform to generate (string) or list of points to generate
             "shape_params" --> Dict with the parameters for the specific shape, or None if 'shape' has a list of points
-            "set" --> What are we setting? Either 'voltage' or 'current'. 
-            "measure" --> What are we measuring? Either 'voltage' or 'current'. 
+            "set" --> What are we setting? Either 'voltage' or 'current'.
+            "measure" --> What are we measuring? Either 'voltage' or 'current'.
             "meas_bias" --> Bias point for the measure SMU. If meas is 'voltage', this should be a current. If meas is 'current', this should be a voltage.
         """
 
@@ -146,7 +154,8 @@ class AwgWSmu(Experiment):
             # We are directly given the points to set
             waveform_points = shape
 
-        # Save current state so that we can get back to it after the measurement
+        # Save current state so that we can get back to it after the
+        # measurement
         if set == 'voltage':
             prev_drive_point = self.drive_smu.measure_voltage()
             set_v = True
@@ -181,7 +190,7 @@ class AwgWSmu(Experiment):
             else:
                 self.drive_smu.set_current(setpoint)
                 setpoint_meas = self.drive_smu.measure_voltage()
-            
+
             # Measure
             if meas_v:
                 reading = self.meas_smu.measure_voltage()
@@ -202,13 +211,13 @@ class AwgWSmu(Experiment):
         if filename is not None:
 
             time_tuple = time.localtime()
-            filename_comp = "%s--awg_w_smu--%d#%d#%d--%d#%d#%d.mat" % (filename,     
-                                                                        time_tuple[0],
-                                                                        time_tuple[1],
-                                                                        time_tuple[2],
-                                                                        time_tuple[3],
-                                                                        time_tuple[4],
-                                                                        time_tuple[5])
+            filename_comp = "%s--awg_w_smu--%d#%d#%d--%d#%d#%d.mat" % (filename,
+                                                                       time_tuple[0],
+                                                                       time_tuple[1],
+                                                                       time_tuple[2],
+                                                                       time_tuple[3],
+                                                                       time_tuple[4],
+                                                                       time_tuple[5])
 
             print("Saving data to ", filename_comp)
             io.savemat(filename_comp, {'wf': measurement})
@@ -239,17 +248,25 @@ class AwgWSmu(Experiment):
         return ["shape", "shape_params", "set", "measure", "meas_bias"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
-        t = data[:, 0]
-        rel_variable = data[:,2]
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
-        plot_graph(x_data=t, y_data=rel_variable, canvas_handle=canvas_handle, xlabel='Point #', ylabel='Measured value', title='SMU as AWG', legend=None)
+        t = data[:, 0]
+        rel_variable = data[:, 2]
+
+        plot_graph(
+            x_data=t,
+            y_data=rel_variable,
+            canvas_handle=canvas_handle,
+            xlabel='Point #',
+            ylabel='Measured value',
+            title='SMU as AWG',
+            legend=None)
 
 
 if __name__ == '__main__':
@@ -268,7 +285,11 @@ if __name__ == '__main__':
 
     shape = np.linspace(-1, 1, 201)
 
-    shape_params = {'low_value': 0, 'high_value': -1.6, 'points_per_period': 6, 'num_periods': 10}
+    shape_params = {
+        'low_value': 0,
+        'high_value': -1.6,
+        'points_per_period': 6,
+        'num_periods': 10}
     params = {"shape": shape, "shape_params": shape_params, "set": 'voltage',
               "measure": 'voltage', "meas_bias": 0.75e-3}
 

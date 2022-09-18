@@ -17,12 +17,16 @@ for i in [1]:
         init_wav = 1520.0
         end_wav = 1580.0
         step_wav = 0.1993
-        num_points = round(((end_wav-init_wav)/step_wav + 1))
-        task.ai_channels.add_ai_voltage_chan(AIN_RECEIVED, min_val=0, max_val=2.0)
+        num_points = round(((end_wav - init_wav) / step_wav + 1))
+        task.ai_channels.add_ai_voltage_chan(
+            AIN_RECEIVED, min_val=0, max_val=2.0)
         task.ai_channels.add_ai_voltage_chan(AIN_TAP, min_val=0, max_val=2.0)
 
-        task.timing.cfg_samp_clk_timing(500, source=PFI_CLK, active_edge=nidaqmx.constants.Edge.FALLING,
-                                        samps_per_chan=num_points)
+        task.timing.cfg_samp_clk_timing(
+            500,
+            source=PFI_CLK,
+            active_edge=nidaqmx.constants.Edge.FALLING,
+            samps_per_chan=num_points)
 
         print('acq started')
         sys.stdout.flush()
@@ -43,5 +47,3 @@ plt.plot(np.linspace(init_wav, end_wav, num_points), data_1[0], 'o-')
 #plt.plot(np.linspace(init_wav, end_wav, num_points), data_1[3], 'o-')
 
 plt.show()
-
-

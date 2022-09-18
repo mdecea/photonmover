@@ -40,8 +40,9 @@ class HP11713A(Instrument, ElectricalAttenuator):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
-            raise ValueError('Cannot connect to the HP variable electrical attenuator')
+        except BaseException:
+            raise ValueError(
+                'Cannot connect to the HP variable electrical attenuator')
 
     def close(self):
         print('Disconnecting HP variable electrical attenuator')
@@ -56,13 +57,13 @@ class HP11713A(Instrument, ElectricalAttenuator):
 
         # Calculate the attenuation that each channel has to apply
         fine_att = int(attenuation % 10)
-        coarse_att = int(attenuation-fine_att)
+        coarse_att = int(attenuation - fine_att)
 
         # Get the data string to send for each attenuation
         fine_data_str = self.construct_data_string(fine_att, 'fine')
         coarse_data_str = self.construct_data_string(coarse_att, 'coarse')
 
-        # Find out which change has to be made first to avoid the amplitude being higher than what it was set to or 
+        # Find out which change has to be made first to avoid the amplitude being higher than what it was set to or
         # what it will be set to
         if fine_att > self.current_fine_att:
             #  First fine attenuation and then coarse
@@ -82,7 +83,7 @@ class HP11713A(Instrument, ElectricalAttenuator):
             if fine_data_str is not None:
                 self.gpib.write(fine_data_str)
                 self.current_fine_att = fine_att
-            
+
         print('Setting attenuation to %.2f dB' % attenuation)
 
     def construct_data_string(self, attenuation, channel):
@@ -102,6 +103,7 @@ class HP11713A(Instrument, ElectricalAttenuator):
             print('Specified channel is not correct')
             return None
 
+
 if __name__ == '__main__':
     hp = HP11713A()
     hp.initialize()
@@ -110,5 +112,3 @@ if __name__ == '__main__':
         att = input('Desired attenuation (dB): ')
         hp.set_attenuation(float(att))
     hp.close()
-
-

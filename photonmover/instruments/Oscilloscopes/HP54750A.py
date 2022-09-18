@@ -31,7 +31,7 @@ class HP54750A(Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=10000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to HP 54750A oscilloscope')
 
         self.gpib.write(":TIM:REF LEFT")
@@ -79,7 +79,7 @@ class HP54750A(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -104,7 +104,8 @@ class HP54750A(Instrument):
             num_avg = 1024
 
         if num_avg % 2 != 0:
-            print("The number of averages has to be a power of 2. Setting to the closest.")
+            print(
+                "The number of averages has to be a power of 2. Setting to the closest.")
             num_avg = round(np.log2(num_avg))
 
         if num_avg == 1:
@@ -122,7 +123,7 @@ class HP54750A(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -142,7 +143,7 @@ class HP54750A(Instrument):
         :return:
         """
 
-        if channel not in [1, 2, 3 ,4]:
+        if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
@@ -217,12 +218,13 @@ class HP54750A(Instrument):
             x_increment = self.gpib.query_ascii_values("WAV:XINC?")
             x_origin = self.gpib.query_ascii_values("WAV:XOR?")
 
-            t = np.arange(len(data))*x_increment + x_origin
+            t = np.arange(len(data)) * x_increment + x_origin
 
             #plt.plot((t-x_origin)*1e12, data)
-            #plt.show()
+            # plt.show()
 
-            # Save the data if necessary. Each channel will be stored in a different file
+            # Save the data if necessary. Each channel will be stored in a
+            # different file
             if file_name is not None:
 
                 # Create the csv file
@@ -238,15 +240,21 @@ class HP54750A(Instrument):
 
         return all_ts, all_waveforms
 
-    def get_pattern_data(self, channel, pattern_length, data_rate, num_patterns=1, file_name=None):
+    def get_pattern_data(
+            self,
+            channel,
+            pattern_length,
+            data_rate,
+            num_patterns=1,
+            file_name=None):
         """
-        Records a total of 'num_patterns' patterns. 
+        Records a total of 'num_patterns' patterns.
         This function concatenates calls to read_waveform with different time origins so we can record data for longer
         than what is shown on the screen.
         :param channels: the channel to record
         :param pattern_length: the length (in bits) of the pattern we are applying
         :param data_rate: the data rate of the pattern (1/bit_duration)
-        :param num_patterns: the number of patterns we want to record. 
+        :param num_patterns: the number of patterns we want to record.
         :param file_name: name of the csv file that will be created with the data
         The total time recorded is num_patterns*pattern_length/data_rate
         """
@@ -258,21 +266,21 @@ class HP54750A(Instrument):
         t_vec = []
         wf_vec = []
 
-        total_time = num_patterns*pattern_length/data_rate
+        total_time = num_patterns * pattern_length / data_rate
 
         while not done:
-            #print(time_origin)
+            # print(time_origin)
             self.set_time_origin(time_origin)
-            ts, wf = self.read_waveform([channel], file_name = None)
+            ts, wf = self.read_waveform([channel], file_name=None)
             #plt.plot(ts[0], wf[0])
-            #plt.show()
+            # plt.show()
             t_vec.extend(ts[0])
             wf_vec.extend(wf[0])
 
             t = ts[0]
-            time_origin = t[-1] + (t[1]-t[0])
+            time_origin = t[-1] + (t[1] - t[0])
 
-            #if time_origin > pattern_length/data_rate:
+            # if time_origin > pattern_length/data_rate:
             #    time_origin = time_origin - pattern_length/data_rate
 
             total_time_recorded = total_time_recorded + (t[-1] - t[0])
@@ -280,7 +288,8 @@ class HP54750A(Instrument):
             if total_time_recorded > total_time:
                 done = True
 
-         # Save the data if necessary. Each channel will be stored in a different file
+         # Save the data if necessary. Each channel will be stored in a
+         # different file
         if file_name is not None:
 
             # Create the csv file
@@ -292,20 +301,19 @@ class HP54750A(Instrument):
                 writer.writerow(wf_vec)
 
         return t_vec, wf_vec
-        
+
 
 if __name__ == '__main__':
 
     osc = HP54750A()
     osc.initialize()
 
-    #t, wf = osc.get_pattern_data(1, pattern_length=127, data_rate=1.5e9, num_patterns=10,
+    # t, wf = osc.get_pattern_data(1, pattern_length=127, data_rate=1.5e9, num_patterns=10,
     #    file_name ='straight_spoke--Vbias=0.7V--Idc=0.77uA--Vpp=0.5V--att=44dB--f=1.5Gbps--avgs=256')
     #plt.plot(t, wf)
-    #plt.show()
-    #osc.autoscale()
-    #time.sleep(1)
+    # plt.show()
+    # osc.autoscale()
+    # time.sleep(1)
     osc.read_waveform([1], 'trial')
 
     osc.close()
-

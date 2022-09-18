@@ -10,7 +10,8 @@ class NiDAQ(Instrument):
 
     def __init__(self):
         super().__init__()
-        # You program the NI_DAQ through tasks. For now, we will only have a single task
+        # You program the NI_DAQ through tasks. For now, we will only have a
+        # single task
         self.task = None
 
     def initialize(self):
@@ -38,7 +39,14 @@ class NiDAQ(Instrument):
         self.task.stop()
         return data
 
-    def configure_nsampl_acq(self, input_channels, clk_channel=None, num_points=2, max_sampling_freq=1000, min_vals=None, max_vals=None):
+    def configure_nsampl_acq(
+            self,
+            input_channels,
+            clk_channel=None,
+            num_points=2,
+            max_sampling_freq=1000,
+            min_vals=None,
+            max_vals=None):
         """
         Creates a DAQ task to acquire voltage at the specified analog input channels. Specify the number of points to
         be acquired and teh clock reference. If None, the internal clock of the board is used.
@@ -56,22 +64,26 @@ class NiDAQ(Instrument):
 
         if min_vals is None:
             min_vals = 0.0
-        
+
         if max_vals is None:
             max_vals = 2.0
 
         if not isinstance(min_vals, list):
-            min_vals = [min_vals]*len(input_channels)
+            min_vals = [min_vals] * len(input_channels)
 
         if not isinstance(max_vals, list):
-            max_vals = [max_vals]*len(input_channels)
+            max_vals = [max_vals] * len(input_channels)
 
         self.task = nidaqmx.Task()
         for i, in_channel in enumerate(input_channels):
-            self.task.ai_channels.add_ai_voltage_chan(in_channel, min_val=min_vals[i], max_val=max_vals[i])
+            self.task.ai_channels.add_ai_voltage_chan(
+                in_channel, min_val=min_vals[i], max_val=max_vals[i])
 
-        self.task.timing.cfg_samp_clk_timing(max_sampling_freq, source=clk_channel, active_edge=nidaqmx.constants.Edge.FALLING,
-                                             samps_per_chan=num_points)
+        self.task.timing.cfg_samp_clk_timing(
+            max_sampling_freq,
+            source=clk_channel,
+            active_edge=nidaqmx.constants.Edge.FALLING,
+            samps_per_chan=num_points)
 
     def configure_channel_acq(self, input_channels, min_vals, max_vals):
         """
@@ -88,14 +100,14 @@ class NiDAQ(Instrument):
         self.task = nidaqmx.Task()
 
         if not isinstance(min_vals, list):
-            min_vals = [min_vals]*len(input_channels)
+            min_vals = [min_vals] * len(input_channels)
 
         if not isinstance(max_vals, list):
-            max_vals = [max_vals]*len(input_channels)
+            max_vals = [max_vals] * len(input_channels)
 
         for i, in_channel in enumerate(input_channels):
-            self.task.ai_channels.add_ai_voltage_chan(in_channel, min_val=min_vals[i], max_val=max_vals[i])
-
+            self.task.ai_channels.add_ai_voltage_chan(
+                in_channel, min_val=min_vals[i], max_val=max_vals[i])
 
 
 if __name__ == '__main__':

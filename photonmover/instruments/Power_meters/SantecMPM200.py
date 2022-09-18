@@ -11,9 +11,12 @@ from photonmover.Interfaces.PowMeter import PowerMeter
 SANTEC_MPM200_GPIB_ADDRESS = 16
 
 # Power meter with GPIB interface
+
+
 class SantecMPM200(Instrument, PowerMeter):
 
-    def __init__(self, rec_port=1, tap_port=None, module=0, gpib_address=SANTEC_MPM200_GPIB_ADDRESS):
+    def __init__(self, rec_port=1, tap_port=None, module=0,
+                 gpib_address=SANTEC_MPM200_GPIB_ADDRESS):
 
         super().__init__()
         self.gpib_address = gpib_address
@@ -163,7 +166,11 @@ class SantecMPM200(Instrument, PowerMeter):
         wop = [-1e9]
         # Get all the calibrated power offset data
         for i in range(1, 20):
-            wop.append(float(self.gpib.query_ascii_values("CWAVPO? %d,%d,%d" % (self.module, port, i))[0]))
+            wop.append(
+                float(
+                    self.gpib.query_ascii_values(
+                        "CWAVPO? %d,%d,%d" %
+                        (self.module, port, i))[0]))
         self.wop[(self.module, port)] = wop
 
     def get_power_offset_raw(self, port, wavelength):
@@ -206,21 +213,23 @@ class SantecMPM200(Instrument, PowerMeter):
             print("Port number out of range")
             return
 
-        # Read the status indicator and the number of digits of the length sequence
+        # Read the status indicator and the number of digits of the length
+        # sequence
         self.gpib.write("LOGG? %d,%d" % (self.module, port))
         status = self.gpib.read_raw()  # buf_size = 2 read_raw
-        #print(status)
+        # print(status)
         # Detect if the logged data is invalid
         if status[0:1] != b'#':
             raise Exception("Logged data is invalid!")
 
         # Read the number of bytes to read to read the length of the data sequence
-        #print(int(status[1:2]))
+        # print(int(status[1:2]))
         num_bytes = int(status[2:2 + int(status[1:2])])
-        #print(num_bytes)
+        # print(num_bytes)
 
         # Need a while loop to read everything
-        raw_data = status[2 + int(status[1:2]) : 2 + int(status[1:2]) + num_bytes]
+        raw_data = status[2 + int(status[1:2]): 2 +
+                          int(status[1:2]) + num_bytes]
 
         data = []
         for i in range(0, num_bytes, 4):
@@ -231,19 +240,28 @@ class SantecMPM200(Instrument, PowerMeter):
         all_powers = self.get_all_powers()
         # They are given in dBm, so we need to translate to W
         if self.tap_port is not None:
-            return [np.power(10, all_powers[self.tap_port-1]/10)*1e-3, np.power(10, all_powers[self.rec_port-1]/10)*1e-3]
+            return [np.power(10, all_powers[self.tap_port - 1] / 10) * 1e-3,
+                    np.power(10, all_powers[self.rec_port - 1] / 10) * 1e-3]
         else:
-            return [1, np.power(10, all_powers[self.rec_port-1]/10)*1e-3]
+            return [1, np.power(10, all_powers[self.rec_port - 1] / 10) * 1e-3]
 
     def get_all_powers(self):
-        return list(map(float, self.gpib.query_ascii_values("READ? %d" % self.module)))
+        return list(
+            map(float, self.gpib.query_ascii_values("READ? %d" % self.module)))
 
     def get_power_now_gen(self):
         while True:
             yield (self.get_all_powers())
 
-    # Configure the MPM to take nsamples measurements at the wavelength wav with external trigger
-    def cfg_nsamples_meas(self, nsamples, wav, auto_gain=False, ref_level=None, avg_time=1):
+    # Configure the MPM to take nsamples measurements at the wavelength wav
+    # with external trigger
+    def cfg_nsamples_meas(
+            self,
+            nsamples,
+            wav,
+            auto_gain=False,
+            ref_level=None,
+            avg_time=1):
 
         self.cfg_trigger(internal=False)
         self.cfg_wavelength(wav)
@@ -260,7 +278,14 @@ class SantecMPM200(Instrument, PowerMeter):
         self.read_all_errors()
 
     # Takes step sweep data from TSL550
-    def cfg_step_sweep(self, wave_start, wave_end, wave_step, sweep_speed, auto_gain=False, ref_level=None):
+    def cfg_step_sweep(
+            self,
+            wave_start,
+            wave_end,
+            wave_step,
+            sweep_speed,
+            auto_gain=False,
+            ref_level=None):
 
         self.cfg_trigger(internal=False)
 
@@ -277,12 +302,19 @@ class SantecMPM200(Instrument, PowerMeter):
         self.read_all_errors()
 
     # Takes continuous sweep data from TSL550
-    def cfg_cont_sweep(self, wave_start, wave_end, sweep_speed, num_samples, ref_level=None):
+    def cfg_cont_sweep(
+            self,
+            wave_start,
+            wave_end,
+            sweep_speed,
+            num_samples,
+            ref_level=None):
 
         self.cfg_trigger(internal=False)
         self.cfg_freerun_samples(num_samples)
         # Calculate the average time necessary to do the measurement
-        avg_time = float(((float(wave_end - wave_start) / float(sweep_speed) / num_samples))) * 1e3
+        avg_time = float(
+            ((float(wave_end - wave_start) / float(sweep_speed) / num_samples))) * 1e3
         self.cfg_average_time(avg_time)
         self.cfg_mode("FREERUN")
         self.set_wavelength(wave_start)
@@ -318,17 +350,16 @@ if __name__ == '__main__':
 
     # sys.exit(0)
 
-    #print(pm.gpib.query_ascii_values("LEV?"))
-    #input()
+    # print(pm.gpib.query_ascii_values("LEV?"))
+    # input()
     pm.set_range(2, -17)
     print(pm.gpib.query_ascii_values("LEV?"))
-    #input()
+    # input()
     pm.cfg_average_time(5)
     pm.set_wavelength(1280)
     pm.cfg_fgs_average_time(5)
 
     #pm.set_range(2, -15)
-
 
     # print(list(pm.get_powers()))
 

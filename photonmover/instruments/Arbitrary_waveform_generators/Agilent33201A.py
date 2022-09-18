@@ -17,7 +17,6 @@ class Agilent33201A(Instrument, WaveformGenerator):
         self.gpib = None
         self.shape = 'SIN'
 
-
     def initialize(self):
         """
         Initializes the instrument
@@ -28,7 +27,7 @@ class Agilent33201A(Instrument, WaveformGenerator):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Keysight Source meter')
 
         self.init_func()
@@ -70,9 +69,10 @@ class Agilent33201A(Instrument, WaveformGenerator):
             print('Vpp too low. Setting to minimum.')
             vpp = 0.1
 
-
         self.shape = shape
-        self.gpib.write("APPL:%s %.2E, %.2f, %.3f" % (shape, freq, vpp, offset))
+        self.gpib.write(
+            "APPL:%s %.2E, %.2f, %.3f" %
+            (shape, freq, vpp, offset))
 
     def set_shape(self, shape):
         """

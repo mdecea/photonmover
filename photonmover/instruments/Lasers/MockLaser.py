@@ -60,7 +60,7 @@ class MockLaser(Instrument, TunableLaser):
         """
         Returns a list wiht the following elements:
         1. The current wavelength
-        2. The current power 
+        2. The current power
         3. If the laser is on or off.
         """
         print("Getting laser state")

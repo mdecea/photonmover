@@ -31,10 +31,10 @@ class PowerMeter(ABC):
     @abstractmethod
     def set_range(self, channel, range):
         """
-                Set the power range of the specified channel to the specified number
-                :return:
-                """
+        Set the power range of the specified channel to the specified number
+        :return:
+        """
         pass
 
     def get_id(self):
-        return("PowerMeter")
+        return ("PowerMeter")

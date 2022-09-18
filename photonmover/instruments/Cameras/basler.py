@@ -2,12 +2,13 @@
 # package to talk to the camera
 # See https://github.com/basler/pypylon
 # We can just directly use that package to talk to the pixelink.
-# 
+#
 # To install the package: pip install pypylon
 from pypylon import pylon
 
 from photonmover.Interfaces.Camera import Camera
 from photonmover.Interfaces.Instrument import Instrument
+
 
 class Pylon(Instrument, Camera):
 
@@ -21,11 +22,14 @@ class Pylon(Instrument, Camera):
     def initialize(self):
 
         # Create an instant camera object with the camera device found first.
-        self.camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+        self.camera = pylon.InstantCamera(
+            pylon.TlFactory.GetInstance().CreateFirstDevice())
         self.camera.Open()
 
         # Print the model name of the camera.
-        print("Using basler camera: ", self.camera.GetDeviceInfo().GetModelName())
+        print(
+            "Using basler camera: ",
+            self.camera.GetDeviceInfo().GetModelName())
 
     def set_image_format(self, image_format):
         """
@@ -37,7 +41,7 @@ class Pylon(Instrument, Camera):
 
         if image_format not in ['jpeg', 'bmp', 'tiff', 'png', 'raw']:
             Exception('Specified image format %s not supported' % image_format)
-        
+
         if image_format == 'jpeg':
             self.image_format = pylon.ImageFileFormat_Jpeg
         elif image_format == 'bmp':
@@ -45,7 +49,7 @@ class Pylon(Instrument, Camera):
         elif image_format == 'tiff':
             self.image_format = pylon.ImageFileFormat_Tiff
         elif image_format == 'png':
-            self.image_format = pylon.ImageFileFormat_Png 
+            self.image_format = pylon.ImageFileFormat_Png
         elif image_format == 'raw':
             self.image_format = pylon.ImageFileFormat_Raw
 
@@ -63,15 +67,15 @@ class Pylon(Instrument, Camera):
         with self.camera.RetrieveResult(2000) as result:
 
             # Calling AttachGrabResultBuffer creates another reference to the
-            # grab result buffer. This prevents the buffer's reuse for grabbing.
+            # grab result buffer. This prevents the buffer's reuse for
+            # grabbing.
             img.AttachGrabResultBuffer(result)
 
-
-            ## The JPEG format that is used here supports adjusting the image
-            ## quality (100 -> best quality, 0 -> poor quality).
+            # The JPEG format that is used here supports adjusting the image
+            # quality (100 -> best quality, 0 -> poor quality).
             #ipo = pylon.ImagePersistenceOptions()
             #quality = 90 - i * 10
-            #ipo.SetQuality(quality)
+            # ipo.SetQuality(quality)
             #filename = "saved_pypylon_img_%d.jpeg" % quality
             #img.Save(self.image_format, filename, ipo)
 
@@ -92,6 +96,7 @@ class Pylon(Instrument, Camera):
 
     def set_gain(self, gain):
         self.camera.Gain = gain
+
 
 if __name__ == '__main__':
 

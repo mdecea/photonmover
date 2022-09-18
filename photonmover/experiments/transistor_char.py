@@ -21,6 +21,7 @@ import scipy.io as io
 import winsound
 import numpy as np
 
+
 class BJTTransOutputCurve(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
@@ -41,12 +42,13 @@ class BJTTransOutputCurve(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -73,7 +75,7 @@ class BJTTransOutputCurve(Experiment):
         Returns a string with the experiment name
         """
         return "BJT output curve"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -83,7 +85,7 @@ class BJTTransOutputCurve(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "voltages" --> CE voltages to be applied
             "currents" --> Base current to be applied
@@ -93,7 +95,8 @@ class BJTTransOutputCurve(Experiment):
         base_currents = params["currents"]  # Base currents to apply
         ce_voltages = params["voltages"]  # Collector-emitter current to applyt
 
-        # Save current state so that we can get back to it after the measurement
+        # Save current state so that we can get back to it after the
+        # measurement
         prev_base_current = self.be_smu.measure_current()
         prev_ce_voltage = self.ce_smu.measure_voltage()
 
@@ -106,16 +109,17 @@ class BJTTransOutputCurve(Experiment):
             self.be_smu.set_current(base_i)
 
             collector_emitter_sweep = IVCurve([self.ce_smu])
-            iv_data = collector_emitter_sweep.perform_experiment(params={"voltages":ce_voltages}, filename=None)
+            iv_data = collector_emitter_sweep.perform_experiment(
+                params={"voltages": ce_voltages}, filename=None)
 
-            self.legend.append('Ib = %.2f mA' % (base_i*1e3))
+            self.legend.append('Ib = %.2f mA' % (base_i * 1e3))
             all_meas_data.append(np.log10(np.abs(iv_data[:, 1])))
 
             if filename is not None:
 
                 time_tuple = time.localtime()
                 filename_comp = "%s--bjt_output--Ib=%.4emA--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                       base_i*1e3,
+                                                                                       base_i * 1e3,
                                                                                        time_tuple[0],
                                                                                        time_tuple[1],
                                                                                        time_tuple[2],
@@ -149,17 +153,25 @@ class BJTTransOutputCurve(Experiment):
         return ["voltages", "currents"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is not None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Vce (V)', ylabel='log10(Ic) (A)', title='BJT curve', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Vce (V)',
+            ylabel='log10(Ic) (A)',
+            title='BJT curve',
+            legend=self.legend)
 
 
 class FETTransOutputCurve(Experiment):
@@ -182,12 +194,13 @@ class FETTransOutputCurve(Experiment):
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -214,7 +227,7 @@ class FETTransOutputCurve(Experiment):
         Returns a string with the experiment name
         """
         return "MOS output curve"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -224,7 +237,7 @@ class FETTransOutputCurve(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "voltages" --> Gate voltages to be applied.
             "voltages2" --> Drain-source voltages to be applied.
@@ -234,7 +247,8 @@ class FETTransOutputCurve(Experiment):
         gate_voltages = params["voltages"]
         drain_voltages = params["voltages2"]
 
-        # Save current state so that we can get back to it after the measurement
+        # Save current state so that we can get back to it after the
+        # measurement
         prev_gate_voltage = self.gate_smu.measure_voltage()
         prev_drain_voltage = self.drain_smu.measure_voltage()
 
@@ -247,22 +261,23 @@ class FETTransOutputCurve(Experiment):
             self.gate_smu.set_voltage(gate_v)
 
             drain_source_sweep = IVCurve([self.drain_smu])
-            iv_data = drain_source_sweep.perform_experiment(params={"voltages":drain_voltages}, filename=None)
+            iv_data = drain_source_sweep.perform_experiment(
+                params={"voltages": drain_voltages}, filename=None)
 
-            self.legend.append('Vgs = %d mV' % (gate_v*1e3))
+            self.legend.append('Vgs = %d mV' % (gate_v * 1e3))
             all_meas_data.append(np.log10(np.abs(iv_data[:, 1])))
 
             if filename is not None:
 
                 time_tuple = time.localtime()
                 filename_comp = "%s--transistor_output--Vgs=%.4eV--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                       gate_v,
-                                                                                       time_tuple[0],
-                                                                                       time_tuple[1],
-                                                                                       time_tuple[2],
-                                                                                       time_tuple[3],
-                                                                                       time_tuple[4],
-                                                                                       time_tuple[5])
+                                                                                              gate_v,
+                                                                                              time_tuple[0],
+                                                                                              time_tuple[1],
+                                                                                              time_tuple[2],
+                                                                                              time_tuple[3],
+                                                                                              time_tuple[4],
+                                                                                              time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'iv': iv_data})
@@ -288,19 +303,27 @@ class FETTransOutputCurve(Experiment):
         a measurement to be performed
         """
         return ["voltages", "voltages2"]
-    
+
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Vds (V)', ylabel='log10(Ids) (A)', title='MOS curve', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Vds (V)',
+            ylabel='log10(Ids) (A)',
+            title='MOS curve',
+            legend=self.legend)
 
 
 if __name__ == '__main__':
@@ -333,7 +356,7 @@ if __name__ == '__main__':
     # BJT output curve
     be_smu = Keithley2400()
     ce_smu = KeysightB2902A()
-    
+
     be_smu.initialize()
     ce_smu.initialize()
 
@@ -352,4 +375,3 @@ if __name__ == '__main__':
     # CLOSE INSTRUMENTS
     be_smu.close()
     ce_smu.close()
-

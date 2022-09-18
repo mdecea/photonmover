@@ -11,9 +11,15 @@ DLL_PATH = "C:\\Program Files\\Common Files\\XenICs\\Runtime\\xeneth64.dll"
 CAL_PATH = "C:\\Program Files\\Xeneth\\Calibrations\\xenics_cal_1785.xca"
 SETTINGS_PATH = "C:\\Users\\POE\\Desktop\\Marc\\photonmover-exp\\photonmover-master\\instruments\\Cameras\\xenics_settings_0degC_max_int_time.xcf"
 
+
 class Xenics(Instrument, Camera):
 
-    def __init__(self, camera_path ='cam://0', dll_path=DLL_PATH, calibration_file=CAL_PATH, settings_file=SETTINGS_PATH):
+    def __init__(
+            self,
+            camera_path='cam://0',
+            dll_path=DLL_PATH,
+            calibration_file=CAL_PATH,
+            settings_file=SETTINGS_PATH):
         super().__init__()
 
         # It is good practice to initialize variables in the init
@@ -21,7 +27,8 @@ class Xenics(Instrument, Camera):
         self.xenics_handle = None
         self.dll_path = dll_path
         self.camera_path = camera_path
-        self.calibration_file = calibration_file  # Calibration file is a path to a .xca calibration file
+        # Calibration file is a path to a .xca calibration file
+        self.calibration_file = calibration_file
         self.settings_file = settings_file
 
     def initialize(self):
@@ -49,7 +56,8 @@ class Xenics(Instrument, Camera):
         '''
 
         # Open connection
-        self.xenics_handle = self.open_camera(self.camera_path.encode('utf-8'), 0, 0)
+        self.xenics_handle = self.open_camera(
+            self.camera_path.encode('utf-8'), 0, 0)
         print('Xenics handle:', self.xenics_handle)
 
         if self.xenics_handle == 0:
@@ -60,10 +68,9 @@ class Xenics(Instrument, Camera):
 
         # Load calibration
         if self.calibration_file is not None:
-            flag = 1 # Use software correction
-            error = self.load_calibration(self.xenics_handle,
-                                          self.calibration_file.encode('utf-8'),
-                                          flag)
+            flag = 1  # Use software correction
+            error = self.load_calibration(
+                self.xenics_handle, self.calibration_file.encode('utf-8'), flag)
             if error != 0:
                 msg = 'Could\'t load' + \
                     ' calibration file ' + \
@@ -73,14 +80,15 @@ class Xenics(Instrument, Camera):
 
         property = "SETTLE"
         val = c_ulong(1)
-        err = self.get_property_value(self.xenics_handle, property.encode('utf-8'), val)
+        err = self.get_property_value(
+            self.xenics_handle, property.encode('utf-8'), val)
         print(property + "is " + str(val))
 
         # Load settings
         if self.settings_file is not None:
-            flag = 1 # Ignore settings that do not affect the image
-            error = self.load_settings(self.xenics_handle, 
-                                       self.settings_file.encode('utf-8'), 
+            flag = 1  # Ignore settings that do not affect the image
+            error = self.load_settings(self.xenics_handle,
+                                       self.settings_file.encode('utf-8'),
                                        flag)
 
             if error != 0:
@@ -91,7 +99,10 @@ class Xenics(Instrument, Camera):
                 raise Exception(msg)
 
         val = c_ulong(1)
-        self.get_property_value(self.xenics_handle, property.encode('utf-8'), val)
+        self.get_property_value(
+            self.xenics_handle,
+            property.encode('utf-8'),
+            val)
         print(property + "is " + str(val))
 
         return self
@@ -106,7 +117,7 @@ class Xenics(Instrument, Camera):
                 error = self.stop_capture(self.xenics_handle)
                 if error != 0:
                     raise Exception('Could not stop capturing')
-        except:
+        except BaseException:
             print('Something went wrong closing the camera.')
             raise
         finally:
@@ -157,12 +168,13 @@ class Xenics(Instrument, Camera):
         self.get_frame_height.argtypes = (c_int32,)  # Handle
 
         self.get_max_val = self.xenicsdll.XC_GetMaxValue
-        self.get_max_val.restype = c_ulong  
+        self.get_max_val.restype = c_ulong
         self.get_max_val.argtypes = (c_int32,)  # Handle
 
         self.get_frame_dll = self.xenicsdll.XC_GetFrame
         self.get_frame_dll.restype = c_ulong  # ErrCode
-        self.get_frame_dll.argtypes = (c_int32, c_ulong, c_ulong, c_void_p, c_uint)
+        self.get_frame_dll.argtypes = (
+            c_int32, c_ulong, c_ulong, c_void_p, c_uint)
 
         self.stop_capture = self.xenicsdll.XC_StopCapture
         self.stop_capture.restype = c_ulong  # ErrCode
@@ -201,14 +213,16 @@ class Xenics(Instrument, Camera):
 
         self.get_property_value = self.xenicsdll.XC_GetPropertyValueL
         self.get_property_value.restype = c_ulong  # ErrCode
-        self.get_property_value.argtypes = (c_int32, c_char_p, POINTER(c_ulong))
+        self.get_property_value.argtypes = (
+            c_int32, c_char_p, POINTER(c_ulong))
 
     def get_frame_size(self):
         '''
         Asks the camera what is the frame size in bytes.
         @return: c_ulong
         '''
-        frame_size = self.get_frame_size_dll(self.xenics_handle)  # Size in bytes
+        frame_size = self.get_frame_size_dll(
+            self.xenics_handle)  # Size in bytes
         return frame_size
 
     def get_frame_dims(self):
@@ -237,7 +251,7 @@ class Xenics(Instrument, Camera):
         conversions = (None, np.uint8, np.uint16, None, np.uint32)
         try:
             pixel_dtype = conversions[bytes_in_pixel]
-        except:
+        except BaseException:
             raise Exception('Unsupported pixel size %s' % str(bytes_in_pixel))
         if conversions is None:
             raise Exception('Unsupported pixel size %s' % str(bytes_in_pixel))
@@ -261,14 +275,14 @@ class Xenics(Instrument, Camera):
         FT_32_BPP_BGR = 7
 
         pixel_sizes = {FT_UNKNOWN: 0,  # Unknown
-                   FT_NATIVE: 0,  # Unknown, ask with get_frame_type
-                   FT_8_BPP_GRAY: 1,
-                   FT_16_BPP_GRAY: 2,
-                   FT_32_BPP_GRAY: 4,
-                   FT_32_BPP_RGBA: 4,
-                   FT_32_BPP_RGB: 4,
-                   FT_32_BPP_BGRA: 4,
-                   FT_32_BPP_BGR: 4}
+                       FT_NATIVE: 0,  # Unknown, ask with get_frame_type
+                       FT_8_BPP_GRAY: 1,
+                       FT_16_BPP_GRAY: 2,
+                       FT_32_BPP_GRAY: 4,
+                       FT_32_BPP_RGBA: 4,
+                       FT_32_BPP_RGB: 4,
+                       FT_32_BPP_BGRA: 4,
+                       FT_32_BPP_BGR: 4}
 
         return pixel_sizes[frame_t]
 
@@ -288,10 +302,10 @@ class Xenics(Instrument, Camera):
         while True:
 
             error = self.get_frame_dll(self.xenics_handle,
-                                    frame_t,
-                                    1, # Blocking
-                                    frame_buffer,
-                                    size)
+                                       frame_t,
+                                       1,  # Blocking
+                                       frame_buffer,
+                                       size)
 
             if error == 0:
                 frame = frame_buffer
@@ -303,13 +317,12 @@ class Xenics(Instrument, Camera):
         # Convert the bytes buffer into an image
         im = np.frombuffer(frame,
                            dtype=pixel_dtype,
-                           count=int(size/pixel_size_bytes))
+                           count=int(size / pixel_size_bytes))
         im = np.reshape(im, dims)
 
         # Save as png
         img = Image.fromarray(im)
         img.save(filename)
-
 
         return im
 
@@ -323,4 +336,3 @@ if __name__ == '__main__':
     plt.imshow(im)
     plt.show()
     xenics.close()
-

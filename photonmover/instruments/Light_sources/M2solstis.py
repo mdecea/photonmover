@@ -38,12 +38,16 @@ Copyright 2020-2021
 
 class SolsTiS(Instrument, LightSource):
 
-    def __init__(self, host_address='localhost', port=9001, client_ip='192.168.1.100'):
+    def __init__(
+            self,
+            host_address='localhost',
+            port=9001,
+            client_ip='192.168.1.100'):
         super().__init__()
 
-        self.host_address=host_address
-        self.port=port
-        self.client_ip=client_ip
+        self.host_address = host_address
+        self.port = port
+        self.client_ip = client_ip
         self.s = None   # Preallocate a socket object
 
     def initialize(self):
@@ -54,22 +58,24 @@ class SolsTiS(Instrument, LightSource):
 
         # Internal parameters
         self.timeout = 1.0
-        self.wavelength_tolerance = 0.01  #nm
+        self.wavelength_tolerance = 0.01  # nm
         self.poll_timeout = 30
-        host_address=self.host_address
-        port=self.port
-        client_ip=self.client_ip
+        host_address = self.host_address
+        port = self.port
+        client_ip = self.client_ip
         self.latest_reply = None
         self.poll_status = -1
 
         try:
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.s.settimeout(self.timeout) # sets timeout
+            self.s.settimeout(self.timeout)  # sets timeout
             # self.s.connect((self._paramset['host_address'], self._paramset['port']))
             self.s.connect((host_address, port))
-        except:
+        except BaseException:
             # print('M2_Solstis: cannot open socket connection to {}:{}'.format(self._paramset['host_address'], self._paramset['port']))
-            print('M2_Solstis: cannot open socket connection to {}:{}'.format(host_address, port))
+            print(
+                'M2_Solstis: cannot open socket connection to {}:{}'.format(
+                    host_address, port))
             print("Unexpected error:", sys.exc_info()[0])
             self.s = None
         else:
@@ -85,23 +91,26 @@ class SolsTiS(Instrument, LightSource):
             }
 
             command_startlink = json.dumps(json_startlink)
-            self.s.sendall(bytes(command_startlink,'utf-8'))
+            self.s.sendall(bytes(command_startlink, 'utf-8'))
 
             json_reply = json.loads(self.s.recv(1024))
             if json_reply['message']['transmission_id'][0] == 1 and json_reply['message']['parameters']['status'] == 'ok':
                 # print('M2_Solstis: successfully started link to {}:{} as {}'.format(self._paramset['host_address'], self._paramset['port'], self._paramset['client_id']))
-                print('M2_Solstis: successfully started link to {}:{} as {}'.format(host_address, port, client_ip))
+                print(
+                    'M2_Solstis: successfully started link to {}:{} as {}'.format(
+                        host_address, port, client_ip))
             else:
                 # print('M2_Solstis: failed to start link to {}:{} as {}'.format(self._paramset['host_address'], self._paramset['port'], self._paramset['client_id']))
-                print('M2_Solstis: failed to start link to {}:{} as {}'.format(host_address, port, client_ip))
+                print(
+                    'M2_Solstis: failed to start link to {}:{} as {}'.format(
+                        host_address, port, client_ip))
                 print('M2_Solstis: reply from controller {}'.format(json_reply))
 
                 self.s.close()
                 self.s = None
 
     def get_id(self):
-        return("LightSource")
-
+        return ("LightSource")
 
     def close(self):
         """
@@ -111,7 +120,7 @@ class SolsTiS(Instrument, LightSource):
 
         if self.s is not None:
             self.s.close()
-            print( 'Connection to SolsTiS is closed' )
+            print('Connection to SolsTiS is closed')
 
     def one_shot(self):
         """ Runs one-shot routine for beam alignment
@@ -121,10 +130,10 @@ class SolsTiS(Instrument, LightSource):
         status: str
             returns status of the one shot command
         """
-        self.set_wavelength(wavelength = 780)
+        self.set_wavelength(wavelength=780)
 
         if self.s is not None:
-            transID=97
+            transID = 97
             json_oneshot = {
                 'message': {
                     'transmission_id': [transID],
@@ -134,9 +143,9 @@ class SolsTiS(Instrument, LightSource):
                     }
                 }
             }
-            self.s.sendall(bytes(json.dumps(json_oneshot),'utf-8'))
+            self.s.sendall(bytes(json.dumps(json_oneshot), 'utf-8'))
             sleep(1.0)
-            json_reply=json.loads(self.s.recv(1024))
+            json_reply = json.loads(self.s.recv(1024))
             self.latest_reply = json_reply
             if json_reply['message']['parameters']['status'] == 0:
                 print('M2_Solstis: one shot beam alignment successful')
@@ -153,8 +162,6 @@ class SolsTiS(Instrument, LightSource):
         else:
             print('M2_Solstis: socket not connected')
             return 'Failed'
-
-
 
     def turn_off(self):
         """
@@ -175,10 +182,9 @@ class SolsTiS(Instrument, LightSource):
         Set the power to the specified value (in mW)
         :return:
         """
-        print('The SolsTiS does not have a software-controllable output power. Please set manually.' )
+        print('The SolsTiS does not have a software-controllable output power. Please set manually.')
 
     def set_wavelength(self, wavelength, use_wavemeter=true):
-
         """
         Sets the laser to the specified wavelength in nanometers.
 
@@ -208,14 +214,14 @@ class SolsTiS(Instrument, LightSource):
             cmd_string = 'set_wave_m'
         else:
             cmd_string = 'move_wave_t'
-            raise ValueError( 'Tuning with the lookup table requires disabling wavemeter control. This is not currently implemented' )
-
+            raise ValueError(
+                'Tuning with the lookup table requires disabling wavemeter control. This is not currently implemented')
 
         if self.s is None:
             # print('M2_Solstis: socket not connected')
             return 9
         else:
-            transID=91
+            transID = 91
             json_setwave = {
                 'message': {
                     'transmission_id': [transID],
@@ -226,11 +232,12 @@ class SolsTiS(Instrument, LightSource):
                 }
             }
 
-            self.s.sendall(bytes(json.dumps(json_setwave),'utf-8'))
+            self.s.sendall(bytes(json.dumps(json_setwave), 'utf-8'))
             sleep(1.0)
-            json_reply=json.loads(self.s.recv(1024))
+            json_reply = json.loads(self.s.recv(1024))
             self.latest_reply = json_reply
-            if json_reply['message']['transmission_id'] == [transID] and json_reply['message']['parameters']['status'] == [0]:
+            if json_reply['message']['transmission_id'] == [
+                    transID] and json_reply['message']['parameters']['status'] == [0]:
                 return 0
             else:
                 return 1
@@ -258,51 +265,49 @@ class SolsTiS(Instrument, LightSource):
         9: no connection
         """
 
-        wavelength =  0.0
+        wavelength = 0.0
 
         if self.s is not None:
-            transID=99
+            transID = 99
             json_getwave = {
                 'message': {
                     'transmission_id': [transID],
                     'op': 'poll_wave_m'
                 }
             }
-            self.s.sendall(bytes(json.dumps(json_getwave),'utf-8'))
+            self.s.sendall(bytes(json.dumps(json_getwave), 'utf-8'))
             # sleep(5.0)
-            json_reply=json.loads(self.s.recv(1024))
-            if (json_reply['message']['transmission_id'] == [transID]) and (json_reply['message']['parameters']['status'] in [[0], [2], [3]]):
+            json_reply = json.loads(self.s.recv(1024))
+            if (json_reply['message']['transmission_id'] == [transID]) and (
+                    json_reply['message']['parameters']['status'] in [[0], [2], [3]]):
                 wavelength = json_reply['message']['parameters']['current_wavelength'][0]
                 # print('M2_Solstis: Current wavelength from wavemeter is {}'.format(wavelength))
 
-                if json_reply['message']['parameters']['status'] ==[0]:
+                if json_reply['message']['parameters']['status'] == [0]:
                     # print('M2_Solstis: idle: software inactive!')
-                    self.poll_status=0
+                    self.poll_status = 0
 
-                if json_reply['message']['parameters']['status'] ==[2]:
+                if json_reply['message']['parameters']['status'] == [2]:
                     # print('M2_Solstis: Tuning laser wavelength')
-                    self.poll_status=2
+                    self.poll_status = 2
 
-                elif json_reply['message']['parameters']['status'] ==[3]:
+                elif json_reply['message']['parameters']['status'] == [3]:
                     # print('M2_Solstis: maintaining target wavelength at {}'.format(wavelength))
-                    self.poll_status=3
+                    self.poll_status = 3
 
             else:
                 # print('M2_Solstis: failed poll wavelength, no wavemeter')
                 # print('M2_Solstis: reply from controller {}'.format(json_reply))
-                self.poll_status=1
+                self.poll_status = 1
 
-                wavelength =  0.0
+                wavelength = 0.0
         else:
             # print('M2_Solstis: socket not connected')
-            self.poll_status=9
-            wavelength =  0.0
-
+            self.poll_status = 9
+            wavelength = 0.0
 
         self.latest_reply = json_reply
         return wavelength
-
-
 
     def get_monitor_value(self):
         """
@@ -330,7 +335,7 @@ class SolsTiS(Instrument, LightSource):
             # print('M2_Solstis: socket not connected')
             return 9
         else:
-            transID=77
+            transID = 77
             json_stopwave = {
                 'message': {
                     'transmission_id': [transID],
@@ -338,14 +343,15 @@ class SolsTiS(Instrument, LightSource):
                 }
             }
 
-            self.s.sendall(bytes(json.dumps(json_stopwave),'utf-8'))
+            self.s.sendall(bytes(json.dumps(json_stopwave), 'utf-8'))
             # sleep(1.0)
-            json_reply=json.loads(self.s.recv(1024))
+            json_reply = json.loads(self.s.recv(1024))
             self.latest_reply = json_reply
 
-            if (json_reply['message']['transmission_id'] == [transID]) and json_reply['message']['parameters']['status'] == [0]:
+            if (json_reply['message']['transmission_id'] == [
+                    transID]) and json_reply['message']['parameters']['status'] == [0]:
                 #wavelength = json_reply['message']['parameters']['current_wavelength'][0]
-               return 0
+                return 0
             else:
                 # print('M2_Solstis: failed connection to wavemeter')
                 # print('M2_Solstis: reply from controller {}'.format(json_reply))
@@ -376,7 +382,7 @@ class SolsTiS(Instrument, LightSource):
             # print('M2_Solstis: socket not connected')
             return 9
         else:
-            transID=8
+            transID = 8
             json_lockwave = {
                 'message': {
                     'transmission_id': [transID],
@@ -387,16 +393,17 @@ class SolsTiS(Instrument, LightSource):
                 }
             }
 
-            #print(json_lockwave)
+            # print(json_lockwave)
 
-            self.s.sendall(bytes(json.dumps(json_lockwave),'utf-8'))
+            self.s.sendall(bytes(json.dumps(json_lockwave), 'utf-8'))
             # sleep(1.0)
-            json_reply=json.loads(self.s.recv(1024))
+            json_reply = json.loads(self.s.recv(1024))
             self.latest_reply = json_reply
 
-            #print(json_reply)
+            # print(json_reply)
 
-            if json_reply['message']['transmission_id'] == [transID] and json_reply['message']['parameters']['status'] == [0]:
+            if json_reply['message']['transmission_id'] == [
+                    transID] and json_reply['message']['parameters']['status'] == [0]:
                 print('M2_Solstis: lock or unlock wavelength successfull')
                 #wavelength = json_reply['message']['parameters']['current_wavelength'][0]
                 # print('M2_Solstis: Tuning stopped. Current wavelength from wavemeter is {}'.format(wavelength))
@@ -420,7 +427,6 @@ class SolsTiS(Instrument, LightSource):
         """
         pass
 
-
     def take_sweep(self, init_wav, end_wav, num_wav):
         """
         Takes a wavelength sweep from init_wav to end_wav with num_wav points,
@@ -441,9 +447,11 @@ class SolsTiS(Instrument, LightSource):
         pass
 
 
-
 if __name__ == '__main__':
-    laser = SolsTiS(host_address='localhost', port=9001, client_ip='192.168.1.100')
+    laser = SolsTiS(
+        host_address='localhost',
+        port=9001,
+        client_ip='192.168.1.100')
     laser.initialize()
     # laser.configure_sweep()
     laser.close()

@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 # ABC means Abstract Base Class and is basically an interface
 
+
 class WlMeter(ABC):
 
     def __init__(self):
@@ -18,4 +19,4 @@ class WlMeter(ABC):
         pass
 
     def get_id(self):
-        return("WavelengthMeter")
+        return ("WavelengthMeter")

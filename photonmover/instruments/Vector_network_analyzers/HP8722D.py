@@ -15,7 +15,7 @@ class HP8722D(VNA, Instrument):
     This class can both extract data from sweeps, as well as perform basic functions
     like turning the signal source on/off, and set the frequency axis range and
     number of points.
-    
+
     """
 
     def __init__(self, gpib_address="GPIB1::25::INSTR"):
@@ -25,12 +25,13 @@ class HP8722D(VNA, Instrument):
 
     def initialize(self):
         print('Opening connnection to HP VNA')
-        print( 'GPIB address is {}'.format(self.gpib_address))
+        print('GPIB address is {}'.format(self.gpib_address))
         rm = visa.ResourceManager()
         try:
-            self.gpib = rm.open_resource(self.gpib_address, timeout=120000)  # 2 min timeout
-            print( 'Connected to HP VNA' )
-        except:
+            self.gpib = rm.open_resource(
+                self.gpib_address, timeout=120000)  # 2 min timeout
+            print('Connected to HP VNA')
+        except BaseException:
             raise ValueError('Cannot connect to the HP VNA')
 
     def close(self):
@@ -38,16 +39,16 @@ class HP8722D(VNA, Instrument):
         self.gpib.close()
 
     # ----------- SETTINGS ---------------
-    
+
     def source_on(self, power=None):
         """
         Turns on source power.
-        If power is specified, it also sets the output power (in dBm) 
+        If power is specified, it also sets the output power (in dBm)
         """
-        self.gpib.write( 'SOUPON;')
+        self.gpib.write('SOUPON;')
         if power is not None:
             if -85 < power < -5:
-                self.gpib.write( 'POWE %.2f DB; ' )
+                self.gpib.write('POWE %.2f DB; ')
             else:
                 print('The specified VNA power is not supported. Doing nothing.')
 
@@ -55,7 +56,7 @@ class HP8722D(VNA, Instrument):
         """
         Turns off source power
         """
-        self.gpib.write( 'SOUPOFF;')
+        self.gpib.write('SOUPOFF;')
 
     def set_averaging(self, num_averages):
         """
@@ -86,7 +87,13 @@ class HP8722D(VNA, Instrument):
         if meastype is not None:
             self.gpib.write('%s;' % meastype)
 
-    def set_freq_axis(self, center=None, span=None, start_freq=None, end_freq=None, num_points=None):
+    def set_freq_axis(
+            self,
+            center=None,
+            span=None,
+            start_freq=None,
+            end_freq=None,
+            num_points=None):
         """
         Sets the center/span or min/max frequencies for a LINEAR sweep, and the
         number of points.
@@ -96,26 +103,27 @@ class HP8722D(VNA, Instrument):
 
         If None is passed for a parameter, its current value is used.
         """
-        giga=1e9
+        giga = 1e9
 
         if center is not None:
-            self.gpib.write('CENT {};'.format(center*giga))
+            self.gpib.write('CENT {};'.format(center * giga))
 
         if span is not None:
-            self.gpib.write('SPAN {};'.format(span*giga) )
+            self.gpib.write('SPAN {};'.format(span * giga))
 
         if start_freq is not None:
-            self.gpib.write('STAR {};'.format(start_freq*giga))
+            self.gpib.write('STAR {};'.format(start_freq * giga))
 
         if end_freq is not None:
-            self.gpib.write('STOP {};'.format(end_freq*giga))
+            self.gpib.write('STOP {};'.format(end_freq * giga))
 
         num_points_options = set([201, 401, 801, 1601])
         if num_points is not None:
             if not set([num_points]).issubset(num_points_options):
-                raise ValueError( 'num_points input must be one of: 201, 401, 801, 1601' )
-            self.gpib.write( 'POIN {};'.format(num_points) )
-    
+                raise ValueError(
+                    'num_points input must be one of: 201, 401, 801, 1601')
+            self.gpib.write('POIN {};'.format(num_points))
+
     def set_trigger(self, mode='continuous', num_count=None):
         """
         Sets the trigger. It can be 'continuous', 'single', or 'fixed_num'. In the case of 'fixed_num',
@@ -128,11 +136,12 @@ class HP8722D(VNA, Instrument):
             self.gpib.write('SING;')
         elif mode == 'fixed_num' and num_count is not None:
             self.gpib.write('NUMG%d;' % num_count)
-        else:   
-            print('The specified trigger settings for the VNA are not recognized. Doing nothing.')
+        else:
+            print(
+                'The specified trigger settings for the VNA are not recognized. Doing nothing.')
 
     # ---------- TAKING AND READING DATA --------------
-    
+
     def take_data(self, num_sweeps):
         """
         Triggers the acquisition of data over num_sweeps acquisitions
@@ -146,7 +155,7 @@ class HP8722D(VNA, Instrument):
             self.gpib.write('AVEROON; AVERFACT%d; AVERREST;' % num_sweeps)
             self.gpib.write('NUMG%d;' % num_sweeps)
 
-        time.sleep(num_sweeps*4)
+        time.sleep(num_sweeps * 4)
 
     def read_data_lin_sweep(self, file=None, plot_data=False):
         """
@@ -216,51 +225,56 @@ class HP8722D(VNA, Instrument):
 
         return [fr, data]
 
-    def read_data_allform(self, sweeptype='S11' ):
+    def read_data_allform(self, sweeptype='S11'):
         """
         An expanded form of read_data() which provides both the S value and
         equivalent Y and Z values (magnitude and phase for each).
         """
 
         self.set_measurement_type(sweeptype=sweeptype)
-        
-        if sweeptype != 'S11':
-            raise ValueError( "This class does not yet support anything but S11 (the conversions aren't worked out!)")
 
-        results = dict.fromkeys(['S','Y','Z'], {
-                        'freq':[],
-                        'magnitude':[],
-                        'phase':[],
-                        })
+        if sweeptype != 'S11':
+            raise ValueError(
+                "This class does not yet support anything but S11 (the conversions aren't worked out!)")
+
+        results = dict.fromkeys(['S', 'Y', 'Z'], {
+            'freq': [],
+            'magnitude': [],
+            'phase': [],
+        })
 
         # Define functions to convert between S and Y/Z
         def S11toZ(magnitude, phase, freq=0, Z0=50):
             """ Convert S11 to Z. freq is a dummy input to allow dict parsing """
-            S11 = 10**(magnitude/20) *np.exp(1j*phase*np.pi/180)
-            Zrefl = Z0*(1+S11)/(1-S11)
-            return {'magnitude':np.abs(Zrefl), 'phase':np.angle(Zrefl)*180/np.pi}
+            S11 = 10**(magnitude / 20) * np.exp(1j * phase * np.pi / 180)
+            Zrefl = Z0 * (1 + S11) / (1 - S11)
+            return {
+                'magnitude': np.abs(Zrefl),
+                'phase': np.angle(Zrefl) * 180 / np.pi}
+
         def S11toY(magnitude, phase, freq=0, Z0=50):
             """ Convert S11 to Y. freq is a dummy input to allow dict parsing """
             Zcomponents = S11toZ(magnitude, phase, Z0=Z0)
-            Z = Zcomponents['magnitude']*np.exp(1j*Zcomponents['phase']*np.pi/180)
-            Y = 1/Z
-            return {'magnitude':np.abs(Y), 'phase':np.angle(Y)*180/np.pi}
+            Z = Zcomponents['magnitude'] * \
+                np.exp(1j * Zcomponents['phase'] * np.pi / 180)
+            Y = 1 / Z
+            return {'magnitude': np.abs(Y), 'phase': np.angle(Y) * 180 / np.pi}
 
         # Set correct data transfer mode
         self.gpib.write('FORM4;')
         self.gpib.write('OUTPFORM;')
-        results['S']['freq']= np.asarray(self._get_freqs(rangetype='linear'))
+        results['S']['freq'] = np.asarray(self._get_freqs(rangetype='linear'))
 
         M = [('LOGM', 'magnitude'), ('PHAS', 'phase')]
         for item in M:
-            self.gpib.write('{};'.format(item[0]) )
+            self.gpib.write('{};'.format(item[0]))
             self.gpib.write('OUTPFORM;')
             results['S'][item[1]] = np.asarray(self._get_data())
 
         self.gpib.write('LOGM;')
 
-        results['Y'] = S11toY( **results['S'] )
-        results['Z'] = S11toZ( **results['S'] )
+        results['Y'] = S11toY(**results['S'])
+        results['Z'] = S11toZ(**results['S'])
         results['Y']['freq'] = results['S']['freq']
         results['Z']['freq'] = results['S']['freq']
         return results
@@ -276,11 +290,13 @@ class HP8722D(VNA, Instrument):
             num_f = int(self.gpib.query_ascii_values('POIN?;')[0])
             init_f = float(self.gpib.query_ascii_values('STAR?;')[0])
             span_f = float(self.gpib.query_ascii_values('SPAN?;')[0])
-            fr = np.linspace(init_f, init_f+span_f, num_f)
+            fr = np.linspace(init_f, init_f + span_f, num_f)
         elif rangetype.lower() == 'all':
-            raise ValueError(" 'all' method currently causes VNA to freeze. Don't use it." )
+            raise ValueError(
+                " 'all' method currently causes VNA to freeze. Don't use it.")
             #  10 May 2021: Despite having hard copied this from old code of Marc's, it's not working as-is.
-            # I get a message "waiting for clean sweep" on the VNA screen, but it never happens.
+            # I get a message "waiting for clean sweep" on the VNA screen, but
+            # it never happens.
             self.gpib.write('OUTPLIML;')
             fr = self.gpib.read_raw().decode('ascii')
             fr = fr.replace('\n', ',').replace(' ', '').split(",")
@@ -293,7 +309,7 @@ class HP8722D(VNA, Instrument):
         """
         Read and process ASCII data from device buffer, returning as a list of floats.
         """
-        self.gpib.write( 'OUTPFORM;')
+        self.gpib.write('OUTPFORM;')
         data = self.gpib.read_raw().decode('ascii')
         data = data.replace('\n', ',').replace(' ', '').split(",")[0:-2]
         data = [float(i) for i in data[0::2]]
@@ -304,7 +320,7 @@ class HP8722D(VNA, Instrument):
 if __name__ == '__main__':
     hp = HP8722D()
     hp.initialize()
-    #.read_data_lin_sweep('D:\\photonmover_MARC\\new_photonmover\\instruments\\Vector_network_analyzers\\'
-     #                      'bw_0_8Vdc_1547_18nm_-20dBm.csv')
+    # .read_data_lin_sweep('D:\\photonmover_MARC\\new_photonmover\\instruments\\Vector_network_analyzers\\'
+    #                      'bw_0_8Vdc_1547_18nm_-20dBm.csv')
     hp.read_data('C:\\Users\\Prismo\\Desktop\\Marc\\trial_log.csv')
     hp.close()

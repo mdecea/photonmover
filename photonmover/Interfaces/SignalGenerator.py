@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+
 class SignalGenerator(ABC):
 
     def __init__(self):
@@ -54,7 +55,8 @@ class SignalGenerator(ABC):
     @abstractmethod
     def set_voltage(self, amplitude=None, offset=None, Vmin=None, Vmax=None):
         """
-        Sets the voltage settings. If any of them is None, they are not modified
+        Sets the voltage settings. If any of them is None, they are
+        not modified
         :param amplitude: peak to peak amplitude (V)
         :param offset: offset voltage (V)
         :return:

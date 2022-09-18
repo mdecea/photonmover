@@ -27,8 +27,9 @@ class HP89410A(Instrument):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(GPIB_ADDR, timeout=5000)
-        except:
-            raise ValueError('Cannot connect to NeHP89410A vector signal analyzer')
+        except BaseException:
+            raise ValueError(
+                'Cannot connect to NeHP89410A vector signal analyzer')
 
     def close(self):
         print('Disconnecting HP89410A vector signal analyzer')
@@ -84,10 +85,35 @@ class HP89410A(Instrument):
         :param unit: Desired unit (string)
         """
 
-        if not (unit in ['dB', 'dBVrms', 'V2/Hz', 'Vrms2', 'dBm', 'dBVrms/rtHz', 'Vpk', 'Vrms2/Hz',
-                         'dBm/Hz', 'pct', 'Vpk/rtHz', 'W', 'dBV', 'unitless', 'Vpk2', 'W/Hz', 'dBV/rtHz', 'V',
-                         'Vpk2/Hz',
-                         'Wrms', 'dBVpk', 'V/rtHz', 'Vrms', 'Wrms/Hz', 'dBVpk/rtHz', 'V2', 'Vrms/rtHz']):
+        if not (
+            unit in [
+                'dB',
+                'dBVrms',
+                'V2/Hz',
+                'Vrms2',
+                'dBm',
+                'dBVrms/rtHz',
+                'Vpk',
+                'Vrms2/Hz',
+                'dBm/Hz',
+                'pct',
+                'Vpk/rtHz',
+                'W',
+                'dBV',
+                'unitless',
+                'Vpk2',
+                'W/Hz',
+                'dBV/rtHz',
+                'V',
+                'Vpk2/Hz',
+                'Wrms',
+                'dBVpk',
+                'V/rtHz',
+                'Vrms',
+                'Wrms/Hz',
+                'dBVpk/rtHz',
+                'V2',
+                'Vrms/rtHz']):
             print("Specified unit not correct. Doing nothing.")
             return
 
@@ -169,9 +195,9 @@ class HP89410A(Instrument):
         xdata = np.array(xdata.split(','), dtype=float)
         ydata = np.array(ydata.split(','), dtype=float)
 
-        #print(xdata[0])
-        #print(xdata[-1])
-        #input()
+        # print(xdata[0])
+        # print(xdata[-1])
+        # input()
 
         # convert to V/sqrt(Hz)
         ydata = np.sqrt(ydata) / np.sqrt(2)
@@ -181,7 +207,8 @@ class HP89410A(Instrument):
             writer.writerow(xdata)
             writer.writerow(ydata)
 
-    def perform_freq_noise_experiment(self, freqs, num_averages, rbws, base_filename):
+    def perform_freq_noise_experiment(
+            self, freqs, num_averages, rbws, base_filename):
         """
         Performs a frequency noise experiment. We need to write a script because the
         VSA can only take spectra with linearly spaced points. Therefore, to get
@@ -252,13 +279,13 @@ class HP89410A(Instrument):
                     time.sleep(10)
 
             # Save data into data register
-            self.save_trace_to_memory(1, i+1)
+            self.save_trace_to_memory(1, i + 1)
             time.sleep(1)
 
         # After all is done, save the register data into files
         for i in range(len(freqs) - 1):
             filename = base_filename + '_' + str(i)
-            self.retrieve_data(i+1, filename)
+            self.retrieve_data(i + 1, filename)
 
     def set_freq_axis(self, center, span, start_freq, end_freq):
         """
@@ -309,16 +336,17 @@ if __name__ == '__main__':
     vsa = HP89410A()
     vsa.initialize()
     # vsa.set_freq_axis(None, None, '1', '100')
-    #vsa.set_rbw('3')
-    #print(vsa.averages_taken())
+    # vsa.set_rbw('3')
+    # print(vsa.averages_taken())
     vsa.perform_freq_noise_experiment(['1', '100', '1000', '10000', '100e3', '1e6', '10e6'],
-                                      [600, 600, 200, 500, 500, 500], # [40, 40, 100, 500, 500, 500],
+                                      # [40, 40, 100, 500, 500, 500],
+                                      [600, 600, 200, 500, 500, 500],
                                       ['1', '10', '50', '500', '5000', '50000'],
                                       'HP_1550_vib_isol')
     #vsa.gpib.write('FORM:DATA ASCII; ')
     #xdata = vsa.gpib.query_ascii_values("TRACE:X:DATA? D%d; " % 1)
-    #print(xdata[1])
-    #print(vsa.gpib.query('TRAC:X:UNIT?;'))
+    # print(xdata[1])
+    # print(vsa.gpib.query('TRAC:X:UNIT?;'))
     #vsa.retrieve_data(1, 'a')
     #vsa.retrieve_data(2, 'b')
     vsa.close()

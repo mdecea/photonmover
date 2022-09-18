@@ -30,17 +30,18 @@ class PVModOutputCurve(Experiment):
         # and one at the drain-source.
         self.gate_smu = None
         self.drain_smu = None
-        
+
         self.data = None
-        self.legend=None # To save the legend for plotting
+        self.legend = None  # To save the legend for plotting
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -67,7 +68,7 @@ class PVModOutputCurve(Experiment):
         Returns a string with the experiment name
         """
         return "PV mod output curve"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -77,7 +78,7 @@ class PVModOutputCurve(Experiment):
         :return:
         """
 
-        """ 
+        """
         params keys:
             "voltages" --> Gate voltages to be applied.
             "currents" --> Drain-source currents to be applied.
@@ -95,7 +96,7 @@ class PVModOutputCurve(Experiment):
 
         # Iterate over currents
         for ids in drain_currents:
-            
+
             # First, force current
             self.drain_smu.set_current(ids)
             self.legend.append('Ids = %.2E uA' % (ids * 1e6))
@@ -116,16 +117,16 @@ class PVModOutputCurve(Experiment):
 
                 time_tuple = time.localtime()
                 filename_comp = "%s--pv_mod_output--Ids=%.4e-Vgs=%.4eV-%.4eV%dnum--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                                ids,
-                                                                                                gate_voltages[0],
-                                                                                                gate_voltages[-1],
-                                                                                                len(gate_voltages),
-                                                                                                time_tuple[0],
-                                                                                                time_tuple[1],
-                                                                                                time_tuple[2],
-                                                                                                time_tuple[3],
-                                                                                                time_tuple[4],
-                                                                                                time_tuple[5])
+                                                                                                              ids,
+                                                                                                              gate_voltages[0],
+                                                                                                              gate_voltages[-1],
+                                                                                                              len(gate_voltages),
+                                                                                                              time_tuple[0],
+                                                                                                              time_tuple[1],
+                                                                                                              time_tuple[2],
+                                                                                                              time_tuple[3],
+                                                                                                              time_tuple[4],
+                                                                                                              time_tuple[5])
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'vgs_vds': measurements})
 
@@ -152,13 +153,21 @@ class PVModOutputCurve(Experiment):
         return ["voltages", "currents"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Vgs (V)', ylabel='Vds(V)', title='PV mod output curve', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Vgs (V)',
+            ylabel='Vds(V)',
+            title='PV mod output curve',
+            legend=self.legend)

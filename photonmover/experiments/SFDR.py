@@ -29,12 +29,13 @@ class SFDR(Experiment):
         self.msa = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -48,7 +49,7 @@ class SFDR(Experiment):
             return True
         else:
             return False
-                
+
     def get_description(self):
         """
         Returns a string with a brief summary of the experiment.
@@ -61,7 +62,7 @@ class SFDR(Experiment):
         Returns a string with the experiment name
         """
         return "SFDR"
-        
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -106,7 +107,7 @@ class SFDR(Experiment):
                 self.awg.select_channel(2)
                 self.awg.set_voltage(Vpp + amp_comp, None)
 
-                print('Measuring %.4f mVpp' % (Vpp*1e3))
+                print('Measuring %.4f mVpp' % (Vpp * 1e3))
                 print('Set driving signal')
                 # Wait 1 second
                 time.sleep(1)
@@ -115,16 +116,16 @@ class SFDR(Experiment):
                 if filename is not None:
                     time_tuple = time.localtime()
                     file_name = "SFDR-%s-freq1=%.4fMHz-freq2=%.4fMHz-Vgs_pp=%.3fV-Vgs_offs=%.3fV--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                                        self.f1*1e-6,
-                                                                                                        self.f2*1e-6,
-                                                                                                        Vpp,
-                                                                                                        bias,
-                                                                                                        time_tuple[0],
-                                                                                                        time_tuple[1],
-                                                                                                        time_tuple[2],
-                                                                                                        time_tuple[3],
-                                                                                                        time_tuple[4],
-                                                                                                        time_tuple[5])
+                                                                                                                            self.f1 * 1e-6,
+                                                                                                                            self.f2 * 1e-6,
+                                                                                                                            Vpp,
+                                                                                                                            bias,
+                                                                                                                            time_tuple[0],
+                                                                                                                            time_tuple[1],
+                                                                                                                            time_tuple[2],
+                                                                                                                            time_tuple[3],
+                                                                                                                            time_tuple[4],
+                                                                                                                            time_tuple[5])
                 else:
                     file_name = None
 
@@ -145,7 +146,7 @@ class SFDR(Experiment):
         """
         return ["voltages", "amplitudes", "f1", "f2", "amp_comp"]
 
-    def plot_data(self, canvas_handle, data = None):
+    def plot_data(self, canvas_handle, data=None):
         raise Exception('No data to plot for SFDR experiment')
 
 
@@ -160,7 +161,29 @@ if __name__ == '__main__':
 
     # EXPERIMENT PARAMETERS
     vgs_offset = [0]
-    Vpp_list = [0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+    Vpp_list = [
+        0.05,
+        0.06,
+        0.07,
+        0.08,
+        0.09,
+        0.1,
+        0.11,
+        0.12,
+        0.13,
+        0.14,
+        0.15,
+        0.16,
+        0.17,
+        0.18,
+        0.19,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5]
     channel_2_Vpp_compensate = 0.02  # channel 2 needs a slightly larger power
     freq1 = 500e3
     freq2 = 510e3
@@ -170,7 +193,12 @@ if __name__ == '__main__':
     # SET UP THE EXPERIMENT
     instr_list = [msa, awg]
     exp = SFDR(instr_list)
-    params = {"voltages": vgs_offset, "amplitudes": Vpp_list, "f1": freq1, "f2": freq2, "amp_comp":channel_2_Vpp_compensate}
+    params = {
+        "voltages": vgs_offset,
+        "amplitudes": Vpp_list,
+        "f1": freq1,
+        "f2": freq2,
+        "amp_comp": channel_2_Vpp_compensate}
 
     # RUN IT
     exp.perform_experiment(params, filename=base_file_name)
@@ -178,10 +206,3 @@ if __name__ == '__main__':
     # CLOSE INSTRUMENTS
     msa.close()
     awg.close()
-
-
-
-
-
-
-

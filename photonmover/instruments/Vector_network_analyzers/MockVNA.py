@@ -29,4 +29,3 @@ class MockVNA(VNA, Instrument):
         f = np.linspace(50e6, 40e9, 201)
         data = f
         return [f, data]
-

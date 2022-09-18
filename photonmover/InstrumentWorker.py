@@ -23,9 +23,12 @@ class InstrumentWorker(QObject):
     Controls any operation related to instruments coming directly form the GUI
     """
 
-    # Signals need to be created this way and not in the __init__ method for some reason
+    # Signals need to be created this way and not in the __init__ method for
+    # some reason
     done = pyqtSignal()  # Indicates that a specific operation is completed
-    stats_vals = pyqtSignal(list)  # This is the signal that will contain all the info for the stats refreshing
+    # This is the signal that will contain all the info for the stats
+    # refreshing
+    stats_vals = pyqtSignal(list)
 
     def __init__(self, instr_list, visa_lock, status_bar):
         super().__init__()
@@ -38,14 +41,14 @@ class InstrumentWorker(QObject):
         self.visa_lock.lock()
         lasers = self._find_instr_type_(Laser)
 
-        for l in lasers:
+        for las in lasers:
             if op == "turn_off":
                 # self.status_bar.showMessage('Turning off laser', 5000)
-                l.turn_off()
+                las.turn_off()
             else:
                 # self.status_bar.showMessage('Turning on laser', 5000)
-                l.turn_on()
-        
+                las.turn_on()
+
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -57,18 +60,16 @@ class InstrumentWorker(QObject):
         power_meters = self._find_instr_type_(PowerMeter)
         tunable_filters = self._find_instr_type_(TunableFilter)
 
-        for l in lasers:
-            l.set_wavelength(set_wav)
+        for las in lasers:
+            las.set_wavelength(set_wav)
 
         for p in power_meters:
             p.set_wavelength(set_wav)
 
-        # self.status_bar.showMessage('Setting wavelength to %.2f nm' % set_wav, 5000)
-
         if tunable_filter_follows_laser:
             for tf in tunable_filters:
                 tf.set_wavelength(set_wav)
-        
+
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -77,10 +78,8 @@ class InstrumentWorker(QObject):
         self.visa_lock.lock()
         lasers = self._find_instr_type_(Laser)
 
-        for l in lasers:
-            l.set_power(set_power)
-
-        # self.status_bar.showMessage('Setting laser power to %.2f mW' % set_power, 5000)
+        for las in lasers:
+            las.set_power(set_power)
 
         self.done.emit()
         self.visa_lock.unlock()
@@ -99,8 +98,6 @@ class InstrumentWorker(QObject):
         for pm in pms:
             pm.set_range(channel=None, power_range=power_range)
 
-        # self.status_bar.showMessage('Setting power meter range to %s dBm' % set_range, 5000)
-
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -112,8 +109,6 @@ class InstrumentWorker(QObject):
         for tec in tecs:
             tec.set_power(set_T)
 
-        # self.status_bar.showMessage('Setting TEC T to %.2f deg. C' % set_T, 5000)
-
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -122,12 +117,13 @@ class InstrumentWorker(QObject):
         self.visa_lock.lock()
 
         # smu_num is the smu number to which we want to apply the setting.
-        # the order is given by the oder in which the instruments are passed in the instrument lust
+        # the order is given by the oder in which the instruments are passed in
+        # the instrument lust
 
         source_meters = self._find_instr_type_(SourceMeter)
-        source_meters[smu_num-1].set_voltage(set_volt)
+        source_meters[smu_num - 1].set_voltage(set_volt)
         time.sleep(0.5)
-        # self.status_bar.showMessage('Setting SM voltage to %.2f V' % set_volt, 5000)
+
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -136,9 +132,9 @@ class InstrumentWorker(QObject):
         self.visa_lock.lock()
         source_meters = self._find_instr_type_(SourceMeter)
 
-        source_meters[smu_num-1].set_current(set_cur)
+        source_meters[smu_num - 1].set_current(set_cur)
         time.sleep(0.5)
-        # self.status_bar.showMessage('Setting SM current to %.2f uA' % (set_cur*1e6), 5000)
+
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -147,9 +143,9 @@ class InstrumentWorker(QObject):
         self.visa_lock.lock()
 
         source_meters = self._find_instr_type_(SourceMeter)
-        source_meters[smu_num-1].set_channel(set_chan)
+        source_meters[smu_num - 1].set_channel(set_chan)
         time.sleep(0.5)
-        # self.status_bar.showMessage('Setting SM to channel %d' % set_chan, 5000)
+
         self.done.emit()
 
         self.visa_lock.unlock()
@@ -163,7 +159,7 @@ class InstrumentWorker(QObject):
             el_att.set_attenuation(set_att)
 
         time.sleep(0.5)
-        # self.status_bar.showMessage('Setting attenuation to %.2f dB' % set_att, 5000)
+
         self.done.emit()
         self.visa_lock.unlock()
 
@@ -179,12 +175,11 @@ class InstrumentWorker(QObject):
         self.done.emit()
         self.visa_lock.unlock()
 
-
     def get_stats(self, smu_mode, measure_smu):
         """
         Gets all the statistics describing the state of the setup.
         """
-        
+
         self.visa_lock.lock()
 
         # Measured wavelength
@@ -206,12 +201,12 @@ class InstrumentWorker(QObject):
                 smu_val = "NA"
         else:
             smu_val = None
-            
+
         # Power
         pm = self._find_instr_type_(PowerMeter)
         if pm:
             tap_power, rec_power = pm[0].get_powers()
-        
+
         else:
             tap_power, rec_power = [0, 0]
 
@@ -224,7 +219,7 @@ class InstrumentWorker(QObject):
         """
         Gets all the statistics describing the state of the Raman setup.
         """
-        
+
         self.visa_lock.lock()
 
         # Measured wavelength
@@ -233,12 +228,12 @@ class InstrumentWorker(QObject):
             meas_wav = wav_meter[0].get_wavelength()
         else:
             meas_wav = "NA"
-            
+
         # Power measured with power meter
         pm = self._find_instr_type_(PowerMeter)
         if pm:
             power, _ = pm[0].get_powers()
-        
+
         else:
             power, _ = [0, 0]
 
@@ -254,7 +249,7 @@ class InstrumentWorker(QObject):
 
     def _find_instr_type_(self, category):
         """
-        Returns a list of the instruments with the specified category 
+        Returns a list of the instruments with the specified category
         category is one of the instrument interfaces. Ex: Laser
         """
         lst = []

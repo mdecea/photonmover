@@ -2,6 +2,7 @@
 
 import socket
 
+
 class RedPitaya(object):
 
     """SCPI class used to access Red Pitaya over an IP network."""
@@ -11,8 +12,8 @@ class RedPitaya(object):
         """Initialize object and open IP connection.
         Host IP should be a string in parentheses, like '192.168.1.100'.
         """
-        self.host    = host
-        self.port    = port
+        self.host = host
+        self.port = port
         self.timeout = timeout
 
     def initialize(self):
@@ -28,7 +29,9 @@ class RedPitaya(object):
             self._socket.connect((self.host, self.port))
 
         except socket.error as e:
-            print('SCPI >> connect({:s}:{:d}) failed: {:s}'.format(self.host, self.port, e))
+            print(
+                'SCPI >> connect({:s}:{:d}) failed: {:s}'.format(
+                    self.host, self.port, e))
 
     def __del__(self):
         if self._socket is not None:
@@ -39,11 +42,13 @@ class RedPitaya(object):
         """Close IP connection."""
         self.__del__()
 
-    def rx_txt(self, chunksize = 4096):
+    def rx_txt(self, chunksize=4096):
         """Receive text string and return it after removing the delimiter."""
         msg = ''
-        while 1:
-            chunk = self._socket.recv(chunksize + len(self.delimiter)).decode('utf-8') # Receive chunk size of 2^n preferably
+        while True:
+            # Receive chunk size of 2^n preferably
+            chunk = self._socket.recv(
+                chunksize + len(self.delimiter)).decode('utf-8')
             msg += chunk
             if (len(chunk) and chunk[-2:] == self.delimiter):
                 break
@@ -52,22 +57,22 @@ class RedPitaya(object):
     def rx_arb(self):
         numOfBytes = 0
         """ Recieve binary data from scpi server"""
-        str=''
+        str = ''
         while (len(str) != 1):
             str = (self._socket.recv(1))
         if not (str == '#'):
             return False
-        str=''
+        str = ''
         while (len(str) != 1):
             str = (self._socket.recv(1))
         numOfNumBytes = int(str)
         if not (numOfNumBytes > 0):
             return False
-        str=''
+        str = ''
         while (len(str) != numOfNumBytes):
             str += (self._socket.recv(1))
         numOfBytes = int(str)
-        str=''
+        str = ''
         while (len(str) != numOfBytes):
             str += (self._socket.recv(1))
         return str

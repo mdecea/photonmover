@@ -26,12 +26,15 @@ class DiConOpticalSwitch(Instrument):
 
         print("Initializing connection to Dicon Optical Switch")
 
-        self.ser = serial.Serial(self.port, baudrate=115200, timeout=self.timeout)
+        self.ser = serial.Serial(
+            self.port,
+            baudrate=115200,
+            timeout=self.timeout)
 
         # Read number of channels from module
         self.ser.reset_input_buffer()
         self.ser.write(b'CF?\r')
-        self.ser.read() # dummy read the newline
+        self.ser.read()  # dummy read the newline
         reply = self.ser.readline().decode("utf-8")
 
         try:
@@ -48,11 +51,11 @@ class DiConOpticalSwitch(Instrument):
     def identify(self):
         self.ser.reset_input_buffer()
         self.ser.write(b'ID?\r')
-        self.ser.read() # dummy read the newline
+        self.ser.read()  # dummy read the newline
         print('Dicon switch id: %s' % self.ser.readline())
 
     def set_channel(self, new_channel):
-        if new_channel >=0 and new_channel <= self.channel_max:
+        if new_channel >= 0 and new_channel <= self.channel_max:
             self.channel = new_channel
             self.ser.reset_input_buffer()
             self.ser.write(bytes('I1 {}\r'.format(new_channel), 'utf-8'))
@@ -63,7 +66,7 @@ class DiConOpticalSwitch(Instrument):
         """ Returns current channel setting of the switch"""
         self.ser.reset_input_buffer()
         self.ser.write(b'I1?\r')
-        self.ser.read() # dummy read the newline
+        self.ser.read()  # dummy read the newline
         resp = self.ser.readline()
         if self.verbose:
             print(resp)

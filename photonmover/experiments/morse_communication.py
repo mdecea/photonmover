@@ -1,68 +1,69 @@
 # This is a funny experiment, were we try to get a CMOS LED to
-# talk to a camera in Morse code (very slowly!) 
-# 
-# Essentially, we only need a source meter. We will turn the source meter on and off 
-# according to the word or sentence provided. 
+# talk to a camera in Morse code (very slowly!)
+#
+# Essentially, we only need a source meter. We will turn the source
+# meter on and off according to the word or sentence provided.
 
-CODE = { # Letters 
-        'A': '.-',     'B': '-...',   'C': '-.-.', 
-        'D': '-..',    'E': '.',      'F': '..-.',
-        'G': '--.',    'H': '....',   'I': '..',
-        'J': '.---',   'K': '-.-',    'L': '.-..',
-        'M': '--',     'N': '-.',     'O': '---',
-        'P': '.--.',   'Q': '--.-',   'R': '.-.',
-        'S': '...',    'T': '-',      'U': '..-',
-        'V': '...-',   'W': '.--',    'X': '-..-',
-        'Y': '-.--',   'Z': '--..',
-
-        # Numbers
-        '0': '-----',  '1': '.----',  '2': '..---',
-        '3': '...--',  '4': '....-',  '5': '.....',
-        '6': '-....',  '7': '--...',  '8': '---..',
-        '9': '----.',
-
-        # Spacings
-        ',': '...', # The comma will be used as a separator between letters
-        ' ': '.......', # Space is separator between words
-        '.': '..........',
-        }
-
+import winsound
+import time
+from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
+from photonmover.Interfaces.SourceMeter import SourceMeter
 from photonmover.Interfaces.Experiment import Experiment
+CODE = {  # Letters
+    'A': '.-', 'B': '-...', 'C': '-.-.',
+    'D': '-..', 'E': '.', 'F': '..-.',
+    'G': '--.', 'H': '....', 'I': '..',
+    'J': '.---', 'K': '-.-', 'L': '.-..',
+    'M': '--', 'N': '-.', 'O': '---',
+    'P': '.--.', 'Q': '--.-', 'R': '.-.',
+    'S': '...', 'T': '-', 'U': '..-',
+    'V': '...-', 'W': '.--', 'X': '-..-',
+    'Y': '-.--', 'Z': '--..',
+
+    # Numbers
+    '0': '-----', '1': '.----', '2': '..---',
+    '3': '...--', '4': '....-', '5': '.....',
+    '6': '-....', '7': '--...', '8': '---..',
+    '9': '----.',
+
+    # Spacings
+    ',': '...',  # The comma will be used as a separator between letters
+    ' ': '.......',  # Space is separator between words
+    '.': '..........',
+}
+
 
 # Interfaces/instruments necessary for the experiment
 # - You use an INterface if any instrument of that category can be used
 # - You use a specific instrument if you can only use that specific model
-from photonmover.Interfaces.SourceMeter import SourceMeter
-from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
 
 # General imports
-import time
-import numpy as np
-import scipy.io as io
-import winsound
 
 
 class MorseComm(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. We need a source meter, which we will turn on and off accordingly.
+        # Instruments. We need a source meter, which we will turn on and off
+        # accordingly.
         self.smu = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
-        :return: True if the necessary instruments are present, False otherwise.
+        Checks if the instruments to perform the experiment are present.
+        :param instrument_list: list of the available instruments
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -86,17 +87,17 @@ class MorseComm(Experiment):
         Returns a string with the experiment name
         """
         return "Morse code comm"
-           
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
 
-        """ 
+        """
         params keys:
             "v_bias" --> Bias voltage for turning the LED on
             "sentence" --> Word/sentence we want to communicate
@@ -133,7 +134,8 @@ class MorseComm(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in the params
+        dictionary, in order for
         a measurement to be performed
         """
         return ["v_bias", "sentence", "dot_T"]
@@ -141,12 +143,13 @@ class MorseComm(Experiment):
     def process_sentence(self, sentence):
         """
         Converts from human readable to morse code
-        """ 
+        """
 
         # Capitalize
         sentence = sentence.upper()
 
-        # Essentially, we need to add commas between successive letters to have a separator
+        # Essentially, we need to add commas between successive letters to have
+        # a separator
         treated_sentence = ""
 
         for i, ch in enumerate(sentence):
@@ -154,8 +157,9 @@ class MorseComm(Experiment):
             treated_sentence = treated_sentence + ch
 
             if (i + 1) < len(sentence):
-                # Add a separator between letters (a ',') if the next character is a letter or a number
-                if sentence[i+1].isalpha() or sentence[i+1].isdigit():
+                # Add a separator between letters (a ',') if the next character
+                # is a letter or a number
+                if sentence[i + 1].isalpha() or sentence[i + 1].isdigit():
                     treated_sentence = treated_sentence + ","
 
         print('We will send: %s' % treated_sentence)
@@ -172,15 +176,14 @@ class MorseComm(Experiment):
                 self.smu.turn_off()
             if s == '-':
                 self.smu.turn_on()
-                time.sleep(3*dot_T)
+                time.sleep(3 * dot_T)
                 self.smu.turn_off()
 
             # Need to wait one time unit between elements of the same character
             time.sleep(dot_T)
 
-    def plot_data(self, canvas_handle, data = None):
+    def plot_data(self, canvas_handle, data=None):
         raise Exception('No data to plot for the Morse comm experiment')
-
 
 
 if __name__ == '__main__':

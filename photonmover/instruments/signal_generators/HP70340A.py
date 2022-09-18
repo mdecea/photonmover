@@ -12,7 +12,7 @@ class HP70340A(Instrument, SignalGenerator):
         super().__init__()
 
         self.gpib = None
-        self.gpib_address=gpib_address
+        self.gpib_address = gpib_address
 
     def initialize(self):
         """
@@ -24,7 +24,7 @@ class HP70340A(Instrument, SignalGenerator):
         rm = visa.ResourceManager()
         try:
             self.gpib = rm.open_resource(self.gpib_address, timeout=5000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to Anritsu Signal Generator')
 
     def set_frequency(self, freq):
@@ -37,7 +37,7 @@ class HP70340A(Instrument, SignalGenerator):
             print('Specified frequency is too high. No change')
             return
 
-        self.gpib.write('FREQ %.9fHZ' % freq) # Select F1 frequency parameter
+        self.gpib.write('FREQ %.9fHZ' % freq)  # Select F1 frequency parameter
 
     def turn_on(self):
         """
@@ -53,7 +53,6 @@ class HP70340A(Instrument, SignalGenerator):
         """
         self.gpib.write('OUTP:STAT OFF')
 
-
     def set_power(self, power):
         """
         Sets the output power in logarithmic units. Allowed values are between
@@ -66,9 +65,10 @@ class HP70340A(Instrument, SignalGenerator):
         :return:
         """
         if not -15 <= power <= 30:
-            raise ValueError( 'The input power setpoint is outside the instrument range (-20 to 30 dBm).' )
+            raise ValueError(
+                'The input power setpoint is outside the instrument range (-20 to 30 dBm).')
         else:
-            self.gpib.write( 'POW:LEV %.3fDBM' % power )
+            self.gpib.write('POW:LEV %.3fDBM' % power)
 
     def close(self):
         print('Disconnecting HP70340A Signal Generator')
@@ -80,6 +80,6 @@ if __name__ == '__main__':
     sig_gen = HP70340A()
     sig_gen.initialize()
     sig_gen.turn_on()
-    sig_gen.set_frequency( 10e9 )
+    sig_gen.set_frequency(10e9)
     sig_gen.turn_off()
     sig_gen.close()

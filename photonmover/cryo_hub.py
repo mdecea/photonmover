@@ -1,18 +1,17 @@
-import sys
-import struct
 import matplotlib.pyplot as pyplot
 import time
 import matplotlib.animation as animation
-import math
-import numpy as np
 import photonmover.instruments.Temperature_controllers.Lakeshore331S as Lakeshore331S
 import photonmover.instruments.Pressure_sensors.KJLKPDR900 as KJLKPDR900
 
 
-# This script plots temperature and pressure of the cryo chamber. It also logs the data in the specified file.
+# This script plots temperature and pressure of the cryo chamber. It also
+# logs the data in the specified file.
 MIN_TO_PLOT = 30  # Min to plot on the graphs
 REFRESH_RATE = 2000  # In miliseconds
-PRESSURE_SKIP = 1  # Getting pressure takes an awfully long time, so we will only ask for it every X cycles.
+# Getting pressure takes an awfully long time, so we will only ask for it
+# every X cycles.
+PRESSURE_SKIP = 1
 LOG_FILE = 'cryo_log.txt'  # Name of the log file
 
 x_axis_min_width = 5  # The minimum width of the time axis
@@ -36,26 +35,61 @@ class CryoHub:
         self.min_to_plot = min_to_plot
         self.t_start = None
 
-        self.temp_text = pyplot.figtext(.87, 0.85 - 0.1, '', fontsize=15, color='white')
-        self.press_text = pyplot.figtext(.87, 0.85 - 0.55, '', fontsize=15, color='white')
+        self.temp_text = pyplot.figtext(.87, 0.85 -
+                                        0.1, '', fontsize=15, color='white')
+        self.press_text = pyplot.figtext(.87,
+                                         0.85 - 0.55,
+                                         '',
+                                         fontsize=15,
+                                         color='white')
 
         fig.patch.set_facecolor('black')
 
         self.ax1 = self.fig.add_subplot(2, 1, 1, facecolor='black')
         self.ax2 = self.fig.add_subplot(2, 1, 2, facecolor='black')
 
-        pyplot.subplots_adjust(left=0.08, bottom=0.10, right=0.85, top=0.95, wspace=0.05, hspace=0.05)
+        pyplot.subplots_adjust(
+            left=0.08,
+            bottom=0.10,
+            right=0.85,
+            top=0.95,
+            wspace=0.05,
+            hspace=0.05)
 
-        self.rs_line = self.ax1.plot([0], [0], 'r-', animated=False, label='Rad. shield')[0]
-        self.ch_line = self.ax1.plot([0], [0], 'w-', animated=False, label='Cold head')[0]
+        self.rs_line = self.ax1.plot(
+            [0], [0], 'r-', animated=False, label='Rad. shield')[0]
+        self.ch_line = self.ax1.plot(
+            [0], [0], 'w-', animated=False, label='Cold head')[0]
         self.ax1.legend()
         self.p_line = self.ax2.plot([0], [0], 'w-', animated=False)[0]
 
-        self.format_axis(self.ax1, 'yellow', 'Time [min]', True, 'green', 'Temperature [K]', True)
-        self.format_axis(self.ax2, 'yellow', 'Time [min]', True, 'red', 'Pressure [torr]', True)
+        self.format_axis(
+            self.ax1,
+            'yellow',
+            'Time [min]',
+            True,
+            'green',
+            'Temperature [K]',
+            True)
+        self.format_axis(
+            self.ax2,
+            'yellow',
+            'Time [min]',
+            True,
+            'red',
+            'Pressure [torr]',
+            True)
         self.ax2.set_yscale('symlog')
 
-    def format_axis(self, ax, xcolor, xlabel, xticklabels, ycolor, ylabel, yticklabels):
+    def format_axis(
+            self,
+            ax,
+            xcolor,
+            xlabel,
+            xticklabels,
+            ycolor,
+            ylabel,
+            yticklabels):
         ax.spines['bottom'].set_color(xcolor)
         ax.spines['top'].set_color(xcolor)
         ax.spines['right'].set_color(ycolor)
@@ -93,7 +127,8 @@ class CryoHub:
         ch_min = min(self.cold_head_temp)
         ax1_max = max(rs_max, ch_max)
         ax1_min = min(rs_min, ch_min)
-        self.ax1.set_ylim(ax1_min - abs(ax1_min * 0.1), ax1_max + abs(ax1_max * 0.1))
+        self.ax1.set_ylim(ax1_min - abs(ax1_min * 0.1),
+                          ax1_max + abs(ax1_max * 0.1))
 
         p_max = max(self.pressure)
         p_min = min(self.pressure)
@@ -122,8 +157,10 @@ class CryoHub:
         self.p_line.set_xdata(self.t)
         self.p_line.set_ydata(self.pressure)
 
-        self.temp_text.set_text("C.H: %.2f K \nR.S: %.2f K" % (new_temp_cold_head, new_temp_rad_shield))
-        if new_pressure<1e5:
+        self.temp_text.set_text(
+            "C.H: %.2f K \nR.S: %.2f K" %
+            (new_temp_cold_head, new_temp_rad_shield))
+        if new_pressure < 1e5:
             self.press_text.set_text("%.2e Torr" % new_pressure)
         else:
             self.press_text.set_text("Press. read error")
@@ -134,7 +171,12 @@ class CryoHub:
         self.t_start = time.time()
 
         # Start the animation
-        anim = animation.FuncAnimation(self.fig, self.animate, self.gen, interval=REFRESH_RATE, blit=False)
+        anim = animation.FuncAnimation(
+            self.fig,
+            self.animate,
+            self.gen,
+            interval=REFRESH_RATE,
+            blit=False)
         pyplot.show()
 
 
@@ -157,16 +199,17 @@ def get_status():
     temps = tec.get_temperature()
     time_tuple = time.localtime()
     with open(LOG_FILE, 'a+') as f:
-        f.write("%d#%d#%d %d#%d#%d       |      %.2f             |     %.2f            |    %.2e      \n"
-                % (time_tuple[0],
-                  time_tuple[1],
-                  time_tuple[2],
-                  time_tuple[3],
-                  time_tuple[4],
-                  time_tuple[5],
-                  temps[0],
-                  temps[1],
-                  p))
+        f.write(
+            "%d#%d#%d %d#%d#%d       |      %.2f             |     %.2f            |    %.2e      \n" %
+            (time_tuple[0],
+             time_tuple[1],
+             time_tuple[2],
+             time_tuple[3],
+             time_tuple[4],
+             time_tuple[5],
+             temps[0],
+                temps[1],
+                p))
     # p = 0
     return [temps[0], temps[1], p]
 
@@ -186,12 +229,14 @@ num_cycles = PRESSURE_SKIP
 with open(LOG_FILE, 'a+') as f:
     time_tuple = time.localtime()
     f.write("------------------------------------------------------------------------\n")
-    f.write("Starting new cryo hub execution. Date is %d#%d#%d %d#%d#%d\n " % (time_tuple[0],
-                                                                          time_tuple[1],
-                                                                          time_tuple[2],
-                                                                          time_tuple[3],
-                                                                          time_tuple[4],
-                                                                          time_tuple[5]))
+    f.write(
+        "Starting new cryo hub execution. Date is %d#%d#%d %d#%d#%d\n " %
+        (time_tuple[0],
+         time_tuple[1],
+         time_tuple[2],
+         time_tuple[3],
+         time_tuple[4],
+         time_tuple[5]))
     f.write("ID %s \n" % cooldown_id)
     f.write("   Time                     Rad shield (K)           Cold head (K)               Pressure (Torr)\n")
     f.write("   ----                    ----------------         ---------------             -----------------\n")

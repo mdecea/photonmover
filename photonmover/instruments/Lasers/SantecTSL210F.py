@@ -9,7 +9,7 @@ SANTEC_3_ADDR = "GPIB1::9::INSTR"
 SANTEC_4_ADDR = "GPIB1::10::INSTR"
 
 SWEEP_DWELL_TIME = 1  # Time to sleep at each wavelength when we do a
-        # tx curve by setting each wavelength at a time (in s)
+# tx curve by setting each wavelength at a time (in s)
 
 
 class SantecTSL210F(Instrument, TunableLaser):
@@ -18,7 +18,7 @@ class SantecTSL210F(Instrument, TunableLaser):
     it has 4 lasers, and each laser has a different GPIB address
     """
 
-    def __init__(self, sweep_dwell_time = SWEEP_DWELL_TIME):
+    def __init__(self, sweep_dwell_time=SWEEP_DWELL_TIME):
         super().__init__()
 
         self.santec1 = None
@@ -53,7 +53,6 @@ class SantecTSL210F(Instrument, TunableLaser):
         self.santec2.close()
         self.santec3.close()
         self.santec4.close()
-
 
     def turn_off(self):
         """
@@ -141,15 +140,14 @@ class SantecTSL210F(Instrument, TunableLaser):
         else:
             print("Wavelength out of range. No change will be made")
             return
-        
+
         self.wav = wavelength
 
-        
     def get_state(self):
         """
         Returns a list wiht the following elements:
         1. The current wavelength
-        2. The current power 
+        2. The current power
         3. If the laser is on or off.
         """
         if self.active_module >= 0:
@@ -158,4 +156,3 @@ class SantecTSL210F(Instrument, TunableLaser):
             state = 0
 
         return [self.wav, self.power, state]
-

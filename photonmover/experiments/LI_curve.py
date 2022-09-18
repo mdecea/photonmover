@@ -22,7 +22,8 @@ class LI_curve(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -35,13 +36,14 @@ class LI_curve(Experiment):
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
-        :return: True if the necessary instruments are present, False otherwise.
+        Checks if the instruments to perform the experiment are present.
+        :param instrument_list: list of the available instruments
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -59,25 +61,26 @@ class LI_curve(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return " Performs an LI measurement: sweeps applied current and measures power. "
+        return " Performs an LI measurement: sweeps applied current" \
+               " and measures power. "
 
     def get_name(self):
         """
         Returns a string with the experiment name
         """
         return "LI curve"
-        
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
 
         params = self.check_all_params(params)
-        
+
         currents = params["currents"]
         meas_volt = params["meas_volt"]
 
@@ -87,7 +90,7 @@ class LI_curve(Experiment):
         # Sweep current and get power
         for cur in currents:
 
-            print('Measuring %.4f mA...' % (cur*1e3))
+            print('Measuring %.4f mA...' % (cur * 1e3))
             # Set the current
             self.sm.set_current(cur)
             print('Set Source meter current')
@@ -112,13 +115,13 @@ class LI_curve(Experiment):
         if filename is not None:
             # Save the data in a csv file
             time_tuple = time.localtime()
-            complete_filename = "%s--%d#%d#%d_%d#%d#%d.csv" % (filename,                                            
-                                                            time_tuple[0],
-                                                            time_tuple[1],
-                                                            time_tuple[2],
-                                                            time_tuple[3],
-                                                            time_tuple[4],
-                                                            time_tuple[5])
+            complete_filename = "%s--%d#%d#%d_%d#%d#%d.csv" % (filename,
+                                                               time_tuple[0],
+                                                               time_tuple[1],
+                                                               time_tuple[2],
+                                                               time_tuple[3],
+                                                               time_tuple[4],
+                                                               time_tuple[5])
 
             with open(complete_filename, 'w+') as csvfile:
                 writer = csv.writer(csvfile)
@@ -130,10 +133,11 @@ class LI_curve(Experiment):
         self.data = [currents, power_list]
 
         return [currents, power_list]
-    
+
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionary, in order for
+        Returns a list with the keys that need to be specified in the
+        params dictionary, in order for
         a measurement to be performed
         """
         return ["currents", "meas_volt"]
@@ -142,38 +146,52 @@ class LI_curve(Experiment):
         return {"meas_volt": False}
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment'
+                    ' or providing data')
+
         curs = data[0]
         powers = data[1]
 
-        plot_graph(x_data=curs, y_data=powers, canvas_handle=canvas_handle, xlabel='Current (A)', ylabel='Power (mW)', title='LI curve', legend=None)
+        plot_graph(
+            x_data=curs,
+            y_data=powers,
+            canvas_handle=canvas_handle,
+            xlabel='Current (A)',
+            ylabel='Power (mW)',
+            title='LI curve',
+            legend=None)
 
 
 if __name__ == '__main__':
 
-    pm_channel = 1  # Channel of the power meter to which the fiber is connected
+    pm_channel = 1  # Power metel channel to which the fiber is connected
     cur_compliance = 0.05  # Current compliance for source meter (in A)
     v_compliance = 10  # Voltage compliance for source meter (in V)
 
     # INSTRUMENTS
     pm = HPLightWave(tap_channel=1, rec_channel=3)
-    sm = Keithley2400(current_compliance=cur_compliance, voltage_compliance=v_compliance)
+    sm = Keithley2400(
+        current_compliance=cur_compliance,
+        voltage_compliance=v_compliance)
 
     pm.initialize()
     sm.initialize()
 
     # EXPERIMENT PARAMETERS
     init_current = 8e-3  # in A
-    end_current = 20e-3 # in A
-    num_current = 120 # Number of points between init and end current
+    end_current = 20e-3  # in A
+    num_current = 120  # Number of points between init and end current
     # cur_list = np.linspace(init_current, end_current, num_current)
-    cur_list = np.logspace(np.log10(init_current), np.log10(end_current), num_current)
+    cur_list = np.logspace(
+        np.log10(init_current),
+        np.log10(end_current),
+        num_current)
 
     file_name = 'AIM_MZM_SMF_2'  # Filename where to save csv data
 

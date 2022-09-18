@@ -31,12 +31,13 @@ class RetrieveVNATrace(Experiment):
         self.data = {}
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
         for instr in instrument_list:
@@ -59,7 +60,7 @@ class RetrieveVNATrace(Experiment):
         Returns a string with the experiment name
         """
         return "Retrieve VNA trace"
-        
+
     def perform_experiment(self, params=None, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -70,34 +71,38 @@ class RetrieveVNATrace(Experiment):
         """
 
         params = self.check_all_params(params)
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
 
         # We will take the data in all the formats specified by meas_formats, for all the s parameters
         # specified by s_params
-        
+
         for s_param in s_params:
 
             self.data[s_param] = {}
 
             for meas_format in meas_formats:
 
-                self.vna.set_measurement_type(sweeptype=s_param, meastype=meas_format)
+                self.vna.set_measurement_type(
+                    sweeptype=s_param, meastype=meas_format)
 
                 if filename is not None:
 
                     time_tuple = time.localtime()
                     filename_complete = "%s-VNA--s_param=%s--format=%s--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                         s_param,
-                                                                                         meas_format,
-                                                                                         time_tuple[0],
-                                                                                         time_tuple[1],
-                                                                                         time_tuple[2],
-                                                                                         time_tuple[3],
-                                                                                         time_tuple[4],
-                                                                                         time_tuple[5])
+                                                                                                  s_param,
+                                                                                                  meas_format,
+                                                                                                  time_tuple[0],
+                                                                                                  time_tuple[1],
+                                                                                                  time_tuple[2],
+                                                                                                  time_tuple[3],
+                                                                                                  time_tuple[4],
+                                                                                                  time_tuple[5])
 
-                meas = self.vna.read_data(file=filename_complete, plot_data=False)
+                meas = self.vna.read_data(
+                    file=filename_complete, plot_data=False)
 
                 self.data[s_param][meas_format] = meas
 
@@ -116,17 +121,25 @@ class RetrieveVNATrace(Experiment):
         return {"s_params": ['S21'], "meas_formats": ['LOGM']}
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)', title='VNA meas', legend=None)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA meas',
+            legend=None)
 
 
 class AcquireVNATrace(Experiment):
@@ -140,12 +153,13 @@ class AcquireVNATrace(Experiment):
         self.data = {}
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
         for instr in instrument_list:
@@ -167,8 +181,8 @@ class AcquireVNATrace(Experiment):
         """
         Returns a string with the experiment name
         """
-        return "Trigger VNA"          
-    
+        return "Trigger VNA"
+
     def perform_experiment(self, params, filename=None):
         """
         Performs the experiment, and saves the relevant data (if there is any)
@@ -180,12 +194,14 @@ class AcquireVNATrace(Experiment):
         params = self.check_all_params(params)
         num_averages = params["num_averages"]
 
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
 
         # We will take the data in all the formats specified by meas_formats, for all the s
         # parameters specified by s_params
-        
+
         for s_param in s_params:
 
             self.data[s_param] = {}
@@ -196,25 +212,27 @@ class AcquireVNATrace(Experiment):
 
             for meas_format in meas_formats:
 
-                self.vna.set_measurement_type(sweeptype=s_param, meastype=meas_format)
+                self.vna.set_measurement_type(
+                    sweeptype=s_param, meastype=meas_format)
 
                 if filename is not None:
 
                     time_tuple = time.localtime()
                     filename_complete = "%s-VNA--s_param=%s--format=%s--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                         s_param,
-                                                                                         meas_format,
-                                                                                         time_tuple[0],
-                                                                                         time_tuple[1],
-                                                                                         time_tuple[2],
-                                                                                         time_tuple[3],
-                                                                                         time_tuple[4],
-                                                                                         time_tuple[5])
+                                                                                                  s_param,
+                                                                                                  meas_format,
+                                                                                                  time_tuple[0],
+                                                                                                  time_tuple[1],
+                                                                                                  time_tuple[2],
+                                                                                                  time_tuple[3],
+                                                                                                  time_tuple[4],
+                                                                                                  time_tuple[5])
 
                 else:
                     filename_complete = None
 
-                meas = self.vna.read_data(file=filename_complete, plot_data=False)
+                meas = self.vna.read_data(
+                    file=filename_complete, plot_data=False)
                 self.data[s_param][meas_format] = meas
 
         print('VNA acquisition finished')
@@ -226,7 +244,10 @@ class AcquireVNATrace(Experiment):
         return self.data
 
     def default_params(self):
-        return {"num_averages": 4, "s_params": ['S21'], "meas_formats": ['LOGM']}
+        return {
+            "num_averages": 4,
+            "s_params": ['S21'],
+            "meas_formats": ['LOGM']}
 
     def required_params(self):
         """
@@ -236,17 +257,25 @@ class AcquireVNATrace(Experiment):
         return ["num_averages", "s_params", "meas_formats"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)', title='VNA meas', legend=None)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA meas',
+            legend=None)
 
 
 class VNABiasVSweep(Experiment):
@@ -270,12 +299,13 @@ class VNABiasVSweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -289,7 +319,8 @@ class VNABiasVSweep(Experiment):
             if isinstance(instr, TunableFilter):
                 self.tunable_filter = instr
 
-        if (self.vna is not None) and (self.smu is not None) and (self.laser is not None):
+        if (self.vna is not None) and (
+                self.smu is not None) and (self.laser is not None):
             return True
         else:
             return False
@@ -305,19 +336,21 @@ class VNABiasVSweep(Experiment):
         Returns a string with the experiment name
         """
         return "BW vs V, wav"
-    
+
     def perform_experiment(self, params, filename=None):
-        
+
         params = self.check_all_params(params)
         volts = params["voltages"]
         wavs = params["wavs"]
         num_averages = params["num_averages"]
 
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
         # We will take the data in all the formats specified by meas_formats, for all the s
         # parameters specified by s_params
-        
+
         [prev_wl, _, laser_active] = self.laser.get_state()
         prev_bias = self.smu.measure_voltage()
 
@@ -342,11 +375,15 @@ class VNABiasVSweep(Experiment):
 
                 # Get the VNA trace
                 VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages": num_averages,
-                                                                        "s_params": s_params,
-                                                                        "meas_formats": meas_formats},
-                                                                filename=None)
-                self.legend.append("V = %d mV; wav = %.2f nm" % (v_set*1e3, wav))
+                measurement = VNA_spec_v_wav.perform_experiment(
+                    params={
+                        "num_averages": num_averages,
+                        "s_params": s_params,
+                        "meas_formats": meas_formats},
+                    filename=None)
+                self.legend.append(
+                    "V = %d mV; wav = %.2f nm" %
+                    (v_set * 1e3, wav))
                 all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
                 if filename is not None:
@@ -361,7 +398,7 @@ class VNABiasVSweep(Experiment):
                                                 "%d#%d#%d_%d#%d#%d.csv" % (filename,
                                                                            s_param,
                                                                            format,
-                                                                           v_set*1000,
+                                                                           v_set * 1000,
                                                                            i_meas,
                                                                            wav,
                                                                            time_tuple[0],
@@ -395,7 +432,10 @@ class VNABiasVSweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"num_averages": 4, "s_params": ['S21'], "meas_formats": ['LOGM']}
+        return {
+            "num_averages": 4,
+            "s_params": ['S21'],
+            "meas_formats": ['LOGM']}
 
     def required_params(self):
         """
@@ -405,17 +445,25 @@ class VNABiasVSweep(Experiment):
         return ["voltages", "wavs", "num_averages", "s_params", "meas_formats"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)', title='VNA vs V meas', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA vs V meas',
+            legend=self.legend)
 
 
 class VNABiasISweep(Experiment):
@@ -438,12 +486,13 @@ class VNABiasISweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -457,7 +506,8 @@ class VNABiasISweep(Experiment):
             if isinstance(instr, TunableFilter):
                 self.tunable_filter = instr
 
-        if (self.vna is not None) and (self.smu is not None) and (self.laser is not None):
+        if (self.vna is not None) and (
+                self.smu is not None) and (self.laser is not None):
             return True
         else:
             return False
@@ -473,19 +523,21 @@ class VNABiasISweep(Experiment):
         Returns a string with the experiment name
         """
         return "BW vs I, wav"
-    
+
     def perform_experiment(self, params, filename=None):
-        
+
         params = self.check_all_params(params)
         curs = params["currents"]
         wavs = params["wavs"]
         num_averages = params["num_averages"]
 
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
         # We will take the data in all the formats specified by meas_formats, for all the
         # s parameters specified by s_params
-        
+
         [prev_wl, _, laser_active] = self.laser.get_state()
         prev_bias = self.smu.measure_current()
 
@@ -510,7 +562,12 @@ class VNABiasISweep(Experiment):
 
                 # Get the VNA trace
                 VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages":num_averages, "s_params": s_params, "meas_formats": meas_formats}, filename=None)
+                measurement = VNA_spec_v_wav.perform_experiment(
+                    params={
+                        "num_averages": num_averages,
+                        "s_params": s_params,
+                        "meas_formats": meas_formats},
+                    filename=None)
                 self.legend.append("I = %.2e A; wav = %.2f nm" % (i_set, wav))
                 all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
@@ -559,7 +616,10 @@ class VNABiasISweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"num_averages": 4, "s_params": ['S21'], "meas_formats": ['LOGM']}
+        return {
+            "num_averages": 4,
+            "s_params": ['S21'],
+            "meas_formats": ['LOGM']}
 
     def required_params(self):
         """
@@ -569,18 +629,25 @@ class VNABiasISweep(Experiment):
         return ["currents", "wavs", "num_averages", "s_params", "meas_formats"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)',
-                   title='VNA vs V meas', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA vs V meas',
+            legend=self.legend)
 
 
 class VNADoubleBiasVSweep(Experiment):
@@ -605,12 +672,13 @@ class VNADoubleBiasVSweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -627,7 +695,8 @@ class VNADoubleBiasVSweep(Experiment):
             if isinstance(instr, TunableFilter):
                 self.tunable_filter = instr
 
-        if (self.vna is not None) and (self.smu1 is not None) and (self.smu2 is not None):
+        if (self.vna is not None) and (
+                self.smu1 is not None) and (self.smu2 is not None):
             return True
         else:
             return False
@@ -643,9 +712,9 @@ class VNADoubleBiasVSweep(Experiment):
         Returns a string with the experiment name
         """
         return "BW vs V1, V2, wav"
-    
+
     def perform_experiment(self, params, filename=None):
-        
+
         params = self.check_all_params(params)
 
         volts1 = params["voltages"]
@@ -657,8 +726,10 @@ class VNADoubleBiasVSweep(Experiment):
             # If there is no laser, set the wavelength to a foo
             wavs = [0.00]
 
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
         # We will take the data in all the formats specified by meas_formats, for all the s
         # parameters specified by s_params
 
@@ -672,11 +743,13 @@ class VNADoubleBiasVSweep(Experiment):
 
         # Type of combinatin of the two voltages
         # If 'all_to_all', we measure all the combinations of voltages and voltages2
-        # If 'one_by_one', we measure (voltages[0], voltages2[0]), then (voltages[1], voltages2[1])...
+        # If 'one_by_one', we measure (voltages[0], voltages2[0]), then
+        # (voltages[1], voltages2[1])...
         comb_mode = params["combine_mode"]
 
         if (comb_mode == 'one_by_one') and (len(volts1) != len(volts2)):
-            raise ValueError('The length of V1s and V2s is not the same (error in Tx vs V 2 SMUs)')
+            raise ValueError(
+                'The length of V1s and V2s is not the same (error in Tx vs V 2 SMUs)')
 
         if comb_mode == 'all_to_all':
 
@@ -704,15 +777,21 @@ class VNADoubleBiasVSweep(Experiment):
 
                         # Get the VNA trace
                         VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                        measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages": num_averages,
-                                                                                "s_params": s_params,
-                                                                                "meas_formats": meas_formats},
-                                                                        filename=None)
-                        self.legend.append("V1 = %d mV; V2 = %d mV, wav = %.2f nm" % (v1*1e3, v2*1e3, wav))
-                        all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
+                        measurement = VNA_spec_v_wav.perform_experiment(
+                            params={
+                                "num_averages": num_averages,
+                                "s_params": s_params,
+                                "meas_formats": meas_formats},
+                            filename=None)
+                        self.legend.append(
+                            "V1 = %d mV; V2 = %d mV, wav = %.2f nm" %
+                            (v1 * 1e3, v2 * 1e3, wav))
+                        all_meas_data.append(
+                            measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
                         if filename is not None:
-                            # Create a different file for each s parameter and format
+                            # Create a different file for each s parameter and
+                            # format
                             for s_param, meas_dict in measurement.items():
                                 for format, meas in meas_dict.items():
 
@@ -723,8 +802,8 @@ class VNADoubleBiasVSweep(Experiment):
                                                         "%d#%d#%d_%d#%d#%d.csv" % (filename,
                                                                                    s_param,
                                                                                    format,
-                                                                                   v1*1000,
-                                                                                   v2*1000,
+                                                                                   v1 * 1000,
+                                                                                   v2 * 1000,
                                                                                    i_meas1,
                                                                                    i_meas2,
                                                                                    wav,
@@ -763,15 +842,21 @@ class VNADoubleBiasVSweep(Experiment):
 
                     # Get the VNA trace
                     VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                    measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages":num_averages,
-                                                                            "s_params": s_params,
-                                                                            "meas_formats": meas_formats},
-                                                                    filename=None)
-                    self.legend.append("V1 = %d mV; V2 = %d mV, wav = %.2f nm" % (v1*1e3, v2*1e3, wav))
-                    all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
+                    measurement = VNA_spec_v_wav.perform_experiment(
+                        params={
+                            "num_averages": num_averages,
+                            "s_params": s_params,
+                            "meas_formats": meas_formats},
+                        filename=None)
+                    self.legend.append(
+                        "V1 = %d mV; V2 = %d mV, wav = %.2f nm" %
+                        (v1 * 1e3, v2 * 1e3, wav))
+                    all_meas_data.append(
+                        measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
                     if filename is not None:
-                        # Create a different file for each s parameter and format
+                        # Create a different file for each s parameter and
+                        # format
                         for s_param, meas_dict in measurement.items():
                             for format, meas in meas_dict.items():
 
@@ -783,8 +868,8 @@ class VNADoubleBiasVSweep(Experiment):
                                                         "%d#%d#%d_%d#%d#%d.csv" % (filename,
                                                                                    s_param,
                                                                                    format,
-                                                                                   v1*1000,
-                                                                                   v2*1000,
+                                                                                   v1 * 1000,
+                                                                                   v2 * 1000,
                                                                                    i_meas1,
                                                                                    i_meas2,
                                                                                    wav,
@@ -820,28 +905,46 @@ class VNADoubleBiasVSweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"num_averages": 4, "s_params": ['S21'], "meas_formats": ['LOGM'], "combine_mode": 'all_to_all'}
+        return {
+            "num_averages": 4,
+            "s_params": ['S21'],
+            "meas_formats": ['LOGM'],
+            "combine_mode": 'all_to_all'}
 
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["voltages", "voltages2", "wavs", "num_averages", "combine_mode", "s_params", "meas_formats"]
+        return [
+            "voltages",
+            "voltages2",
+            "wavs",
+            "num_averages",
+            "combine_mode",
+            "s_params",
+            "meas_formats"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
-        
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
+
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)',
-                   title='VNA vs 2 V meas', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA vs 2 V meas',
+            legend=self.legend)
 
 
 class VNABiasVandBiasISweep(Experiment):
@@ -866,7 +969,8 @@ class VNABiasVandBiasISweep(Experiment):
         self.legend = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
@@ -888,7 +992,8 @@ class VNABiasVandBiasISweep(Experiment):
             if isinstance(instr, TunableFilter):
                 self.tunable_filter = instr
 
-        if (self.vna is not None) and (self.v_smu is not None) and (self.i_smu is not None):
+        if (self.vna is not None) and (
+                self.v_smu is not None) and (self.i_smu is not None):
             return True
         else:
             return False
@@ -918,8 +1023,10 @@ class VNABiasVandBiasISweep(Experiment):
             # If there is no laser, set the wavelength to a foo
             wavs = [0.00]
 
-        s_params = params["s_params"]  # List of the relevant s parameters we want to obtain (S11, S12, ...)
-        meas_formats = params["meas_formats"]  # List of the measurements formats for each s parameter (logm, phas)
+        # List of the relevant s parameters we want to obtain (S11, S12, ...)
+        s_params = params["s_params"]
+        # List of the measurements formats for each s parameter (logm, phas)
+        meas_formats = params["meas_formats"]
         # We will take the data in all the formats specified by meas_formats, for all the s
         # parameters specified by s_params
 
@@ -934,11 +1041,13 @@ class VNABiasVandBiasISweep(Experiment):
 
         # Type of combinatin of the two voltages
         # If 'all_to_all', we measure all the combinations of voltages and voltages2
-        # If 'one_by_one', we measure (voltages[0], voltages2[0]), then (voltages[1], voltages2[1])...
+        # If 'one_by_one', we measure (voltages[0], voltages2[0]), then
+        # (voltages[1], voltages2[1])...
         comb_mode = params["combine_mode"]
 
         if (comb_mode == 'one_by_one') and (len(volts) != len(currents)):
-            raise ValueError('The length of Vs and Is is not the same (error in Tx vs V, I 2 SMUs)')
+            raise ValueError(
+                'The length of Vs and Is is not the same (error in Tx vs V, I 2 SMUs)')
 
         if comb_mode == 'all_to_all':
 
@@ -966,15 +1075,21 @@ class VNABiasVandBiasISweep(Experiment):
 
                         # Get the VNA trace
                         VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                        measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages": num_averages,
-                                                                                "s_params": s_params,
-                                                                                "meas_formats": meas_formats},
-                                                                        filename=None)
-                        self.legend.append("V = %d mV; I = %.2e A, wav = %.2f nm" % (volt * 1e3, cur, wav))
-                        all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
+                        measurement = VNA_spec_v_wav.perform_experiment(
+                            params={
+                                "num_averages": num_averages,
+                                "s_params": s_params,
+                                "meas_formats": meas_formats},
+                            filename=None)
+                        self.legend.append(
+                            "V = %d mV; I = %.2e A, wav = %.2f nm" %
+                            (volt * 1e3, cur, wav))
+                        all_meas_data.append(
+                            measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
                         if filename is not None:
-                            # Create a different file for each s parameter and format
+                            # Create a different file for each s parameter and
+                            # format
                             for s_param, meas_dict in measurement.items():
                                 for format, meas in meas_dict.items():
                                     # Create the csv file
@@ -1024,15 +1139,21 @@ class VNABiasVandBiasISweep(Experiment):
 
                     # Get the VNA trace
                     VNA_spec_v_wav = AcquireVNATrace([self.vna])
-                    measurement = VNA_spec_v_wav.perform_experiment(params={"num_averages": num_averages,
-                                                                            "s_params": s_params,
-                                                                            "meas_formats": meas_formats},
-                                                                    filename=None)
-                    self.legend.append("V = %d mV; I = %.2e A, wav = %.2f nm" % (volt * 1e3, cur, wav))
-                    all_meas_data.append(measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
+                    measurement = VNA_spec_v_wav.perform_experiment(
+                        params={
+                            "num_averages": num_averages,
+                            "s_params": s_params,
+                            "meas_formats": meas_formats},
+                        filename=None)
+                    self.legend.append(
+                        "V = %d mV; I = %.2e A, wav = %.2f nm" %
+                        (volt * 1e3, cur, wav))
+                    all_meas_data.append(
+                        measurement[PLOT_S_PARAM][PLOT_FORMAT][1])
 
                     if filename is not None:
-                        # Create a different file for each s parameter and format
+                        # Create a different file for each s parameter and
+                        # format
                         for s_param, meas_dict in measurement.items():
                             for format, meas in meas_dict.items():
 
@@ -1081,14 +1202,25 @@ class VNABiasVandBiasISweep(Experiment):
         return all_plt_data
 
     def default_params(self):
-        return {"num_averages": 4, "s_params": ['S21'], "meas_formats": ['LOGM'], "combine_mode": 'all_to_all'}
+        return {
+            "num_averages": 4,
+            "s_params": ['S21'],
+            "meas_formats": ['LOGM'],
+            "combine_mode": 'all_to_all'}
 
     def required_params(self):
         """
         Returns a list with the keys that need to be specified in the params dictionnary, in order for
         a measurement to be performed
         """
-        return ["voltages", "currents", "wavs", "num_averages", "combine_mode", "s_params", "meas_formats"]
+        return [
+            "voltages",
+            "currents",
+            "wavs",
+            "num_averages",
+            "combine_mode",
+            "s_params",
+            "meas_formats"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -1096,13 +1228,20 @@ class VNABiasVandBiasISweep(Experiment):
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
 
-        plot_graph(x_data, y_data, canvas_handle=canvas_handle, xlabel='Freq (Hz)', ylabel='s_21 (dB)',
-                   title='VNA vs V, I meas', legend=self.legend)
+        plot_graph(
+            x_data,
+            y_data,
+            canvas_handle=canvas_handle,
+            xlabel='Freq (Hz)',
+            ylabel='s_21 (dB)',
+            title='VNA vs V, I meas',
+            legend=self.legend)
 
 
 if __name__ == '__main__':
@@ -1117,7 +1256,9 @@ if __name__ == '__main__':
     # params = {"num_averages": 2, "s_params": ["S11", "S22", "S21", "S12"], "meas_formats": ["LOGM", "PHAS"]}
     params = {"num_averages": 4, "s_params": ["S21"], "meas_formats": ["LOGM"]}
 
-    exp.perform_experiment(params, filename='bjt_mod--npn--1550--eos_det_mix--Vbe=0.88V--Ibe=100uA--Vbc=0.5V--Ibc=-72.3uA')
+    exp.perform_experiment(
+        params,
+        filename='bjt_mod--npn--1550--eos_det_mix--Vbe=0.88V--Ibe=100uA--Vbc=0.5V--Ibc=-72.3uA')
 
     # --- sub-threshold region transistor char --
 

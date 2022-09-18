@@ -11,14 +11,19 @@ import math
 
 HP_ADDR = "GPIB1::20::INSTR"
 DEFAULT_INTEGRATION_TIME = 0.05
-SWEEP_DWELL_TIME = 0.4 # Time to sleep at each wavelength when we do a
-        # tx curve by setting each wavelength at a time (in s)
+SWEEP_DWELL_TIME = 0.4  # Time to sleep at each wavelength when we do a
+# tx curve by setting each wavelength at a time (in s)
 
 
 class HPLightWave(Instrument, TunableLaser, PowerMeter):
 
-    def __init__(self, tap_channel, rec_channel, use_as_laser=True, integration_time=DEFAULT_INTEGRATION_TIME,
-                 sweep_dwell_time=SWEEP_DWELL_TIME):
+    def __init__(
+            self,
+            tap_channel,
+            rec_channel,
+            use_as_laser=True,
+            integration_time=DEFAULT_INTEGRATION_TIME,
+            sweep_dwell_time=SWEEP_DWELL_TIME):
         super().__init__()
 
         self.lwmain = None
@@ -41,7 +46,7 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         self.initialize_sensors()
 
     def get_id(self):
-        return(["Laser", "TunableLaser", "PowerMeter"])
+        return (["Laser", "TunableLaser", "PowerMeter"])
 
     def close(self):
         """
@@ -117,7 +122,8 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         except ValueError:
             power_tap = 0.0
 
-        received_power_string = self.lwmain.query("FETC%d:POW?" % self.rec_channel)
+        received_power_string = self.lwmain.query(
+            "FETC%d:POW?" % self.rec_channel)
 
         try:
             received_power = max(0.0, float(received_power_string))
@@ -135,8 +141,12 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         """
 
         # Set integration time
-        self.lwmain.write("SENS%d:CHAN1:POW:ATIME %.3fS" % (self.tap_channel, self.int_time))
-        self.lwmain.write("SENS%d:CHAN1:POW:ATIME %.3fS" % (self.rec_channel, self.int_time))
+        self.lwmain.write(
+            "SENS%d:CHAN1:POW:ATIME %.3fS" %
+            (self.tap_channel, self.int_time))
+        self.lwmain.write(
+            "SENS%d:CHAN1:POW:ATIME %.3fS" %
+            (self.rec_channel, self.int_time))
 
         # Set units to mW
         self.lwmain.write("SENS%d:CHAN1:POW:UNIT 1" % self.tap_channel)
@@ -189,7 +199,9 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
                 power_range = 10
 
             self.lwmain.write("SENS%d:POW:RANG:AUTO 0" % channel)
-            self.lwmain.write("SENS%d:POW:RANG %dDBM" % (channel, int(power_range)))
+            self.lwmain.write(
+                "SENS%d:POW:RANG %dDBM" %
+                (channel, int(power_range)))
 
     def start_sweep(self):
         self.lwmain.write("WAV:SWE START")
@@ -204,17 +216,20 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         """
 
         sweep_speed = self.__choose_sweep_speed__(end_wav, init_wav)
-        
-        step_width = round ( (end_wav - init_wav) / num_wav, 4 )  # in nm
-        true_num_wavs = math.floor( (end_wav - init_wav)/step_width )
 
-        sweep_time = (end_wav-init_wav)/sweep_speed
+        step_width = round((end_wav - init_wav) / num_wav, 4)  # in nm
+        true_num_wavs = math.floor((end_wav - init_wav) / step_width)
+
+        sweep_time = (end_wav - init_wav) / sweep_speed
 
         # Configure laser sweep
         self.lwmain.write("WAV:SWE:CYCL 1")  # We only want one sweep
-        self.lwmain.write("WAV:SWE:MODE CONT")  # Set to use continuous sweep (not stepped)
+        # Set to use continuous sweep (not stepped)
+        self.lwmain.write("WAV:SWE:MODE CONT")
         self.lwmain.write("TRIG0:OUTP STF")  # One output trigger per step
-        self.lwmain.write("WAV:SWE:SPE %.7ENM/S" % sweep_speed)  # sweep speed in nm/s
+        self.lwmain.write(
+            "WAV:SWE:SPE %.7ENM/S" %
+            sweep_speed)  # sweep speed in nm/s
         self.lwmain.write("WAV:SWE:STEP %.7ENM" % step_width)
         self.lwmain.write("WAV:SWE:STAR %.7ENM" % init_wav)  # Start wavelength
         self.lwmain.write("WAV:SWE:STOP %.7ENM" % end_wav)  # Stop wavelength
@@ -231,10 +246,11 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         if (end_wav - init_wav) > 30.0:
             sweep_speed = 5
         else:
-            sweep_speed = 0.5  # in nm/s. This speed seems good. There is also 5 nm/s, 20 nm/s and 40 nm/s
+            # in nm/s. This speed seems good. There is also 5 nm/s, 20 nm/s and
+            # 40 nm/s
+            sweep_speed = 0.5
 
         return sweep_speed
-
 
     def take_sweep(self, init_wav, end_wav, num_wav):
         """
@@ -244,12 +260,12 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         """
 
         sweep_speed = self.__choose_sweep_speed__(end_wav, init_wav)
-        
-        total_sweep_time = (end_wav-init_wav)/sweep_speed  # in s
-        #sweep_speed = (end_wav-init_wav)/total_sweep_time  # in nm/s
-        #print(sweep_speed)
-        step_width = round ( (end_wav - init_wav) / num_wav, 4 )  # in nm
-        averaging_time = total_sweep_time*1e3/num_wav  # in ms
+
+        total_sweep_time = (end_wav - init_wav) / sweep_speed  # in s
+        # sweep_speed = (end_wav-init_wav)/total_sweep_time  # in nm/s
+        # print(sweep_speed)
+        step_width = round((end_wav - init_wav) / num_wav, 4)  # in nm
+        averaging_time = total_sweep_time * 1e3 / num_wav  # in ms
 
         # Configure power meter logging
         self.lwmain.write("SENS%d:CHAN1:FUNC:PAR:LOGG %d,%.7EMS" %
@@ -260,21 +276,26 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         # Configure laser sweep
         self.lwmain.write("WAV:SWE:CYCL 1")  # We only want one sweep
 
-        # self.lwmain.write("WAV:SWE:DWEL %.7EMS" % dwell_time)  # Dwell time (stepped sweep)
+        # self.lwmain.write("WAV:SWE:DWEL %.7EMS" % dwell_time)  # Dwell time
+        # (stepped sweep)
 
-        self.lwmain.write("WAV:SWE:MODE CONT")  # Set to use continuous sweep (not stepped)
-        self.lwmain.write("TRIG0:OUTP STF")  # Necessary for lambda logging. SWST
+        # Set to use continuous sweep (not stepped)
+        self.lwmain.write("WAV:SWE:MODE CONT")
+        # Necessary for lambda logging. SWST
+        self.lwmain.write("TRIG0:OUTP STF")
         self.lwmain.write("WAV:SWE:LLOG 1")  # Turn on lambda logging
 
-        self.lwmain.write("WAV:SWE:SPE %.7ENM/S" % sweep_speed)  # sweep speed in nm/s
+        self.lwmain.write(
+            "WAV:SWE:SPE %.7ENM/S" %
+            sweep_speed)  # sweep speed in nm/s
         self.lwmain.write("WAV:SWE:STEP %.7ENM" % step_width)
 
         self.lwmain.write("WAV:SWE:STAR %.7ENM" % init_wav)  # Start wavelength
         self.lwmain.write("WAV:SWE:STOP %.7ENM" % end_wav)  # Stop wavelength
 
         # = self.lwmain.query('WAV:SWE:CHEC?')
-        #print(check_sweep)
-        #if check_sweep != 'OK':
+        # print(check_sweep)
+        # if check_sweep != 'OK':
         #    print('Sweep not correct: ' + check_sweep)
         #    return
 
@@ -290,14 +311,14 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
                           self.tap_channel)
         self.lwmain.write("WAV:SWE START")
 
-        time.sleep(total_sweep_time+10)
+        time.sleep(total_sweep_time + 10)
 
         # Retrieve data
         wavs = self.lwmain.query_ascii_values(":READ:DATA?")
         print(wavs)
 
         self.lwmain.write("SENS%d:CHAN1:FUNC:RES?" %
-                                                  self.rec_channel)
+                          self.rec_channel)
         rec_data = self.lwmain.read_raw().decode('ascii')
         print(rec_data)
         tap_data = self.lwmain.query_ascii_values("SENS%d:CHAN1:FUNC:RES?" %
@@ -328,7 +349,7 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
 
         self.lwmain.write(":TRIG 2")
 
-        time.sleep(num_points*av_time)
+        time.sleep(num_points * av_time)
 
         # Check for acquisition finished
         acq_finished = self.lwmain.query("SENS%d:CHAN1:FUNC:STATE?" % slot)
@@ -391,7 +412,7 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         # print(self.lwmain.query("SOURCE0:WAVELENGTH:SWEEP:EXP?"))
         self.lwmain.write("INITIATE1:CONTINUOUS 0")
 
-        self.lwmain.write("TRIG:CONF 3") # 1 for default
+        self.lwmain.write("TRIG:CONF 3")  # 1 for default
         print(self.lwmain.query(":TRIG:CONF?"))
         sys.stdout.flush()
 
@@ -436,15 +457,17 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         """
         Returns a list wiht the following elements:
         1. The current wavelength
-        2. The current power 
+        2. The current power
         3. If the laser is on or off.
         """
 
-        power = self.lwmain.query_ascii_values(":SOUR:POW?") # Returns the power in W
-        power = float(power[0])*1e3
+        power = self.lwmain.query_ascii_values(
+            ":SOUR:POW?")  # Returns the power in W
+        power = float(power[0]) * 1e3
 
-        wav = self.lwmain.query_ascii_values("WAV?")  # Returns the wavelength in m
-        wav = float(wav[0])*1e9
+        wav = self.lwmain.query_ascii_values(
+            "WAV?")  # Returns the wavelength in m
+        wav = float(wav[0]) * 1e9
 
         state = self.lwmain.query_ascii_values(":POW:STAT?")
         state = int(state[0])

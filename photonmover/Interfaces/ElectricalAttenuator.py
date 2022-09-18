@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 # ABC means Abstract Base Class and is basically an interface
 
+
 class ElectricalAttenuator(ABC):
 
     def __init__(self):
@@ -19,4 +20,4 @@ class ElectricalAttenuator(ABC):
         pass
 
     def get_id(self):
-        return("ElectricalAttenuator")
+        return ("ElectricalAttenuator")

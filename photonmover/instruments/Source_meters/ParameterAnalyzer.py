@@ -8,12 +8,13 @@ from photonmover.Interfaces.Instrument import Instrument
 PARAM_ANALYZER_ADDR = "GPIB0::17::INSTR"  # GPIB adress
 DEFAULT_CURRENT_COMPLIANCE = 0.05  # Default current compliance in A
 
+
 class ParameterAnalyzer(Instrument, SourceMeter):
     """
     Use the HP parameter analyzer as a source meter to take IV curves
     """
 
-    def __init__(self, channel, current_compliance = DEFAULT_CURRENT_COMPLIANCE):
+    def __init__(self, channel, current_compliance=DEFAULT_CURRENT_COMPLIANCE):
         super().__init__()
 
         # It is good practice to initialize variables in init
@@ -30,7 +31,7 @@ class ParameterAnalyzer(Instrument, SourceMeter):
         rm = visa.ResourceManager()
         try:
             self.sparam = rm.open_resource(PARAM_ANALYZER_ADDR, timeout=10000)
-        except:
+        except BaseException:
             raise ValueError('Cannot connect to the Parameter Analyzer')
 
         self.initialize_channel(self.channel)
@@ -125,7 +126,8 @@ class ParameterAnalyzer(Instrument, SourceMeter):
         self.sparam.write("SLI 1")
         # self.sparam.write("FL 0")
         self.sparam.write("CN %d" % channel)
-        self.sparam.write("DV 2,11,0," + str(self.cur_compliance))  # Last number: current compliance (0.05)
+        # Last number: current compliance (0.05)
+        self.sparam.write("DV 2,11,0," + str(self.cur_compliance))
 
         self.set_voltage(0.0)
 

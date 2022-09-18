@@ -1,5 +1,6 @@
 # This script performs a wavelength sweep by sweeping the temperature of the laser diode.
-# It can also measure generated photocurrent if desired, by talking to a source meter.
+# It can also measure generated photocurrent if desired, by talking to a
+# source meter.
 
 from photonmover.Interfaces.Experiment import Experiment
 from photonmover.utils.plot_utils import plot_graph
@@ -11,7 +12,8 @@ from photonmover.Interfaces.TempController import TempController
 
 from photonmover.utils.calibrator import CALIBRATION_FILENAME, get_calibration_factor
 
-# These are necessay for executing the experiment from this file (if this file is the main file)
+# These are necessay for executing the experiment from this file (if this
+# file is the main file)
 from photonmover.instruments.Lasers.HPLightWave import HPLightWave
 from photonmover.instruments.Source_meters.Keithley2400 import Keithley2400
 from photonmover.instruments.Wavelength_meters.BrsitolWlMeter import BristolWlMeter
@@ -24,14 +26,17 @@ import scipy.io as io
 import winsound
 
 # Calibration on 10/01/2020:
-# WM TAP: 131.3 uW - 240 uW 
+# WM TAP: 131.3 uW - 240 uW
 # REC: 2.16 mW - 4.024 mW
-CAL_FACTOR_WM = 16.608 # The power launched into the chip (before the input GC) is the measured wave meter power * CAL_FACTOR_WM. 
-                # Note we are assuming that the calibration factor is independent of wavelength. This should be 
-                # a good approximation given the small wavelength range we can actually sweep.
+# The power launched into the chip (before the input GC) is the measured
+# wave meter power * CAL_FACTOR_WM.
+CAL_FACTOR_WM = 16.608
+# Note we are assuming that the calibration factor is independent of wavelength. This should be
+# a good approximation given the small wavelength range we can actually sweep.
 
-# Note: Another calibration factor for the power meter tap is needed, but we will get that number from the calibration file
- 
+# Note: Another calibration factor for the power meter tap is needed, but
+# we will get that number from the calibration file
+
 
 class TXSweepT(Experiment):
 
@@ -52,12 +57,13 @@ class TXSweepT(Experiment):
         self.data = None
 
         if not self.check_necessary_instruments(instrument_list):
-            raise ValueError("The necessary instruments for this experiment are not present!")
+            raise ValueError(
+                "The necessary instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
         Checks if the instruments necessary to perform the experiment are present.
-        :param instrument_list: list of the available instruments 
+        :param instrument_list: list of the available instruments
         :return: True if the necessary instruments are present, False otherwise.
         """
 
@@ -71,7 +77,7 @@ class TXSweepT(Experiment):
             if isinstance(instr, SourceMeter):
                 self.smu = instr
 
-        if ( (self.pm is not None)) and (self.T_controller is not None):
+        if ((self.pm is not None)) and (self.T_controller is not None):
             return True
         else:
             return False
@@ -86,7 +92,7 @@ class TXSweepT(Experiment):
         """
         Returns a string with the experiment name
         """
-        return "Wav sweep w/ T controller"          
+        return "Wav sweep w/ T controller"
 
     def set_temp(self, temp):
         # Sets the temperature and returns the new wavelength
@@ -105,7 +111,7 @@ class TXSweepT(Experiment):
         """
 
         params = self.check_all_params(params)
-        
+
         Ts = params["temperatures"]
 
         if self.smu is not None:
@@ -142,8 +148,8 @@ class TXSweepT(Experiment):
             measurements[row, 1] = temp
             measurements[row, 2] = tap_power_pm
             measurements[row, 3] = tap_power_wm
-            measurements[row, 4] = tap_power_pm*cal_factor_pm
-            measurements[row, 5] = tap_power_wm*CAL_FACTOR_WM
+            measurements[row, 4] = tap_power_pm * cal_factor_pm
+            measurements[row, 5] = tap_power_wm * CAL_FACTOR_WM
             measurements[row, 6] = measured_received_power
             measurements[row, 7] = cur
 
@@ -189,18 +195,26 @@ class TXSweepT(Experiment):
         return ["temperatures"]
 
     def plot_data(self, canvas_handle, data=None):
-        
+
         if data is None:
             if self.data is not None:
                 data = self.data
             else:
-                raise ValueError('plot_data was called before performing the experiment or providing data')
+                raise ValueError(
+                    'plot_data was called before performing the experiment or providing data')
 
         wavs = data[:, 0]
         powers = data[:, 6]
 
-        plot_graph(x_data=wavs, y_data=powers, canvas_handle=canvas_handle, xlabel='Wavelength (nm)', ylabel='Power (mW)', title='T sweep', legend=None)
-        
+        plot_graph(
+            x_data=wavs,
+            y_data=powers,
+            canvas_handle=canvas_handle,
+            xlabel='Wavelength (nm)',
+            ylabel='Power (mW)',
+            title='T sweep',
+            legend=None)
+
 
 if __name__ == '__main__':
 
@@ -231,7 +245,8 @@ if __name__ == '__main__':
 
     while close is False:
 
-        next_op = input("Enter operation (set [temp] - sweep [T0 T1 Tstep filename]) - end:")
+        next_op = input(
+            "Enter operation (set [temp] - sweep [T0 T1 Tstep filename]) - end:")
         next_op = next_op.split()
         op = next_op[0]
 
@@ -240,11 +255,11 @@ if __name__ == '__main__':
                 temp = float(next_op[1])
                 new_wav = exp.set_temp(temp)
                 print('The measured wavelength is %.4f nm' % new_wav)
-            except:
+            except BaseException:
                 print('Temeperature not recognized.')
 
         elif op == 'sweep':
-            #try:
+            # try:
             init_temp = float(next_op[1])
             end_temp = float(next_op[2])
             step_temp = float(next_op[3])
@@ -253,7 +268,7 @@ if __name__ == '__main__':
             else:
                 file_name = None
 
-            ts = np.arange(init_temp, end_temp+0.001, step_temp)
+            ts = np.arange(init_temp, end_temp + 0.001, step_temp)
             exp.perform_experiment({"temperatures": ts}, filename=file_name)
 
         elif op == 'end':
@@ -261,12 +276,9 @@ if __name__ == '__main__':
 
         else:
             print('Operation not recognized. Enter a valid command. ')
-    
 
     # Close connections
     wavemeter.close()
     temp_controller.close()
     power_meter.close()
     source_meter.close()
-
-

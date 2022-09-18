@@ -29,12 +29,17 @@ from socket import socket, AF_INET, SOCK_STREAM, IPPROTO_TCP, TCP_NODELAY, SHUT_
 import time
 
 
-########################################################################################################################
+##########################################################################
 
 # Low level commands
 # Initialize a SCPI instance
-def initialize(ipv4_address_string_in, port_in=5025, timeout_in_seconds_in=20, enable_nagle_in=False,
-               udp_in=False, udp_receive_port_in=30001):
+def initialize(
+        ipv4_address_string_in,
+        port_in=5025,
+        timeout_in_seconds_in=20,
+        enable_nagle_in=False,
+        udp_in=False,
+        udp_receive_port_in=30001):
     """
     Initializes a Standard Commands for Programmable Instruments (SCPI) session using the Sockets API
 
@@ -92,7 +97,11 @@ def close(scpi_session_in):
 
 
 # Sends a SCPI command
-def write(scpi_session_in, scpi_command_in, termination_char_in='\n', debug_scpi_in=False):
+def write(
+        scpi_session_in,
+        scpi_command_in,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Sends a Standard Commands for Programmable Instruments (SCPI) command to the instrument defined by the SCPI session
 
@@ -113,7 +122,11 @@ def write(scpi_session_in, scpi_command_in, termination_char_in='\n', debug_scpi
 
 
 # Receives a SCPI command response
-def read(scpi_session_in, input_buffer_size_in_bytes_in=4096, termination_char_in='\n', debug_scpi_in=False):
+def read(
+        scpi_session_in,
+        input_buffer_size_in_bytes_in=4096,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Reads a Standard Commands for Programmable Instruments (SCPI) command
 
@@ -134,15 +147,20 @@ def read(scpi_session_in, input_buffer_size_in_bytes_in=4096, termination_char_i
 
     # If debug, print
     if debug_scpi_in:
-        print('Debug SCPI Response Received: ' + response_data.decode().split(termination_char_in)[0])
+        print('Debug SCPI Response Received: ' +
+              response_data.decode().split(termination_char_in)[0])
 
     # Return without newline
     return response_data.decode().split(termination_char_in)[0]
 
 
 # Sends and receives a SCPI command response
-def query(scpi_session_in, scpi_command_in, input_buffer_size_in_bytes_in=4096, termination_char_in='\n',
-          debug_scpi_in=False):
+def query(
+        scpi_session_in,
+        scpi_command_in,
+        input_buffer_size_in_bytes_in=4096,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Sends, then Reads a Standard Commands for Programmable Instruments (SCPI) command
     to and from the instrument defined by the SCPI session
@@ -156,11 +174,18 @@ def query(scpi_session_in, scpi_command_in, input_buffer_size_in_bytes_in=4096, 
     """
 
     # Send command
-    write(scpi_session_in, scpi_command_in, termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    write(
+        scpi_session_in,
+        scpi_command_in,
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
     # Return the query
-    return read(scpi_session_in, input_buffer_size_in_bytes_in,
-                termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    return read(
+        scpi_session_in,
+        input_buffer_size_in_bytes_in,
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
 
 # Turns Nagle on or off (faster short writes)
@@ -200,7 +225,10 @@ def set_timeout(scpi_session_in, timeout_in_seconds_in):
 
 
 # Sends data and returns the amount sent
-def send_buffer_check(scpi_session_in, send_data_in, send_timeout_in_seconds_in=5):
+def send_buffer_check(
+        scpi_session_in,
+        send_data_in,
+        send_timeout_in_seconds_in=5):
     """
     Sends a buffer of bytes and returns the amount of bytes sent
 
@@ -231,9 +259,14 @@ def send_buffer_check(scpi_session_in, send_data_in, send_timeout_in_seconds_in=
     return data_sent
 
 
-# Sends all of the data in the given chunk size to avoid Linux overflow send issues
-def send_data_bytes(scpi_session_in, send_data_in_bytes_in, send_data_length_in_bytes_in,
-                    send_data_chunk_size_in_bytes_in=4096, send_timeout_in_seconds_in=5):
+# Sends all of the data in the given chunk size to avoid Linux overflow
+# send issues
+def send_data_bytes(
+        scpi_session_in,
+        send_data_in_bytes_in,
+        send_data_length_in_bytes_in,
+        send_data_chunk_size_in_bytes_in=4096,
+        send_timeout_in_seconds_in=5):
     """
     Sends a buffer of bytes in the specified chunk size and returns the amount of bytes sent
 
@@ -247,7 +280,8 @@ def send_data_bytes(scpi_session_in, send_data_in_bytes_in, send_data_length_in_
 
     # Track the total stream
     total_stream_sent = 0
-    stream_data_length_chunk_limit = send_data_length_in_bytes_in-send_data_chunk_size_in_bytes_in
+    stream_data_length_chunk_limit = send_data_length_in_bytes_in - \
+        send_data_chunk_size_in_bytes_in
 
     # Send the whole stream in chunks first
     while total_stream_sent < stream_data_length_chunk_limit:
@@ -270,23 +304,29 @@ def send_data_bytes(scpi_session_in, send_data_in_bytes_in, send_data_length_in_
 
     # Send the last chunk
     while total_stream_sent < send_data_length_in_bytes_in:
-        current_stream_sent = send_buffer_check(scpi_session_in,
-                                                send_data_in_bytes_in[total_stream_sent:])
+        current_stream_sent = send_buffer_check(
+            scpi_session_in, send_data_in_bytes_in[total_stream_sent:])
 
         total_stream_sent = total_stream_sent + current_stream_sent
 
     return
 
-########################################################################################################################
+##########################################################################
 
 # Higher level commands
 
 
 # Sends a binary block write command
-def binary_block_write(scpi_session_in, scpi_command_in, binary_data_in, data_is_in_bytes=False,
-                       send_data_chunk_size_in_bytes_in=4096, send_timeout_in_seconds_in=5, termination_char_in='\n',
-                       debug_scpi_in=False, debug_binary_in=False):
-
+def binary_block_write(
+        scpi_session_in,
+        scpi_command_in,
+        binary_data_in,
+        data_is_in_bytes=False,
+        send_data_chunk_size_in_bytes_in=4096,
+        send_timeout_in_seconds_in=5,
+        termination_char_in='\n',
+        debug_scpi_in=False,
+        debug_binary_in=False):
     """
     Send data with IEEE 488.2 binary block format
 
@@ -343,17 +383,26 @@ def binary_block_write(scpi_session_in, scpi_command_in, binary_data_in, data_is
         print('Debug Binary Block Sent: ' + str(binary_data_in))
 
     # Send the data
-    send_data_bytes(scpi_session_in, binary_data_in, length_message,
-                    send_data_chunk_size_in_bytes_in=send_data_chunk_size_in_bytes_in,
-                    send_timeout_in_seconds_in=send_timeout_in_seconds_in)
+    send_data_bytes(
+        scpi_session_in,
+        binary_data_in,
+        length_message,
+        send_data_chunk_size_in_bytes_in=send_data_chunk_size_in_bytes_in,
+        send_timeout_in_seconds_in=send_timeout_in_seconds_in)
 
     # Send the termination character
     scpi_session_in.send(termination_char_in.encode())
 
 
 # Does a binary block read command
-def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_bytes_in=4096, full_buffer_read_in=False,
-                      termination_char_in='\n', debug_scpi_in=False, debug_binary_in=False):
+def binary_block_read(
+        scpi_session_in,
+        scpi_command_in,
+        receive_buffer_size_in_bytes_in=4096,
+        full_buffer_read_in=False,
+        termination_char_in='\n',
+        debug_scpi_in=False,
+        debug_binary_in=False):
     """
     Receive data with IEEE 488.2 binary block format
 
@@ -384,13 +433,18 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
     # dataHash = str(chr(data[0]))
 
     # Send the command
-    write(scpi_session_in, scpi_command_in, termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    write(
+        scpi_session_in,
+        scpi_command_in,
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
     # If reading a block of data
     if full_buffer_read_in:
 
         # Read the response
-        data_with_header = scpi_session_in.socket.recv(receive_buffer_size_in_bytes_in)
+        data_with_header = scpi_session_in.socket.recv(
+            receive_buffer_size_in_bytes_in)
 
         # Take apart the header
         # The "#"
@@ -399,23 +453,25 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
 
         # The character length of the length term
         header_length = int(data_with_header[1].decode('latin_1'), 16)
-        num_bytes = int(data_with_header[2:(2+header_length)].decode('latin_1'))
+        num_bytes = int(
+            data_with_header[2:(2 + header_length)].decode('latin_1'))
 
         # Initialize the data array
         data_raw = bytearray(num_bytes)
 
         # Get the rest of the data in the current read
         # See how much data is received
-        data_rec_len_bytes = len(data_with_header)-2-header_length
+        data_rec_len_bytes = len(data_with_header) - 2 - header_length
 
         # If everything is in the read, index and return it
         if data_rec_len_bytes >= num_bytes + len(termination_char_in):
 
             # Index the data
-            data_raw = data_with_header[(2+header_length):(2+header_length+num_bytes)]
+            data_raw = data_with_header[(
+                2 + header_length):(2 + header_length + num_bytes)]
 
             # Index the termination character
-            term = data_with_header[(2+header_length+num_bytes)]
+            term = data_with_header[(2 + header_length + num_bytes)]
 
             # If term char is incorrect or not present, raise exception.
             if term != termination_char_in:
@@ -427,7 +483,8 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
         else:
 
             # Index the initial data
-            data_raw[0:data_rec_len_bytes] = data_with_header[(2+header_length):(2+header_length+data_rec_len_bytes)]
+            data_raw[0:data_rec_len_bytes] = data_with_header[(
+                2 + header_length):(2 + header_length + data_rec_len_bytes)]
 
             # Initialize the buffer
             buffer_data_raw = memoryview(data_raw)
@@ -440,7 +497,8 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
             while num_bytes:
 
                 # Read data from instrument into buffer.
-                bytes_recv = scpi_session_in.socket.recv_into(buffer_data_raw, num_bytes)
+                bytes_recv = scpi_session_in.socket.recv_into(
+                    buffer_data_raw, num_bytes)
 
                 # Slice buffer to preserve data already written to it.
                 buffer_data_raw = buffer_data_raw[bytes_recv:]
@@ -471,8 +529,10 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
             raise ValueError('Data in buffer is not in Binary Block format.')
 
         # Extract header length and number of bytes in binblock.
-        header_length = int(scpi_session_in.socket.recv(1).decode('latin_1'), 16)
-        num_bytes = int(scpi_session_in.socket.recv(header_length).decode('latin_1'))
+        header_length = int(
+            scpi_session_in.socket.recv(1).decode('latin_1'), 16)
+        num_bytes = int(scpi_session_in.socket.recv(
+            header_length).decode('latin_1'))
 
         data_raw = bytearray(num_bytes)
         buffer_data_raw = memoryview(data_raw)
@@ -481,7 +541,8 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
         while num_bytes:
 
             # Read data from instrument into buffer.
-            bytes_recv = scpi_session_in.socket.recv_into(buffer_data_raw, num_bytes)
+            bytes_recv = scpi_session_in.socket.recv_into(
+                buffer_data_raw, num_bytes)
 
             # Slice buffer to preserve data already written to it.
             buffer_data_raw = buffer_data_raw[bytes_recv:]
@@ -506,8 +567,15 @@ def binary_block_read(scpi_session_in, scpi_command_in, receive_buffer_size_in_b
 
 
 # Monitors the state and waits to continue
-def set_and_wait(scpi_session_in, query_command_in, desired_state_in, set_command_in, wait_cycle_in_ms_in=50,
-                 wait_count_in=-1, termination_char_in='\n', debug_scpi_in=False):
+def set_and_wait(
+        scpi_session_in,
+        query_command_in,
+        desired_state_in,
+        set_command_in,
+        wait_cycle_in_ms_in=50,
+        wait_count_in=-1,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Sends a Standard Commands for Programmable Instruments (SCPI)
     command and constantly waits for the returned state to be reached
@@ -527,8 +595,11 @@ def set_and_wait(scpi_session_in, query_command_in, desired_state_in, set_comman
     # desired_result_length = len(desired_state_in)
 
     # Do an initial query
-    current_state = query(scpi_session_in, query_command_in,
-                          termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    current_state = query(
+        scpi_session_in,
+        query_command_in,
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
     # Check if it matches
     if desired_state_in in current_state:
@@ -543,7 +614,7 @@ def set_and_wait(scpi_session_in, query_command_in, desired_state_in, set_comman
         query_matched = False
 
         # Initialize parameters
-        wait_cycle_in_s = wait_cycle_in_ms_in/1000
+        wait_cycle_in_s = wait_cycle_in_ms_in / 1000
         wait_counter = 0
 
         while not query_matched:
@@ -552,7 +623,8 @@ def set_and_wait(scpi_session_in, query_command_in, desired_state_in, set_comman
             time.sleep(wait_cycle_in_s)
 
             # Query the current state
-            query_matched = desired_state_in in query(scpi_session_in, query_command_in)
+            query_matched = desired_state_in in query(
+                scpi_session_in, query_command_in)
 
             # If count exceeded break with false
             if wait_count_in >= 0:
@@ -566,7 +638,11 @@ def set_and_wait(scpi_session_in, query_command_in, desired_state_in, set_comman
 
 
 # Does a very rough estimate of latency in SCPI sends
-def scpi_latency_check(scpi_session_in, query_command_in="*IDN?", termination_char_in='\n', debug_scpi_in=False):
+def scpi_latency_check(
+        scpi_session_in,
+        query_command_in="*IDN?",
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Gets a rough estimated of the Standard Commands for Programmable Instruments (SCPI) session's latency by sending
     and receiving a command and measuring the time it takes to do so
@@ -583,7 +659,11 @@ def scpi_latency_check(scpi_session_in, query_command_in="*IDN?", termination_ch
     time_initial = time.time()
 
     # Send the command
-    query(scpi_session_in, query_command_in, termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    query(
+        scpi_session_in,
+        query_command_in,
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
     # Get the new time
     time_delta = time.time() - time_initial
@@ -591,7 +671,7 @@ def scpi_latency_check(scpi_session_in, query_command_in="*IDN?", termination_ch
     return time_delta
 
 
-########################################################################################################################
+##########################################################################
 
 # Standard SCPI Commands
 
@@ -614,7 +694,10 @@ def reset(scpi_session_in, termination_char_in='\n', debug_scpi_in=False):
 
 
 # Clears the status buffer
-def clear_status_register(scpi_session_in, termination_char_in='\n', debug_scpi_in=False):
+def clear_status_register(
+        scpi_session_in,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Sends a Clear Status Register (*CLS)
     Standard Commands for Programmable Instruments (SCPI) command to the instrument defined by the SCPI session
@@ -632,7 +715,10 @@ def clear_status_register(scpi_session_in, termination_char_in='\n', debug_scpi_
 
 
 # Sends a bus trigger
-def send_bus_trigger(scpi_session_in, termination_char_in='\n', debug_scpi_in=False):
+def send_bus_trigger(
+        scpi_session_in,
+        termination_char_in='\n',
+        debug_scpi_in=False):
     """
     Sends a Bus Trigger (*TRG)
     Standard Commands for Programmable Instruments (SCPI) command to the instrument defined by the SCPI session
@@ -643,20 +729,32 @@ def send_bus_trigger(scpi_session_in, termination_char_in='\n', debug_scpi_in=Fa
     :return:
     """
 
-    write(scpi_session_in, "*TRG", termination_char_in=termination_char_in, debug_scpi_in=debug_scpi_in)
+    write(
+        scpi_session_in,
+        "*TRG",
+        termination_char_in=termination_char_in,
+        debug_scpi_in=debug_scpi_in)
 
 
-########################################################################################################################
+##########################################################################
 
 
 # SCPI Class Object
 class SCPISession:
 
     # Constructor
-    def __init__(self, ipv4_address_string_in, port_in=5025, timeout_in_seconds_in=20, enable_nagle_in=False,
-                 connect_in=True, debug_scpi_in=False, debug_binary_in=False, termination_char_in='\n',
-                 udp_in=False, udp_receive_port_in=30001):
-
+    def __init__(
+            self,
+            ipv4_address_string_in,
+            port_in=5025,
+            timeout_in_seconds_in=20,
+            enable_nagle_in=False,
+            connect_in=True,
+            debug_scpi_in=False,
+            debug_binary_in=False,
+            termination_char_in='\n',
+            udp_in=False,
+            udp_receive_port_in=30001):
         """
         Instantiates a Standard Commands for Programmable Instruments (SCPI) session using the Sockets API
 
@@ -685,10 +783,13 @@ class SCPISession:
 
         # Choose to connect or not
         if connect_in:
-            self.__scpi_session = initialize(ipv4_address_string_in=ipv4_address_string_in,
-                                             timeout_in_seconds_in=timeout_in_seconds_in,
-                                             port_in=port_in, enable_nagle_in=enable_nagle_in,
-                                             udp_in=udp_in, udp_receive_port_in=udp_receive_port_in)
+            self.__scpi_session = initialize(
+                ipv4_address_string_in=ipv4_address_string_in,
+                timeout_in_seconds_in=timeout_in_seconds_in,
+                port_in=port_in,
+                enable_nagle_in=enable_nagle_in,
+                udp_in=udp_in,
+                udp_receive_port_in=udp_receive_port_in)
             self.__is_connected = True
 
     # Properties
@@ -809,10 +910,13 @@ class SCPISession:
         if enable_nagle_in is not None:
             self.__enable_nagle = enable_nagle_in
 
-        self.__scpi_session = initialize(ipv4_address_string_in=self.__ipv4_address,
-                                         timeout_in_seconds_in=self.__timeout_in_seconds, port_in=self.__port,
-                                         enable_nagle_in=self.__enable_nagle,
-                                         udp_in=self.__udp, udp_receive_port_in=self.__udp_receive_port)
+        self.__scpi_session = initialize(
+            ipv4_address_string_in=self.__ipv4_address,
+            timeout_in_seconds_in=self.__timeout_in_seconds,
+            port_in=self.__port,
+            enable_nagle_in=self.__enable_nagle,
+            udp_in=self.__udp,
+            udp_receive_port_in=self.__udp_receive_port)
         self.__is_connected = True
 
     # Disconnect
@@ -841,8 +945,11 @@ class SCPISession:
         """
 
         # Send the command
-        write(self.__scpi_session, scpi_command_in=scpi_command_in, termination_char_in=self.__termination_char,
-              debug_scpi_in=self.__debug_mode_scpi)
+        write(
+            self.__scpi_session,
+            scpi_command_in=scpi_command_in,
+            termination_char_in=self.__termination_char,
+            debug_scpi_in=self.__debug_mode_scpi)
         return
 
     # Receives a SCPI command response
@@ -856,8 +963,11 @@ class SCPISession:
         """
 
         # Return without newline
-        return read(self.__scpi_session, input_buffer_size_in_bytes_in=input_buffer_size_in_bytes_in,
-                    termination_char_in=self.__termination_char, debug_scpi_in=self.__debug_mode_scpi)
+        return read(
+            self.__scpi_session,
+            input_buffer_size_in_bytes_in=input_buffer_size_in_bytes_in,
+            termination_char_in=self.__termination_char,
+            debug_scpi_in=self.__debug_mode_scpi)
 
     # Sends and receives a SCPI command response
     def query(self, scpi_command_in, input_buffer_size_in_bytes_in=4096):
@@ -871,14 +981,21 @@ class SCPISession:
         """
 
         # Return the query
-        return query(self.__scpi_session, scpi_command_in=scpi_command_in,
-                     input_buffer_size_in_bytes_in=input_buffer_size_in_bytes_in,
-                     termination_char_in=self.__termination_char, debug_scpi_in=self.__debug_mode_scpi)
+        return query(
+            self.__scpi_session,
+            scpi_command_in=scpi_command_in,
+            input_buffer_size_in_bytes_in=input_buffer_size_in_bytes_in,
+            termination_char_in=self.__termination_char,
+            debug_scpi_in=self.__debug_mode_scpi)
 
     # Sends a binary block write command
-    def binary_block_write(self, scpi_command_in, binary_data_in, data_is_in_bytes=False,
-                           send_data_chunk_size_in_bytes_in=4096, send_timeout_in_seconds_in=5):
-
+    def binary_block_write(
+            self,
+            scpi_command_in,
+            binary_data_in,
+            data_is_in_bytes=False,
+            send_data_chunk_size_in_bytes_in=4096,
+            send_timeout_in_seconds_in=5):
         """
         Send data with IEEE 488.2 binary block format
 
@@ -907,15 +1024,20 @@ class SCPISession:
         # dataIn = data[0:5].decode('ascii') #The hash (for reference)
         # dataHash = str(chr(data[0]))
 
-        binary_block_write(self.__scpi_session, scpi_command_in=scpi_command_in,
-                           binary_data_in=binary_data_in,
-                           data_is_in_bytes=data_is_in_bytes,
-                           send_data_chunk_size_in_bytes_in=send_data_chunk_size_in_bytes_in,
-                           send_timeout_in_seconds_in=send_timeout_in_seconds_in)
+        binary_block_write(
+            self.__scpi_session,
+            scpi_command_in=scpi_command_in,
+            binary_data_in=binary_data_in,
+            data_is_in_bytes=data_is_in_bytes,
+            send_data_chunk_size_in_bytes_in=send_data_chunk_size_in_bytes_in,
+            send_timeout_in_seconds_in=send_timeout_in_seconds_in)
 
     # Does a binary block read command
-    def binary_block_read(self, scpi_command_in, receive_buffer_size_in_bytes_in=4096,
-                          full_buffer_read_in=False):
+    def binary_block_read(
+            self,
+            scpi_command_in,
+            receive_buffer_size_in_bytes_in=4096,
+            full_buffer_read_in=False):
         """
         Receive data with IEEE 488.2 binary block format
 
@@ -941,11 +1063,14 @@ class SCPISession:
         # dataIn = data[0:5].decode('ascii') #The hash (for reference)
         # dataHash = str(chr(data[0]))
 
-        return binary_block_read(self.__scpi_session, scpi_command_in=scpi_command_in,
-                                 receive_buffer_size_in_bytes_in=receive_buffer_size_in_bytes_in,
-                                 full_buffer_read_in=full_buffer_read_in,
-                                 termination_char_in=self.__termination_char,
-                                 debug_scpi_in=self.__debug_mode_scpi, debug_binary_in=self.__debug_mode_binary)
+        return binary_block_read(
+            self.__scpi_session,
+            scpi_command_in=scpi_command_in,
+            receive_buffer_size_in_bytes_in=receive_buffer_size_in_bytes_in,
+            full_buffer_read_in=full_buffer_read_in,
+            termination_char_in=self.__termination_char,
+            debug_scpi_in=self.__debug_mode_scpi,
+            debug_binary_in=self.__debug_mode_binary)
 
     # Does a very rough estimate of latency in SCPI sends
     def scpi_latency_check(self, query_command_in="*IDN?"):
@@ -958,8 +1083,10 @@ class SCPISession:
         """
 
         # Get the time
-        time_delta = scpi_latency_check(scpi_session_in=self.__scpi_session, query_command_in=query_command_in,
-                                        debug_scpi_in=self.__debug_mode_scpi)
+        time_delta = scpi_latency_check(
+            scpi_session_in=self.__scpi_session,
+            query_command_in=query_command_in,
+            debug_scpi_in=self.__debug_mode_scpi)
         return time_delta
 
     # Resets the instrument
@@ -970,8 +1097,10 @@ class SCPISession:
         :return:
         """
 
-        reset(scpi_session_in=self.__scpi_session, debug_scpi_in=self.__debug_mode_scpi,
-              termination_char_in=self.__termination_char)
+        reset(
+            scpi_session_in=self.__scpi_session,
+            debug_scpi_in=self.__debug_mode_scpi,
+            termination_char_in=self.__termination_char)
 
     # Sends a bus trigger
     def send_bus_trigger(self):
@@ -981,8 +1110,10 @@ class SCPISession:
         :return:
         """
 
-        send_bus_trigger(scpi_session_in=self.__scpi_session, debug_scpi_in=self.__debug_mode_scpi,
-                         termination_char_in=self.__termination_char)
+        send_bus_trigger(
+            scpi_session_in=self.__scpi_session,
+            debug_scpi_in=self.__debug_mode_scpi,
+            termination_char_in=self.__termination_char)
 
     # Clears the status buffer
     def clear_status_register(self):
@@ -991,7 +1122,9 @@ class SCPISession:
 
         :return:
         """
-        clear_status_register(scpi_session_in=self.__scpi_session, debug_scpi_in=self.__debug_mode_scpi,
-                              termination_char_in=self.__termination_char)
+        clear_status_register(
+            scpi_session_in=self.__scpi_session,
+            debug_scpi_in=self.__debug_mode_scpi,
+            termination_char_in=self.__termination_char)
 
-########################################################################################################################
+##########################################################################

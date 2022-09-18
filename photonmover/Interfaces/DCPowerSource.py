@@ -39,7 +39,7 @@ class DCPowerSource(ABC):
         Turn off the soruce meter
         """
         pass
-    
+
     @abstractmethod
     def measure_current(self):
         """
@@ -55,4 +55,4 @@ class DCPowerSource(ABC):
         pass
 
     def get_id(self):
-        return("DCPowerSource")
+        return ("DCPowerSource")

@@ -34,7 +34,8 @@ class AgiltronTunableFilter(TunableFilter, Instrument):
         :return:
         """
         if wavelength < 1520 or wavelength > 1598:
-            print('Tunable filter cannot cover this wavelength. Tunable filter wavelength not changed.')
+            print(
+                'Tunable filter cannot cover this wavelength. Tunable filter wavelength not changed.')
             return
 
         message = 'C%d,' % wavelength
@@ -50,14 +51,16 @@ class AgiltronTunableFilter(TunableFilter, Instrument):
         :return:
         """
 
-        print("Setting filter sweep to start: %.2f nm; stop: %.2f nm, num: %d, time = %.2f ms"
-              % (start_wav, stop_wav, num_wav, dwell_time))
+        print(
+            "Setting filter sweep to start: %.2f nm; stop: %.2f nm, num: %d, time = %.2f ms" %
+            (start_wav, stop_wav, num_wav, dwell_time))
 
         span = stop_wav - start_wav
 
         if span > 30:
-            print(' The span for the tunable filter seep is too high. Limiting it ot the maximum of 30 nm.')
-            stop_wav = start_wav+30
+            print(
+                ' The span for the tunable filter seep is too high. Limiting it ot the maximum of 30 nm.')
+            stop_wav = start_wav + 30
             span = 30
 
         # Start wavelenth
@@ -74,7 +77,8 @@ class AgiltronTunableFilter(TunableFilter, Instrument):
 
         # Scan pause at each wavelength
         if dwell_time < 1 or dwell_time > 30:
-            print('Dwell time has to be between 1 and 30 seconds. Setting it to 1 second.')
+            print(
+                'Dwell time has to be between 1 and 30 seconds. Setting it to 1 second.')
             dwell_time = 1
         message = 'T%d,' % dwell_time
         self.ser.write(message.encode('ascii'))
@@ -85,7 +89,7 @@ class AgiltronTunableFilter(TunableFilter, Instrument):
         message = 'S%d,' % span
         self.ser.write(message.encode('ascii'))
         self.ser.flush()
-        time.sleep(span*dwell_time)
+        time.sleep(span * dwell_time)
         print(self.ser.read(5).encode('ascii'))
 
 
@@ -97,4 +101,3 @@ if __name__ == '__main__':
         tf.set_wavelength(float(wav))
         print('Wavelength set')
     tf.close()
-
