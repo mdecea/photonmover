@@ -20,7 +20,8 @@ class SweptSourceRaman(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -35,13 +36,13 @@ class SweptSourceRaman(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -57,7 +58,8 @@ class SweptSourceRaman(Experiment):
                 self.power_meter = instr
 
         if (self.laser is not None) and (self.daq is not None) and (
-                self.optical_switch is not None) and (self.power_meter is not None):
+                self.optical_switch is not None) and (
+                    self.power_meter is not None):
             return True
         else:
             return False
@@ -78,7 +80,7 @@ class SweptSourceRaman(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -90,7 +92,7 @@ class SweptSourceRaman(Experiment):
         channels = params["channels"]
         int_time = params["int_time"]  # Integration time in s
         num_reps = params["num_reps"]  # Number of repetitions of each spectra
-        lock_in = params["lock-in"]  # If the measurement is a lock-in or not
+        _ = params["lock-in"]  # If the measurement is a lock-in or not
         # Sampling frequency of the DAQ
         sampling_freq = params["sampling_freq"]
 
@@ -133,7 +135,7 @@ class SweptSourceRaman(Experiment):
 
             if num_trials == MAX_NUM_WAV_SET_TRIALS:
                 print(
-                    'We could not correctly set to a %.3f nm wavelength. Skipping it' %
+                    'We could not set to a %.3f nm wav. Skipping it' %
                     wav)
                 continue
 
@@ -189,14 +191,15 @@ class SweptSourceRaman(Experiment):
 
                 if filename is not None:
                     time_tuple = time.localtime()
-                    power_file_name = "SSR-power-%s-channel=%d--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                          channel,
-                                                                                          time_tuple[0],
-                                                                                          time_tuple[1],
-                                                                                          time_tuple[2],
-                                                                                          time_tuple[3],
-                                                                                          time_tuple[4],
-                                                                                          time_tuple[5])
+                    power_file_name = "SSR-power-%s-channel=%d--%d#%d#%d_%d#%d#%d.csv" % (
+                        filename,
+                        channel,
+                        time_tuple[0],
+                        time_tuple[1],
+                        time_tuple[2],
+                        time_tuple[3],
+                        time_tuple[4],
+                        time_tuple[5])
 
                     np.savetxt(
                         power_file_name,
@@ -207,14 +210,15 @@ class SweptSourceRaman(Experiment):
                         delimiter=",",
                         fmt='%s')
 
-                    nidaq_file_name = "SSR-nidaq-%s-channel=%d--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                          channel,
-                                                                                          time_tuple[0],
-                                                                                          time_tuple[1],
-                                                                                          time_tuple[2],
-                                                                                          time_tuple[3],
-                                                                                          time_tuple[4],
-                                                                                          time_tuple[5])
+                    nidaq_file_name = "SSR-nidaq-%s-channel=%d--%d#%d#%d_%d#%d#%d.csv" % (
+                        filename,
+                        channel,
+                        time_tuple[0],
+                        time_tuple[1],
+                        time_tuple[2],
+                        time_tuple[3],
+                        time_tuple[4],
+                        time_tuple[5])
                     np.savetxt(
                         nidaq_file_name,
                         np.vstack(
@@ -230,8 +234,8 @@ class SweptSourceRaman(Experiment):
                     tap = np.array(power_output_dic[channel])[-num_reps:, 1:]
                     signal = np.array(ni_output_dic[channel])[-num_reps:, 1:]
 
-                    #tap_avg = np.mean(tap, axis=0)
-                    #signal_avg = np.mean(signal, axis=0)
+                    # tap_avg = np.mean(tap, axis=0)
+                    # signal_avg = np.mean(signal, axis=0)
 
                     spectra_dic[channel].append(np.mean(signal))
                     spectra_std_dic[channel].append(np.std(signal))
@@ -245,7 +249,8 @@ class SweptSourceRaman(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in
+        the params dictionnary, in order for
         a measurement to be performed
         """
         return [
@@ -258,9 +263,12 @@ class SweptSourceRaman(Experiment):
 
     def default_params(self):
         """
-        This function returns a dictionnary with default parameters for the experiment. Not all parameters need to have a default value.
-        If a parameter is not given in the list of parameters, we will check if there are default parameters and use them if provided.
-        If there are not default parameters at all, just return an empty dictionnary.
+        This function returns a dictionnary with default parameters
+        for the experiment. Not all parameters need to have a default value.
+        If a parameter is not given in the list of parameters, we will
+        check if there are default parameters and use them if provided.
+        If there are not default parameters at all, just return an
+        empty dictionnary.
         """
         return {"channels": [2]}
 
@@ -276,7 +284,7 @@ if __name__ == '__main__':
     optical_switch = DiConOpticalSwitch(com_address='COM3', verbose=False)
     power_meter = ThorlabsPowerMeter()
     daq = NiDAQ()
-    #chopper = RedPitayaChopper(hostname='rp-f08473.local')
+    # chopper = RedPitayaChopper(hostname='rp-f08473.local')
 
     # Open connections
     laser.initialize()
@@ -288,14 +296,19 @@ if __name__ == '__main__':
     # --------------- CONFIGURE INSTRUMENTS ---------------------
     # Initialize instruments to correct settings
     laser.init_function()  # Warm up laser and stuff
-    power_meter.init_function()  # Set correct power range and bandwidth for power meter
+    # Set correct power range and bandwidth for power meter
+    power_meter.init_function()
 
     # Create DAQ task to record voltages
     daq.configure_channel_acq(
-        ["cDAQ1Mod1/ai0", "cDAQ1Mod1/ai1"], min_vals=[0.0, 0.0], max_vals=[10.0, 2.5])
+        ["cDAQ1Mod1/ai0", "cDAQ1Mod1/ai1"], min_vals=[0.0, 0.0],
+        max_vals=[10.0, 2.5])
 
     # Set chopper and turn it on
-    #chopper.configure_modulation(shape='SQUARE', shape_params={'freq': 10 , 'Vpp': 1.0, 'Voffset': 0.5})
+    # chopper.configure_modulation(shape='SQUARE',
+    #                              shape_params={'freq': 10 ,
+    #                                            'Vpp': 1.0,
+    #                                            'Voffset': 0.5})
     # chopper.turn_on()
 
     # ------------- RUN EXPERIMENT --------------------------

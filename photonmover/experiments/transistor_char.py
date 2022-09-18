@@ -9,7 +9,6 @@ from photonmover.utils.plot_utils import plot_graph
 from photonmover.Interfaces.SourceMeter import SourceMeter
 
 # For the example
-from photonmover.instruments.Source_meters.Keithley2635A import Keithley2635A
 from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
 from photonmover.instruments.Source_meters.Keithley2400 import Keithley2400
 
@@ -26,15 +25,15 @@ class BJTTransOutputCurve(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS
-        HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock=None)
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. We need 2 source meters, one connected at the BE junction,
-        # the other to the CE junction.
+        # Instruments. We need 2 source meters, one connected at the BE
+        # junction, the other to the CE junction.
         self.be_smu = None
         self.ce_smu = None
 
@@ -43,13 +42,13 @@ class BJTTransOutputCurve(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -80,7 +79,7 @@ class BJTTransOutputCurve(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -118,14 +117,15 @@ class BJTTransOutputCurve(Experiment):
             if filename is not None:
 
                 time_tuple = time.localtime()
-                filename_comp = "%s--bjt_output--Ib=%.4emA--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                       base_i * 1e3,
-                                                                                       time_tuple[0],
-                                                                                       time_tuple[1],
-                                                                                       time_tuple[2],
-                                                                                       time_tuple[3],
-                                                                                       time_tuple[4],
-                                                                                       time_tuple[5])
+                filename_comp = "%s--bjt_output--Ib=%.4emA--%d#%d#%d--%d#%d#%d.mat" % (
+                    filename,
+                    base_i * 1e3,
+                    time_tuple[0],
+                    time_tuple[1],
+                    time_tuple[2],
+                    time_tuple[3],
+                    time_tuple[4],
+                    time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'iv': iv_data})
@@ -147,7 +147,8 @@ class BJTTransOutputCurve(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionary, in order for
+        Returns a list with the keys that need to be specified in
+        the params dictionary, in order for
         a measurement to be performed
         """
         return ["voltages", "currents"]
@@ -159,7 +160,8 @@ class BJTTransOutputCurve(Experiment):
                 data = self.data
             else:
                 raise ValueError(
-                    'plot_data was called before performing the experiment or providing data')
+                    'plot_data was called before performing the experiment '
+                    'or providing data')
 
         x_data = data[0]
         y_data = data[1:]
@@ -178,14 +180,15 @@ class FETTransOutputCurve(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS
-        HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. We need 2 source meters, one connected at the gate of the transistor,
+        # Instruments. We need 2 source meters, one connected at the gate
+        # of the transistor,
         # and one at the drain-source.
         self.gate_smu = None
         self.drain_smu = None
@@ -195,13 +198,13 @@ class FETTransOutputCurve(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -232,7 +235,7 @@ class FETTransOutputCurve(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -270,14 +273,15 @@ class FETTransOutputCurve(Experiment):
             if filename is not None:
 
                 time_tuple = time.localtime()
-                filename_comp = "%s--transistor_output--Vgs=%.4eV--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                              gate_v,
-                                                                                              time_tuple[0],
-                                                                                              time_tuple[1],
-                                                                                              time_tuple[2],
-                                                                                              time_tuple[3],
-                                                                                              time_tuple[4],
-                                                                                              time_tuple[5])
+                filename_comp = "%s--transistor_output--Vgs=%.4eV--%d#%d#%d--%d#%d#%d.mat" % (
+                    filename,
+                    gate_v,
+                    time_tuple[0],
+                    time_tuple[1],
+                    time_tuple[2],
+                    time_tuple[3],
+                    time_tuple[4],
+                    time_tuple[5])
 
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'iv': iv_data})
@@ -299,7 +303,8 @@ class FETTransOutputCurve(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionary, in order for
+        Returns a list with the keys that need to be specified
+        in the params dictionary, in order for
         a measurement to be performed
         """
         return ["voltages", "voltages2"]
@@ -311,7 +316,8 @@ class FETTransOutputCurve(Experiment):
                 data = self.data
             else:
                 raise ValueError(
-                    'plot_data was called before performing the experiment or providing data')
+                    'plot_data was called before performing the '
+                    ' experiment or providing data')
 
         x_data = data[0]
         y_data = data[1:]
