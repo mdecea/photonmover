@@ -1,5 +1,5 @@
-# Takes the output characteristics of a pv modulator. Forces an Ids, forces a Vgs and
-# measures Vds.
+# Takes the output characteristics of a pv modulator. Forces an Ids,
+# forces a Vgs and measures Vds.
 
 from photonmover.Interfaces.Experiment import Experiment
 from photonmover.utils.plot_utils import plot_graph
@@ -20,14 +20,15 @@ class PVModOutputCurve(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. We need 2 source meters, one connected at the gate of the transistor,
-        # and one at the drain-source.
+        # Instruments. We need 2 source meters, one connected at the gate
+        # of the transistor, and one at the drain-source.
         self.gate_smu = None
         self.drain_smu = None
 
@@ -36,13 +37,13 @@ class PVModOutputCurve(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -73,7 +74,7 @@ class PVModOutputCurve(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -116,17 +117,18 @@ class PVModOutputCurve(Experiment):
             if filename is not None:
 
                 time_tuple = time.localtime()
-                filename_comp = "%s--pv_mod_output--Ids=%.4e-Vgs=%.4eV-%.4eV%dnum--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                                                              ids,
-                                                                                                              gate_voltages[0],
-                                                                                                              gate_voltages[-1],
-                                                                                                              len(gate_voltages),
-                                                                                                              time_tuple[0],
-                                                                                                              time_tuple[1],
-                                                                                                              time_tuple[2],
-                                                                                                              time_tuple[3],
-                                                                                                              time_tuple[4],
-                                                                                                              time_tuple[5])
+                filename_comp = "%s--pv_mod_output--Ids=%.4e-Vgs=%.4eV-%.4eV%dnum--%d#%d#%d--%d#%d#%d.mat" % (
+                    filename,
+                    ids,
+                    gate_voltages[0],
+                    gate_voltages[-1],
+                    len(gate_voltages),
+                    time_tuple[0],
+                    time_tuple[1],
+                    time_tuple[2],
+                    time_tuple[3],
+                    time_tuple[4],
+                    time_tuple[5])
                 print("Saving data to ", filename_comp)
                 io.savemat(filename_comp, {'vgs_vds': measurements})
 
@@ -147,7 +149,8 @@ class PVModOutputCurve(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in
+        the params dictionnary, in order for
         a measurement to be performed
         """
         return ["voltages", "currents"]
@@ -159,7 +162,8 @@ class PVModOutputCurve(Experiment):
                 data = self.data
             else:
                 raise ValueError(
-                    'plot_data was called before performing the experiment or providing data')
+                    'plot_data was called before performing the experiment '
+                    'or providing data')
 
         x_data = data[0]
         y_data = data[1:]

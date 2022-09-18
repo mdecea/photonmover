@@ -429,8 +429,10 @@ class ramanmover_GUI(QtGui.QMainWindow):
 
     def _get_all_params_list_(self):
         """
-        Goes through the list of available experiments, asks for the necessary parameters and returns a list with the
-        collection of all the parameters needed by the ensemble of experiments that can be evaluated
+        Goes through the list of available experiments, asks for
+        the necessary parameters and returns a list with the
+        collection of all the parameters needed by the ensemble
+        of experiments that can be evaluated
         """
 
         params_list = []
@@ -456,9 +458,10 @@ class ramanmover_GUI(QtGui.QMainWindow):
         layout = QtGui.QVBoxLayout()
         dlg.setWindowTitle("About")
         layout.addWidget(QtGui.QLabel(
-            """ This is ramanmover. GUI for Raman-related experiments. Written in python 3 and using
-        PyQtgraph, uses the experiment-based approach. \n Written by Marc de Cea, Summer 2021 (amidst the end of a
-        global pandemic). """))
+            """ This is ramanmover. GUI for Raman-related experiments. Written
+             in python 3 and using PyQtgraph, uses the experiment-based
+             approach. \n Written by Marc de Cea, Summer 2021 (amidst
+             the end of a global pandemic). """))
         dlg.setLayout(layout)
         dlg.exec_()
 
@@ -477,8 +480,8 @@ class ramanmover_GUI(QtGui.QMainWindow):
     def __disconnect_exp_thread_start_events__(self):
         """
         Disconnects any signal tied to the start of the experiment thread.
-        We need this so we can tie different methods to the start of the thread (depending on the
-        experiment we want to run)
+        We need this so we can tie different methods to the start of
+        the thread (depending on the experiment we want to run)
         """
         try:
             self.exp_thread.started.disconnect()
@@ -570,9 +573,12 @@ class ramanmover_GUI(QtGui.QMainWindow):
 
     def call_experiment(self, experiment_object):
         """
-        Executes the experiment realized by the experiment_object stored in self.experiment_list at position experiment_index.
-        This function is called when an experiment is chosen in the "experiments" drop down menu.
-        Why this function is necessary is because we need to construct the params dictionnary to pass to the experiment.
+        Executes the experiment realized by the experiment_object stored
+        din self.experiment_list at position experiment_index.
+        This function is called when an experiment is chosen in
+        the "experiments" drop down menu.
+        Why this function is necessary is because we need to
+        construct the params dictionnary to pass to the experiment.
         """
 
         # Stop the refreshing execution
@@ -594,7 +600,8 @@ class ramanmover_GUI(QtGui.QMainWindow):
 
     def process_experiment_results(self, exp_results):
         """
-        This is the method called when an experiment is done and we receive a signal from the experiments thread.
+        This is the method called when an experiment is done
+        and we receive a signal from the experiments thread.
         """
 
         # Plot the data
@@ -607,7 +614,8 @@ class ramanmover_GUI(QtGui.QMainWindow):
 
     def _generate_params_dict_(self, experiment_object):
         """
-        This function gathers all the numbers in the controls in the GUI and generates a dictionnary with parameters
+        This function gathers all the numbers in the controls in the GUI
+        and generates a dictionnary with parameters
         to be passed to the experiments
         """
         params_dict = {}
@@ -620,15 +628,18 @@ class ramanmover_GUI(QtGui.QMainWindow):
 
                 element = self.indicator_param_map[key]
 
-                # This element is a tuple. The firs element is 1 or more indicators containing the relevant information
-                # The second element is the type of indicator ("checkbox" or "textbox")
+                # This element is a tuple. The firs element is 1 or more
+                # indicators containing the relevant information
+                # The second element is the type of indicator ("checkbox"
+                #  or "textbox")
                 # THe heuristics to sort through this element tuple are a bit
                 # complicated.
 
                 # First, see if there is only one element specifying the
                 # parameter
                 if len(element[0]) == 1:
-                    # We just need to extract the value if the indicator. Extracting the value depends on the
+                    # We just need to extract the value if the indicator.
+                    # Extracting the value depends on the
                     # tuple of indicator it is.
                     if element[1] == "checkbox":
                         params_dict[key] = element[0][0].isChecked()

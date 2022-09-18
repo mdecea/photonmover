@@ -1,5 +1,6 @@
 # Uses one smu as a (slow) AWG and a second SMU to measure a relevant variable.
-# The idea: set the driving voltage/current of the first smu, measure a relevant variable with the second smu.
+# The idea: set the driving voltage/current of the first smu, measure a
+# relevant variable with the second smu.
 # Keep repeating this.
 
 from photonmover.Interfaces.Experiment import Experiment
@@ -11,11 +12,11 @@ from photonmover.utils.plot_utils import plot_graph
 from photonmover.Interfaces.SourceMeter import SourceMeter
 
 # For the example
-from photonmover.instruments.Source_meters.Keithley2635A import Keithley2635A
 from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
 
 # General imports
 import time
+import sys
 import scipy.io as io
 import winsound
 import numpy as np
@@ -25,14 +26,16 @@ class AwgWSmu(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS
         HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
         # It is always good practice to initialize variables in the init
 
-        # Instruments. We need 2 source meters, one that acts as the AWG (the drive smu) and one that
+        # Instruments. We need 2 source meters, one that acts as the AWG
+        # (the drive smu) and one that
         # measures (the meas smu)
         self.drive_smu = None
         self.meas_smu = None
@@ -43,14 +46,14 @@ class AwgWSmu(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         The first SMU is the drive smu, the second on eis the measure SMU
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -69,7 +72,8 @@ class AwgWSmu(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return " SMU as AWG: Sets a driving voltage for the SMU, measures current with another SMU. Then repeats. "
+        return " SMU as AWG: Sets a driving voltage for the SMU, " \
+               "measures current with another SMU. Then repeats. "
 
     def get_name(self):
         """
@@ -79,7 +83,8 @@ class AwgWSmu(Experiment):
 
     def generate_points(self, shape, shape_params):
         """
-        Generates the points corresponding to the specified shape and its parameters. The parameters depend on
+        Generates the points corresponding to the specified shape and
+        its parameters. The parameters depend on
         the specific shape.
         Currently supported shapes: 'square', 'triangle', 'sine'
         """
@@ -126,18 +131,22 @@ class AwgWSmu(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
 
         """
         params keys:
-            "shape" --> Name of the waveform to generate (string) or list of points to generate
-            "shape_params" --> Dict with the parameters for the specific shape, or None if 'shape' has a list of points
+            "shape" --> Name of the waveform to generate (string) or list
+                of points to generate
+            "shape_params" --> Dict with the parameters for the specific shape,
+                 or None if 'shape' has a list of points
             "set" --> What are we setting? Either 'voltage' or 'current'.
             "measure" --> What are we measuring? Either 'voltage' or 'current'.
-            "meas_bias" --> Bias point for the measure SMU. If meas is 'voltage', this should be a current. If meas is 'current', this should be a voltage.
+            "meas_bias" --> Bias point for the measure SMU. If meas
+                is 'voltage', this should be a current.
+                If meas is 'current', this should be a voltage.
         """
 
         params = self.check_all_params(params)
@@ -211,13 +220,14 @@ class AwgWSmu(Experiment):
         if filename is not None:
 
             time_tuple = time.localtime()
-            filename_comp = "%s--awg_w_smu--%d#%d#%d--%d#%d#%d.mat" % (filename,
-                                                                       time_tuple[0],
-                                                                       time_tuple[1],
-                                                                       time_tuple[2],
-                                                                       time_tuple[3],
-                                                                       time_tuple[4],
-                                                                       time_tuple[5])
+            filename_comp = "%s--awg_w_smu--%d#%d#%d--%d#%d#%d.mat" % (
+                filename,
+                time_tuple[0],
+                time_tuple[1],
+                time_tuple[2],
+                time_tuple[3],
+                time_tuple[4],
+                time_tuple[5])
 
             print("Saving data to ", filename_comp)
             io.savemat(filename_comp, {'wf': measurement})
@@ -242,7 +252,8 @@ class AwgWSmu(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionary, in order for
+        Returns a list with the keys that need to be specified in
+        the params dictionary, in order for
         a measurement to be performed
         """
         return ["shape", "shape_params", "set", "measure", "meas_bias"]
@@ -254,7 +265,8 @@ class AwgWSmu(Experiment):
                 data = self.data
             else:
                 raise ValueError(
-                    'plot_data was called before performing the experiment or providing data')
+                    'plot_data was called before performing the experiment'
+                    ' or providing data')
 
         t = data[:, 0]
         rel_variable = data[:, 2]
@@ -315,12 +327,15 @@ if __name__ == '__main__':
     instr_list = [drive_smu, meas_smu]
     exp = AwgWSmu(instr_list)
 
-    shape_params = {'low_value': 0, 'high_value': -1.6, 'points_per_period': 6, 'num_periods': 10}
-    params = {"shape": 'square', "shape_params": shape_params, "set": 'voltage',
-              "measure": 'current', "meas_bias": -1.5}
+    shape_params = {'low_value': 0, 'high_value': -1.6,
+                    'points_per_period': 6, 'num_periods': 10}
+    params = {"shape": 'square', "shape_params": shape_params,
+              "set": 'voltage', "measure": 'current',
+              "meas_bias": -1.5}
 
     # RUN IT
-    exp.perform_experiment(params, filename='square_wave--led=2--det=1--det_bias=-1.5V')
+    exp.perform_experiment(params, 
+                           filename='square_wave--led=2--det=1--det_bias=-1.5V')
 
     # CLOSE INSTRUMENTS
     drive_smu.close()

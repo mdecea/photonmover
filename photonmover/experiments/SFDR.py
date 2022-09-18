@@ -7,8 +7,10 @@ from photonmover.Interfaces.MSA import MSA
 from photonmover.Interfaces.WaveformGenerator import WaveformGenerator
 
 # This is only necessary for the example
-from photonmover.instruments.Microwave_spectrum_analyzers.HP70900A import HP70900A
-from photonmover.instruments.Arbitrary_waveform_generators.Agilent81180A import Agilent81180A
+from photonmover.instruments.Microwave_spectrum_analyzers.HP70900A \
+    import HP70900A
+from photonmover.instruments.Arbitrary_waveform_generators.Agilent81180A \
+     import Agilent81180A
 
 # General imports
 import time
@@ -18,7 +20,8 @@ class SFDR(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -30,13 +33,13 @@ class SFDR(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -54,7 +57,8 @@ class SFDR(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return """ Performs an SFDR measurement by increasing the amplitude of two closely spaced sinusoid signals and observing
+        return """ Performs an SFDR measurement by increasing the amplitude of
+            two closely spaced sinusoid signals and observing
             intermodulation products with the MSA. """
 
     def get_name(self):
@@ -67,18 +71,20 @@ class SFDR(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
 
         """
-        Keys: biases --> List of bias voltages for the applied sinusoids. Both sinusoids have the same offset.
+        Keys: biases --> List of bias voltages for the applied sinusoids.
+                 Both sinusoids have the same offset.
               amps --> List of amplitudes for the applied sinusoids.
               f1 --> Frequency of the 1st sinusoid
               f2 --> Frequency of the 2nd sinusoid
-              amp_comp --> The amplitude of the 2nd sinusoid is amp[i] + amp_comp. This is
-                    added to account for slight mismatches between the output power of the two sinusoids.
+              amp_comp --> The amplitude of the 2nd sinusoid is amp[i] 
+                + amp_comp. This is  added to account for slight 
+                mismatches between the output power of the two sinusoids.
         """
 
         params = self.check_all_params(params)
@@ -115,17 +121,18 @@ class SFDR(Experiment):
                 # Get trace
                 if filename is not None:
                     time_tuple = time.localtime()
-                    file_name = "SFDR-%s-freq1=%.4fMHz-freq2=%.4fMHz-Vgs_pp=%.3fV-Vgs_offs=%.3fV--%d#%d#%d_%d#%d#%d.csv" % (filename,
-                                                                                                                            self.f1 * 1e-6,
-                                                                                                                            self.f2 * 1e-6,
-                                                                                                                            Vpp,
-                                                                                                                            bias,
-                                                                                                                            time_tuple[0],
-                                                                                                                            time_tuple[1],
-                                                                                                                            time_tuple[2],
-                                                                                                                            time_tuple[3],
-                                                                                                                            time_tuple[4],
-                                                                                                                            time_tuple[5])
+                    file_name = "SFDR-%s-freq1=%.4fMHz-freq2=%.4fMHz-Vgs_pp=%.3fV-Vgs_offs=%.3fV--%d#%d#%d_%d#%d#%d.csv" % (
+                        filename,
+                        self.f1 * 1e-6,
+                        self.f2 * 1e-6,
+                        Vpp,
+                        bias,
+                        time_tuple[0],
+                        time_tuple[1],
+                        time_tuple[2],
+                        time_tuple[3],
+                        time_tuple[4],
+                        time_tuple[5])
                 else:
                     file_name = None
 
@@ -141,7 +148,8 @@ class SFDR(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in the params
+        dictionnary, in order for
         a measurement to be performed
         """
         return ["voltages", "amplitudes", "f1", "f2", "amp_comp"]

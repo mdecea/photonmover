@@ -1,4 +1,5 @@
-# This script performs a wavelength sweep by sweeping the temperature of the laser diode.
+# This script performs a wavelength sweep by sweeping the temperature
+# of the laser diode.
 # It can also measure generated photocurrent if desired, by talking to a
 # source meter.
 
@@ -10,14 +11,16 @@ from photonmover.Interfaces.SourceMeter import SourceMeter
 from photonmover.Interfaces.WlMeter import WlMeter
 from photonmover.Interfaces.TempController import TempController
 
-from photonmover.utils.calibrator import CALIBRATION_FILENAME, get_calibration_factor
+from photonmover.utils.calibrator import get_calibration_factor
 
 # These are necessay for executing the experiment from this file (if this
 # file is the main file)
 from photonmover.instruments.Lasers.HPLightWave import HPLightWave
 from photonmover.instruments.Source_meters.Keithley2400 import Keithley2400
-from photonmover.instruments.Wavelength_meters.BrsitolWlMeter import BristolWlMeter
-from photonmover.instruments.Temperature_controllers.Newport3040 import Newport3040
+from photonmover.instruments.Wavelength_meters.BrsitolWlMeter \
+    import BristolWlMeter
+from photonmover.instruments.Temperature_controllers.Newport3040 \
+    import Newport3040
 
 import time
 import numpy as np
@@ -31,8 +34,10 @@ import winsound
 # The power launched into the chip (before the input GC) is the measured
 # wave meter power * CAL_FACTOR_WM.
 CAL_FACTOR_WM = 16.608
-# Note we are assuming that the calibration factor is independent of wavelength. This should be
-# a good approximation given the small wavelength range we can actually sweep.
+# Note we are assuming that the calibration factor is independent
+#  of wavelength. This should be
+# a good approximation given the small wavelength range we 
+# can actually sweep.
 
 # Note: Another calibration factor for the power meter tap is needed, but
 # we will get that number from the calibration file
@@ -42,7 +47,8 @@ class TXSweepT(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -58,13 +64,14 @@ class TXSweepT(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The necessary instruments for this experiment "
+                "are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -86,7 +93,8 @@ class TXSweepT(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return """ Sweeps wavelength through a change in temperature, measures transmission and current if a SMU is connected. """
+        return """ Sweeps wavelength through a change in temperature, measures 
+            transmission and current if a SMU is connected. """
 
     def get_name(self):
         """
@@ -105,7 +113,7 @@ class TXSweepT(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionnary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -162,16 +170,17 @@ class TXSweepT(Experiment):
 
         if filename is not None:
             time_tuple = time.localtime()
-            filename = "%s-Tsweep-%d-%d-%d--%d#%d#%d_%d#%d#%d.mat" % (filename,
-                                                                      init_temp,
-                                                                      end_temp,
-                                                                      step_temp,
-                                                                      time_tuple[0],
-                                                                      time_tuple[1],
-                                                                      time_tuple[2],
-                                                                      time_tuple[3],
-                                                                      time_tuple[4],
-                                                                      time_tuple[5])
+            filename = "%s-Tsweep-%d-%d-%d--%d#%d#%d_%d#%d#%d.mat" % (
+                filename,
+                init_temp,
+                end_temp,
+                step_temp,
+                time_tuple[0],
+                time_tuple[1],
+                time_tuple[2],
+                time_tuple[3],
+                time_tuple[4],
+                time_tuple[5])
 
             out_file_path = filename
             print("Saving data to ", out_file_path)
@@ -189,7 +198,8 @@ class TXSweepT(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in the
+        params dictionnary, in order for
         a measurement to be performed
         """
         return ["temperatures"]
@@ -201,7 +211,8 @@ class TXSweepT(Experiment):
                 data = self.data
             else:
                 raise ValueError(
-                    'plot_data was called before performing the experiment or providing data')
+                    'plot_data was called before performing the experiment '
+                    'or providing data')
 
         wavs = data[:, 0]
         powers = data[:, 6]
@@ -246,7 +257,8 @@ if __name__ == '__main__':
     while close is False:
 
         next_op = input(
-            "Enter operation (set [temp] - sweep [T0 T1 Tstep filename]) - end:")
+            "Enter operation (set [temp] - sweep [T0 T1 Tstep filename])"
+            " - end:")
         next_op = next_op.split()
         op = next_op[0]
 

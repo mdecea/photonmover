@@ -3,7 +3,6 @@
 # the feedback and know when to stop.
 
 from photonmover.Interfaces.Experiment import Experiment
-from photonmover.utils.plot_utils import plot_graph
 
 # Interfaces/instruments necessary for the experiment
 # - You use an Interface if any instrument of that category can be used
@@ -12,22 +11,18 @@ from photonmover.Interfaces.SourceMeter import SourceMeter
 from photonmover.instruments.DAQ.NI_DAQ import NiDAQ
 
 # For the example
-from photonmover.instruments.Source_meters.KeysightB2902A import KeysightB2902A
 from photonmover.instruments.Source_meters.Keithley2400 import Keithley2400
 
 # General imports
-import time
 import nidaqmx
-import winsound
-import numpy as np
 
 
 class AerotechControl(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS
-        HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. IMPORTANT:
+        WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -43,14 +38,14 @@ class AerotechControl(Experiment):
 
         if not self.check_necessary_instruments(instrument_list):
             raise ValueError(
-                "The necessary instruments for this experiment are not present!")
+                "The instruments for this experiment are not present!")
 
     def check_necessary_instruments(self, instrument_list):
         """
-        Checks if the instruments necessary to perform the experiment are present.
+        Checks if the instruments to perform the experiment are present.
         The first SMU is the drive smu, the second on eis the measure SMU
         :param instrument_list: list of the available instruments
-        :return: True if the necessary instruments are present, False otherwise.
+        :return: True if the instruments are present, False otherwise.
         """
 
         for instr in instrument_list:
@@ -68,7 +63,8 @@ class AerotechControl(Experiment):
         """
         Returns a string with a brief summary of the experiment.
         """
-        return " Controls the aerotech stage with a source meter and a DAQ for feedback "
+        return " Controls the aerotech stage with a source meter and " \
+               " a DAQ for feedback "
 
     def get_name(self):
         """
@@ -80,7 +76,7 @@ class AerotechControl(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionary of the parameters necessary for the experiment.
+        :param params: dict of the parameters necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
@@ -88,12 +84,18 @@ class AerotechControl(Experiment):
         """
         params keys:
             "distance" --> Distance to move in mm
-            "distance_to_counts" --> Conversion between distance and counts on the encoder (in counts/mm)
-            "drive_current" --> Current at which to drive the motor in Amps. We assume it has the sign that will move the motor in the positive direction.
-                It can either be a single number, in which case we will apply +drive_current and -drive_current, or
-                a two element list, in which case we will apply drive_current[0] and drive_current[1] for each direction respecitvely.
-            "daq_channel" --> daq channel to which the stage feedback is connected. None if we want to use the default.
-                                Example: "/Dev1/PFI0"
+            "distance_to_counts" --> Conversion between distance and counts
+                on the encoder (in counts/mm)
+            "drive_current" --> Current at which to drive the motor in Amps.
+                 We assume it has the sign that will move the motor in the
+                 positive direction.
+                It can either be a single number, in which case we will apply
+                 +drive_current and -drive_current, or a two element list,
+                 in which case we will apply drive_current[0] and
+                 drive_current[1] for each direction respecitvely.
+            "daq_channel" --> daq channel to which the stage feedback
+                is connected. None if we want to use the default.
+                Example: "/Dev1/PFI0"
         """
 
         params = self.check_all_params(params)
@@ -146,7 +148,8 @@ class AerotechControl(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionary, in order for
+        Returns a list with the keys that need to be specified in
+        the params dictionary, in order for
         a measurement to be performed
         """
         return [
@@ -194,7 +197,8 @@ if __name__ == '__main__':
 
     # time.sleep(5)
 
-    #params = {"distance": 10.0, "distance_to_counts": 500, "drive_current": 0.55, "daq_channel": None}
+    # params = {"distance": 10.0, "distance_to_counts": 500,
+    #           "drive_current": 0.55, "daq_channel": None}
 
     # RUN IT
     # exp.perform_experiment(params)
