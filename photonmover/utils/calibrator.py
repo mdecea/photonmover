@@ -1,8 +1,9 @@
 import pickle
 import numpy as np
+from os import path
 
 CALIBRATION_FILENAME = \
-    'C:/Users/POE/Desktop/Marc/photonmover/calibration_data/current_calibration.pickle'
+    path.join(path.dirname(__file__), 'current_calibration.pickle')
 
 
 def get_calibration_factor(wav):

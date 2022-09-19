@@ -50,8 +50,8 @@ There are 3 existing threads:
 
 # Initial test
 
-The easiest way to test the installation of the package worked is to launch the GUI with mock instruments `python launch_photonmover.py -f mock_instr_list.yaml`.
-
+The easiest way to test the installation of the package worked is to launch the GUI with the list of mock instruments.
+`Photonmover` comes with a hook that allows you to launch the GUI. Once you have installed `photonmover`, just type `photonmover` in the command line, which will launch the GUI with the list of mock instruments. If you want to launch the GUI with a different list of instruments you can type `photonmover -f <path/to/isntr_list.yaml>`.
 
 ## Contributors
 
