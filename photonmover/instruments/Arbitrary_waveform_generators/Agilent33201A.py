@@ -42,7 +42,8 @@ class Agilent33201A(Instrument, WaveformGenerator):
     def set_waveform(self, shape, freq, vpp, offset):
         """
         Generates the waveform with the specified parameters
-        :param shape: shape of the waveform (sinusoidal, square...). "SIN", "SQU", "TRI", "RAMP", "NOIS", "DC"
+        :param shape: shape of the waveform (sinusoidal, square...). "SIN",
+            "SQU", "TRI", "RAMP", "NOIS", "DC"
         :param freq: frequency of the waveform (Hz)
         :param vpp: peak to peak voltage (V)
         :param offset: offset voltage (V)
@@ -123,7 +124,8 @@ class Agilent33201A(Instrument, WaveformGenerator):
     def set_load(self, load):
         """
         Sets the output load
-        :param load: if 50, output load is set to 50 Ohms. Anything else sets it to high impedance.
+        :param load: if 50, output load is set to 50 Ohms.
+            Anything else sets it to high impedance.
         :return:
         """
 
@@ -134,7 +136,8 @@ class Agilent33201A(Instrument, WaveformGenerator):
 
     def set_voltage(self, amplitude, offset):
         """
-        Sets the voltage settings. If any of them is None, they are not modified
+        Sets the voltage settings. If any of them is None,
+        they are not modified
         :param amplitude: peak to peak amplitude (V)
         :param offset: offset voltage (V)
         :return:

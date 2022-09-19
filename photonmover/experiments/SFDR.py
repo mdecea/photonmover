@@ -82,8 +82,8 @@ class SFDR(Experiment):
               amps --> List of amplitudes for the applied sinusoids.
               f1 --> Frequency of the 1st sinusoid
               f2 --> Frequency of the 2nd sinusoid
-              amp_comp --> The amplitude of the 2nd sinusoid is amp[i] 
-                + amp_comp. This is  added to account for slight 
+              amp_comp --> The amplitude of the 2nd sinusoid is amp[i]
+                + amp_comp. This is  added to account for slight
                 mismatches between the output power of the two sinusoids.
         """
 

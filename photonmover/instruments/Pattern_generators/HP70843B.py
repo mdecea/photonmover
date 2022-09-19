@@ -61,9 +61,9 @@ class HP70843B(Instrument):
         :param polarity: polarity of voltage pulse: 'positive' or 'negative'
         Note that "INV" gives a positive pulse, and "NORM" gives a negative pulse!
         """
-        if polarity is 'positive':
+        if polarity == 'positive':
             self.gpib.write("OUTP1:POL INV")
-        elif polarity is 'negative':
+        elif polarity == 'negative':
             self.gpib.write("OUTP1:POL NORM")
         else:
             print('Invalid polarity! Specify positive or negative')
@@ -105,9 +105,9 @@ class HP70843B(Instrument):
         data = data_header
 
         for bit in pattern:
-            if bit is '0':
+            if bit == '0':
                 formatted_bit = '\x00'
-            elif bit is '1':
+            elif bit == '1':
                 formatted_bit = '\x01'
             else:
                 print('Invalid bit! Must be 0 or 1')

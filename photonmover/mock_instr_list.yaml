@@ -11,16 +11,16 @@
 Instruments:
   - # laser
     class_name: 'MockLaser'
-    class_package: 'instruments.Lasers.MockLaser'
+    class_package: 'photonmover.instruments.Lasers.MockLaser'
 
   - # Source meter
     class_name: 'MockSourceMeter'
-    class_package: 'instruments.Source_meters.MockSourceMeter'
+    class_package: 'photonmover.instruments.Source_meters.MockSourceMeter'
 
   - # Power meter
     class_name: 'MockPowerMeter'
-    class_package: 'instruments.Power_meters.MockPowerMeter'
+    class_package: 'photonmover.instruments.Power_meters.MockPowerMeter'
 
   - # VNA
     class_name: 'MockVNA'
-    class_package: 'instruments.Vector_network_analyzers.MockVNA'
+    class_package: 'photonmover.instruments.Vector_network_analyzers.MockVNA'

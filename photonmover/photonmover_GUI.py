@@ -1,3 +1,4 @@
+from inspect import Attribute
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QGridLayout, QGroupBox
 from PyQt5.QtCore import QThread, QMutex
@@ -10,11 +11,13 @@ from photonmover.utils.calibrator import analyze_powers
 from photonmover.Interfaces.Experiment import Experiment
 from photonmover.InstrumentWorker import InstrumentWorker
 import time
+from os import path
 
 from functools import partial
 
 # Folder where all the experiment classes are stored
-EXPERIMENTS_FOLDER = './experiments/'
+EXPERIMENTS_FOLDER = path.join(path.dirname(__file__), 'experiments')
+ICON_PATH = path.join(path.dirname(__file__), 'photonmover_logo.jpg')
 
 # in ms. Sets the time interval for refrsehing the GUI indicators.
 REFRESHING_INTERVAL = 500
@@ -121,7 +124,7 @@ class photonmover_GUI(QMainWindow):
         self.pen = pg.mkPen(width=5)
         self.label_styles = {'color': 'white', 'font-size': '20px'}
 
-        self.setWindowIcon(QtGui.QIcon('./photonmover_logo.jpg'))
+        self.setWindowIcon(QtGui.QIcon(ICON_PATH))
 
         # Create menu bar
         self._create_menu_bar_()
@@ -191,10 +194,10 @@ class photonmover_GUI(QMainWindow):
 
         for i, class_name in enumerate(experiment_class_list):
             # Import the module
-            instr_module = importlib.import_module(mod_list[i])
+            spec = importlib.util.spec_from_file_location(path.splitext(path.basename(mod_list[i]))[0], mod_list[i]+'.py')
+            instr_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(instr_module)
             cl = getattr(instr_module, class_name)
-            # Import the class
-            #cl = globals()[class_name]
 
             # Make sure this is an experiment
             if issubclass(cl, Experiment):
@@ -293,7 +296,7 @@ class photonmover_GUI(QMainWindow):
         if "calibrate" in self.param_list:
             layout.addWidget(QtWidgets.QLabel('Use calibration? '), 1, 2)
             self.use_cal = QtWidgets.QCheckBox(self)
-            self.use_cal.setChecked(True)
+            self.use_cal.setChecked(False)
             layout.addWidget(self.use_cal, 1, 3)
             self.indicator_param_map["calibrate"] = (
                 [self.use_cal], 'checkbox')
@@ -1118,7 +1121,10 @@ class photonmover_GUI(QMainWindow):
         meas_wav, sm_val, tap_power, rec_power = stats_list
 
         # Measured wavelength
-        self.meas_wl.setText(str(meas_wav))
+        try:
+            self.meas_wl.setText(str(meas_wav))
+        except AttributeError:
+            pass
 
         # Source meter current
         try:

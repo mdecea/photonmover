@@ -6,12 +6,12 @@
 # This frontend only shows the list of available experiments nicely.
 import getopt
 import sys
-
+from os import path
 from PyQt5.QtWidgets import QApplication
 from photonmover.photonmover_GUI import photonmover_GUI
-from utils.instr_yaml_parser import parse_instr_yaml_file
+from photonmover.utils.instr_yaml_parser import parse_instr_yaml_file
 
-DEFAULT_INSTR_FILE = 'mock_instr_list.yaml'
+DEFAULT_INSTR_FILE = path.join(path.dirname(__file__), 'mock_instr_list.yaml')
 
 
 def initialize_instr_list(instr_list):
