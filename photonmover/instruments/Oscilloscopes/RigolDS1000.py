@@ -1,41 +1,95 @@
+import sys
 import pyvisa as visa
 import numpy as np
 import time
 import csv
-import struct
-import binascii
 from photonmover.Interfaces.Instrument import Instrument
+from enum import Enum
+sys.path.insert(0, '../..')
 
-GPIB_ADDR = "USB0::0x1AB1::0x04CE::DS1ZA201205030::INSTR"  # VISA adress
+
+MANUFACTURER_ID = 0x1AB1
+
+
+class ScopeTypes(Enum):
+    """ Container class for scope model definitions """
+    DS1054Z = 0x04CE
 
 
 class RigolDS1000(Instrument):
     """
-    Code for controlling Rigol DS1000 Oscilloscope
+    Code for controlling Rigol DS1000 Oscilloscope via USB connection.
+    INPUTS:
+        * **instr_address** (str): USB address. If `None`, the instrument will
+                            not connect, but methods exist to find available
+                            DS1000Z scopes.
     """
 
-    def __init__(self):
+    def __init__(self, instr_address=None):
         super().__init__()
 
         # It is good practice to initialize variables in init
         self.gpib = None
+        self.instr_address = instr_address
 
-    def initialize(self):
+        self.rm = visa.ResourceManager()
+        self.is_initialized = False
+
+    def initialize(self, override_address=None):
         """
-        Initializes the instrument
+        Initializes the instrument. Optionally override the address provided
+        during class instantiation.
         :return:
         """
-        print('Opening connnection to Rigol Oscilloscope')
+        if override_address is not None:  # Assign new instrument address
+            self._set_address(instr_address=override_address)
 
-        rm = visa.ResourceManager()
-        try:
-            self.gpib = rm.open_resource(GPIB_ADDR, timeout=10000)
-        except BaseException:
-            raise ValueError('Cannot connect to Rigol Oscilloscope')
+        if self.instr_address is None:
+            print("No instrument address was provided, cannot initialize")
+            return
+        else:
+            print('Opening connnection to Rigol Oscilloscope')
+
+            try:
+                self.gpib = self.rm.open_resource(
+                    self.instr_address, timeout=10000)
+                self.is_initialized = True
+            except ConnectionError:
+                raise ConnectionError('Cannot connect to Rigol Oscilloscope')
 
     def close(self):
         print('Disconnecting Rigol Oscilloscope')
         self.gpib.close()
+
+    def find_address(self):
+        """
+        Finds addresses of connected Rigol oscilloscopes.
+        If only one address exists, it automatically applies that address to
+        the the invoking class instance. This overrides provided addresses.
+        """
+        model_string = ' '
+        for spec in ScopeTypes:
+            model_string += '(VI_ATTR_MODEL_CODE==0x{:04X}) || '.format(spec.value)
+            model_string = model_string.rstrip(' || ')
+            search_string = "USB?*?{{VI_ATTR_MANF_ID==0x{:04X} && ({})}}".format(MANUFACTURER_ID, model_string)
+
+        try:
+            scope_list = self.rm.list_resources(search_string)
+        except Warning:
+            scope_list = []
+            raise Warning("No connected oscilloscopes were found")
+
+        if len(scope_list) == 1:  # Only one relevant scope found, set as address
+            print("Only found one connected oscilloscope, applying this address.")
+            self._set_address(instr_address=scope_list[0])
+
+        return scope_list
+
+    def _set_address(self, instr_address) -> None:
+        """
+        Set the USB interfacing address. Only works on un-initialized instantiations of the class.
+        """
+        self.instr_address = instr_address
 
     def autoscale(self):
         self.gpib.write(":AUT")
@@ -192,6 +246,17 @@ class RigolDS1000(Instrument):
         """
         self.gpib.write(":TIM:SCAL %.7f" % scale)
 
+    def set_horizontal_range(self, rnge):
+        """
+        Sets the horizontal scale in seconds. For DS1000Z scopes, there are
+        12 horizontal divisions per range.
+        Individual divisions must follow a 1-2-5 step size. Values that are not
+        multiple of 12, 24, 60 are scaled to fit.
+        :param rnge:
+        :return:
+        """
+        self.set_horizonal_scale(scale=rnge/12)
+
     def measure_item(self, channel, item):
         """
         Measures the specified item in the specified channel
@@ -210,10 +275,7 @@ class RigolDS1000(Instrument):
 
         self.gpib.write(":MEAS:ITEM %s,CHAN%d" % (item, channel))
         time.sleep(1)
-        return float(
-            self.gpib.query_ascii_values(
-                ":MEAS:ITEM? %s,CHAN%d" %
-                (item, channel))[0])
+        return float(self.gpib.query_ascii_values(":MEAS:ITEM? %s,CHAN%d" % (item, channel))[0])
 
     def set_trigger(self, mode, coupling, trig_number, channel, level):
         """
@@ -226,15 +288,7 @@ class RigolDS1000(Instrument):
         :return:
         """
 
-        if mode in [
-            "EDGE",
-            "PULSE",
-            "RUNT",
-            "WIND",
-            "SLOPE",
-            "NEDG",
-            "PATT",
-                "DEL"]:
+        if mode in ["EDGE", "PULSE", "RUNT", "WIND", "SLOPE", "NEDG", "PATT", "DEL"]:
             self.gpib.write(":TRIG:MODE %s" % mode)
 
         if coupling in ["AC", "DC", "LFR", "HFR"]:
@@ -251,12 +305,15 @@ class RigolDS1000(Instrument):
 
     def read_waveform(self, channels, file_name=None):
         """
-        Reads the waveform in the specified channels
-        :param channels: list with the channels whose waveform we w ant to obtain.
+        Reads the waveform in the specified channels.
+        Always reads all specified channels, even when channels are deactivated
+        on the instrument front panel. Signals for deactivated channels are
+        ~0 (usually 1e-8).
+        :param channels: list with the channels whose waveform we want to obtain.
         :param file_name: if specified, it will save the data with the specified file name. Do not include the ".csv".
         :return: 2 lists, each with n elemnts, where n is the number of channels.
                 List 1: [preamble_channel1, preamble_channel2, ...]
-                List 2: [channel1_data, channel2_data, ...]
+                List 2: [(channel1_time_data, channel1_signal_data), (channel2_time_data, channel2_signal_data), ...]
         """
 
         all_preambles = []
@@ -266,6 +323,7 @@ class RigolDS1000(Instrument):
         self.gpib.write(":WAV:MODE NORM")
 
         # Set to send ascii
+        # read data as comma-separated list of voltages in scientific notation
         self.gpib.write(":WAV:FORM ASCII")
 
         for c in channels:
@@ -275,37 +333,30 @@ class RigolDS1000(Instrument):
 
             # Choose source
             self.gpib.write(":WAV:SOUR CHAN%d" % c)
-
             self.gpib.write("WAV:DATA?")
             data = self.gpib.read_raw()
-            # print(data)
-            num_bytes = int(data[7:11])
-            # print(num_bytes)
             raw_data = data[11:]
-            # print(raw_data)
-            # input()
 
+            # Convert ASCII text data values to floats
             wav_data_str = (str(raw_data)[2:-3]).split(',')
-
             wav_data = [float(i) for i in wav_data_str]
-            # print(wav_data)
 
             preamble = self.gpib.query_ascii_values("WAV:PRE?")
 
-            # Save the data if necessary. Each channel will be stored in a
-            # different file
+            # Generate time vectors
+            wave_time = list(
+                np.arange(0, int(preamble[2]))*preamble[4] + preamble[5])
+
+            # Save the data if necessary. Each channel will be stored in a different file
             if file_name is not None:
-
-                # Create the csv file
                 file_name_chan = file_name + "_channel_" + str(c) + ".csv"
-
                 with open(file_name_chan, 'w+') as csvfile:
                     writer = csv.writer(csvfile)
                     writer.writerow(preamble)
                     writer.writerow(wav_data)
 
             all_preambles.append(preamble)
-            all_waveforms.append(wav_data)
+            all_waveforms.append((wave_time, wav_data))
 
         return all_preambles, all_waveforms
 
@@ -313,11 +364,9 @@ class RigolDS1000(Instrument):
 if __name__ == '__main__':
 
     osc = RigolDS1000()
-    osc.initialize()
+    addresses = osc.find_address()
+    osc.initialize(override_address=addresses[0])
 
     print(osc.measure_item(1, "VPP"))
-    # osc.autoscale()
-    # time.sleep(1)
-    #osc.read_waveform([1], 'trial')
 
     osc.close()
