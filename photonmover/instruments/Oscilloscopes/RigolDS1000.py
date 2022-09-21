@@ -89,7 +89,10 @@ class RigolDS1000(Instrument):
         """
         Set the USB interfacing address. Only works on un-initialized instantiations of the class.
         """
-        self.instr_address = instr_address
+        if not self.is_initialized:
+            self.instr_address = instr_address
+        else:
+            print("Cannot assign a new address to an initialized instrument.")
 
     def autoscale(self):
         self.gpib.write(":AUT")
