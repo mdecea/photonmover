@@ -69,9 +69,11 @@ class RigolDS1000(Instrument):
         """
         model_string = ' '
         for spec in ScopeTypes:
-            model_string += '(VI_ATTR_MODEL_CODE==0x{:04X}) || '.format(spec.value)
+            model_string += '(VI_ATTR_MODEL_CODE==0x{:04X}) || '.format(
+                spec.value)
             model_string = model_string.rstrip(' || ')
-            search_string = "USB?*?{{VI_ATTR_MANF_ID==0x{:04X} && ({})}}".format(MANUFACTURER_ID, model_string)
+            search_string = "USB?*?{{VI_ATTR_MANF_ID==0x{:04X} && ({})}}".format(
+                MANUFACTURER_ID, model_string)
 
         try:
             scope_list = self.rm.list_resources(search_string)
@@ -83,7 +85,6 @@ class RigolDS1000(Instrument):
             print("Only found one connected oscilloscope, applying this address.")
             print("Scope address: {}".format(scope_list[0]))
             self._set_address(instr_address=scope_list[0])
-
 
     def _set_address(self, instr_address) -> None:
         """
@@ -248,7 +249,7 @@ class RigolDS1000(Instrument):
         :return:
         """
         self.gpib.write(":TIM:SCAL %.7f" % scale)
-    
+
     def get_horizontal_scale(self):
         """
         Returns the horizontal scale in sec/div
@@ -314,37 +315,40 @@ class RigolDS1000(Instrument):
 
     def get_channel_states(self):
         """
-        Checks which channels are activated. 
-        Returns list of booleans. 
+        Checks which channels are activated.
+        Returns list of booleans.
         """
-        return [bool(self.gpib.query_ascii_values(":CHANnel{:d}:DISPlay?".format(x))[0]) for x in [1,2,3,4]]
+        return [bool(self.gpib.query_ascii_values(":CHANnel{:d}:DISPlay?".format(x))[0]) for x in [1, 2, 3, 4]]
 
     def set_memory_depth(self, mdepth):
         """
         Sets the memory depth, based on the number of enabled channels.
-
         """
         num_chans_enabled = np.sum(self.get_channel_states())
 
-        mdepth = int(mdepth) if (mdepth != 'AUTO' and mdepth != 'MAX') else mdepth
-        
+        mdepth = int(mdepth) if (
+            mdepth != 'AUTO' and mdepth != 'MAX') else mdepth
+
         if mdepth != "AUTO":
             if num_chans_enabled == 1:
                 if mdepth == 'MAX':
                     pts = 24000000
                 else:
-                    assert pts in ('AUTO', 12000, 120000, 1200000, 12000000, 24000000)
+                    assert pts in ('AUTO', 12000, 120000,
+                                   1200000, 12000000, 24000000)
             elif num_chans_enabled == 2:
                 if mdepth == 'MAX':
                     pts = 12000000
                 else:
-                    assert pts in ('AUTO', 6000, 60000, 600000, 6000000, 12000000)
+                    assert pts in ('AUTO', 6000, 60000,
+                                   600000, 6000000, 12000000)
             elif num_chans_enabled in (3, 4):
                 if mdepth == 'MAX':
                     pts = 6000000
                 else:
-                    assert pts in ('AUTO', 3000, 30000, 300000, 3000000, 6000000)
-            else: 
+                    assert pts in ('AUTO', 3000, 30000,
+                                   300000, 3000000, 6000000)
+            else:
                 print("No channels enabled, memory depth settings unchanged")
 
             if isinstance(pts, int):
@@ -352,49 +356,27 @@ class RigolDS1000(Instrument):
 
         self.run()
         self.gpib.write(':ACQ:MDEP {:s}'.format(mdepth))
-    
+
     def get_memory_depth(self):
         """
-        Queries the current memory depth setting. 
+        Queries the current memory depth setting.
         """
         self.gpib.write(":ACQ:MDEP?")
         mdepth = int(self.gpib.read().rstrip('\n'))
-        
-        # num_chans_enabled = np.sum(self.get_channel_states())
-        # samps = self.get_sampling_rate()*self.get_horizontal_scale()*12
-        # samp_settings = np.array([12000, 120000, 1200000, 12000000, 24000000])
-        # if mdepth == "AUTO": # Assume the memory depth is large enough to contain timebase of sample rate, up to max
-        #     if num_chans_enabled == 1:
-        #         if samps > np.max(samp_settings):
-        #             mdepth = np.max(samp_settings)
-        #         else:
-        #             mdepth = int( np.min([val for val in samp_settings if val-samps>0 ]))
-        #     elif num_chans_enabled == 2:
-        #         if samps > np.max(samp_settings//2):
-        #             mdepth = np.max(samp_settings//2)
-        #         else:
-        #             mdepth = int( np.min([val for val in samp_settings//2 if val-samps>0 ]))
-        #     elif num_chans_enabled in (3,4):
-        #         if samps > np.max(samp_settings//4):
-        #             mdepth = np.max(samp_settings//4)
-        #         else:
-        #             mdepth = int( np.min([val for val in samp_settings//4 if val-samps>0 ]))
-        # else: 
-        #     mdepth=int(mdepth)
 
         return mdepth
 
     def get_sampling_rate(self):
         """
-        Returns the sampling rate 
+        Returns the sampling rate
         """
         return self.gpib.query_ascii_values("ACQuire:SRATe?")[0]
 
     def read_waveform(self, channels, file_name=None):
         """
         Reads the display waveform data in the specified channels. This is limited
-        to 1200 points of data, independent of the number of samples taken internally. 
-        Use `read_memory_buffer()` to collect all data. 
+        to 1200 points of data, independent of the number of samples taken internally.
+        Use `read_memory_buffer()` to collect all data.
 
         Always reads all specified channels, even when channels are deactivated
         on the instrument front panel. Signals for deactivated channels are
@@ -452,7 +434,7 @@ class RigolDS1000(Instrument):
 
     def read_memory_buffer(self, channels):
         """
-        Reads the entire memory buffer for all specified channels, up to the 
+        Reads the entire memory buffer for all specified channels, up to the
         memory depth or number of points in the sample (samp rate*time range)
         Always reads all specified channels, even when channels are deactivated
         on the instrument front panel. Signals for deactivated channels are
@@ -466,27 +448,27 @@ class RigolDS1000(Instrument):
 
         # all_preambles = []
         all_waveforms = []
-        
+
         # Set waveform reading mode to normal
         self.gpib.write(":WAV:MODE RAW")
 
         # Set to send ascii
         # read data as comma-separated list of voltages in scientific notation
         self.gpib.write(":WAV:FORM BYTE")
-        
+
         memory_depth = self.get_memory_depth()
         samps = self.get_sampling_rate()*self.get_horizontal_scale()*12
         n_collect = int(np.min([memory_depth, samps]))
         if memory_depth == "AUTO":
             raise Warning("The 'AUTO' memory depth option is not supported when"
-                    + " reading the memory buffer, please set a manual value or"
-                    + " 'MAX'.")
+                          + " reading the memory buffer, please set a manual value or"
+                          + " 'MAX'.")
 
         xinc = self.gpib.query_ascii_values(":WAVeform:XINCrement?")[0]
         x0 = self.gpib.query_ascii_values(":WAVeform:XORigin?")[0]
         xref = self.gpib.query_ascii_values(":WAVeform:XREFerence?")[0]
 
-        self.stop() # stop acquisition in order to retrieve memory buffer
+        self.stop()  # stop acquisition in order to retrieve memory buffer
         for c in channels:
 
             y0 = self.gpib.query_ascii_values(":WAVeform:YORigin?")[0]
@@ -496,7 +478,7 @@ class RigolDS1000(Instrument):
             if c not in [1, 2, 3, 4]:
                 print("Specified channel not correct. Skipping it")
                 continue
-            
+
             # Choose source
             self.gpib.write(":WAV:SOUR CHAN{:d}".format(c))
 
@@ -504,11 +486,11 @@ class RigolDS1000(Instrument):
             # so it is broken up into 4 separate reads
             data = []
             if n_collect < 2e6+1:
-                N=4
+                N = 4
             elif n_collect < 6e6+1:
                 N = 8
             elif n_collect < 12e6+1:
-                N=16
+                N = 16
             elif n_collect < 22e6:
                 N = 32
 
@@ -519,17 +501,18 @@ class RigolDS1000(Instrument):
                     n2 = n_collect
                 self.gpib.write(":WAVeform:STARt {:d}".format(n1))
                 self.gpib.write(":WAVeform:STOP {:d}".format(n2))
-                data += self.gpib.query_binary_values(":WAVeform:DATA?",datatype='B')
+                data += self.gpib.query_binary_values(
+                    ":WAVeform:DATA?", datatype='B')
 
-
-            wav_data = [ (v - y0 -yref)*yinc for v in data]
+            wav_data = [(v - y0 - yref)*yinc for v in data]
             wave_time = np.arange(0, xinc * len(wav_data), xinc) - x0 - xref
-            
+
             all_waveforms.append((wave_time, wav_data))
 
         # Return to run state so commands update
         self.run()
         return all_waveforms
+
 
 if __name__ == '__main__':
 
