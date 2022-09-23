@@ -441,9 +441,8 @@ class RigolDS1000(Instrument):
         ~0 (usually 1e-8).
         :param channels: list with the channels whose waveform we want to obtain.
         :param file_name: if specified, it will save the data with the specified file name. Do not include the ".csv".
-        :return: 2 lists, each with n elemnts, where n is the number of channels.
-                List 1: [preamble_channel1, preamble_channel2, ...]
-                List 2: [(channel1_time_data, channel1_signal_data), (channel2_time_data, channel2_signal_data), ...]
+        :return: Length N list of 2-tuples, where n is the number of channels, each containing (time, voltage) for the respective channel.
+                [(channel1_time_data, channel1_signal_data), (channel2_time_data, channel2_signal_data), ...]
         """
 
         # all_preambles = []
