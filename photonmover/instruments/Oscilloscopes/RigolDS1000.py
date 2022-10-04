@@ -345,18 +345,21 @@ class RigolDS1000(Instrument):
                 if mdepth == 'MAX':
                     pts = 24000000
                 else:
+                    pts = mdepth
                     assert pts in ('AUTO', 12000, 120000,
                                    1200000, 12000000, 24000000)
             elif num_chans_enabled == 2:
                 if mdepth == 'MAX':
                     pts = 12000000
                 else:
+                    pts = mdepth
                     assert pts in ('AUTO', 6000, 60000,
                                    600000, 6000000, 12000000)
             elif num_chans_enabled in (3, 4):
                 if mdepth == 'MAX':
                     pts = 6000000
                 else:
+                    pts = mdepth
                     assert pts in ('AUTO', 3000, 30000,
                                    300000, 3000000, 6000000)
             else:
@@ -503,8 +506,8 @@ class RigolDS1000(Instrument):
             chunk = (chunk - y0 - yref) * yinc
             data = np.append(data, chunk)
 
-        # Handles cases where N_points < MAX_BYTE_SAMPLES or N_points % MAX_BYTE_SAMPLES != 0
-        # TODO - test this
+        # Handles cases where N_points < MAX_BYTE_SAMPLES or N_points % MAX_BYTE_SAMPLES != 0)
+        # Above for loop doesn't run when N_chunks is 0 <-> range(0), and doesn't include remainder points outside of chunk
         if (N_points % MAX_BYTE_SAMPLES != 0):
             start_pos = N_chunks*MAX_BYTE_SAMPLES + 1
             end_pos = (N_points % MAX_BYTE_SAMPLES) + (start_pos - 1)
