@@ -7,6 +7,10 @@ from photonmover.Interfaces.Instrument import Instrument
 from enum import Enum
 sys.path.insert(0, '../..')
 
+import IPython
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import struct
 
 MANUFACTURER_ID = 0x1AB1
 
@@ -15,6 +19,10 @@ class ScopeTypes(Enum):
     """ Container class for scope model definitions """
     DS1054Z = 0x04CE
 
+# TODO - implement probe function ":CHANnel<n>:PROBe"
+# for now manually set all oscillscope channels to 1x probe
+
+# TODO - update docstring for set_memory_depth to explain expected args
 
 class RigolDS1000(Instrument):
     """
@@ -242,6 +250,12 @@ class RigolDS1000(Instrument):
         if offset is not None:
             self.gpib.write(":CHAN%d:OFFS %.3f" % (channel, offset))
 
+    def get_channel_offset(self, channel):
+        """
+        Returns the channel offset voltage in scientific notation
+        """
+        return self.gpib.query_ascii_values(":CHAN%d:OFFS?" % channel)[0]
+
     def set_horizontal_scale(self, scale):
         """
         Sets the horizontal scale in s/div
@@ -432,6 +446,8 @@ class RigolDS1000(Instrument):
 
         return all_preambles, all_waveforms
 
+
+    
     def read_memory_buffer(self, channels):
         """
         Reads the entire memory buffer for all specified channels, up to the
@@ -458,6 +474,7 @@ class RigolDS1000(Instrument):
         memory_depth = self.get_memory_depth()
         samps = self.get_sampling_rate()*self.get_horizontal_scale()*12
         n_collect = int(np.min([memory_depth, samps]))
+        print('n_collect = ' + str(n_collect))
         if memory_depth == "AUTO":
             raise Warning("The 'AUTO' memory depth option is not supported when"
                           + " reading the memory buffer, please set a manual value or"
@@ -493,6 +510,7 @@ class RigolDS1000(Instrument):
             elif n_collect < 22e6:
                 N = 32
 
+            print("N_chunks = " + str(N))
             for idx in range(N):
                 n1 = 1 + idx*n_collect//N
                 n2 = (idx+1)*n_collect//N
@@ -500,8 +518,12 @@ class RigolDS1000(Instrument):
                     n2 = n_collect
                 self.gpib.write(":WAVeform:STARt {:d}".format(n1))
                 self.gpib.write(":WAVeform:STOP {:d}".format(n2))
+                print(self.gpib.write(":WAVeform:STARt?"))
+                print(self.gpib.write(":WAVeform:STOP?"))
+
                 data += self.gpib.query_binary_values(
                     ":WAVeform:DATA?", datatype='B')
+                print(data)
 
             wav_data = [(v - y0 - yref)*yinc for v in data]
             wave_time = np.arange(0, xinc * len(wav_data), xinc) - x0 - xref
@@ -509,16 +531,214 @@ class RigolDS1000(Instrument):
             all_waveforms.append((wave_time, wav_data))
 
         # Return to run state so commands update
-        self.run()
+        self.run() # TODO - this might be a problem i.e not done reading before you start running again
         return all_waveforms
 
+    # TODO - investigate this
+    def read_memory_buffer_sagar(self, channel):
+        self.stop()
+
+        wp = self.gpib.query_ascii_values(":WAVeform:PREamble?")
+        wp_dict = {
+            'format'     : wp[0], # 0 (BYTE), 1 (WORD) or 2 (ASC)
+            'type'       : wp[1], # 0 (NORMal), 1 (MAXimum) or 2 (RAW)
+            'points'     : int(wp[2]), # integer between 1 and 12000000.
+            'count'      : wp[3], 
+            'xincrement' : wp[4],
+            'xorigin'    : wp[5],
+            'xreference' : wp[6],
+            'yincrement' : wp[7],
+            'yorigin'    : wp[8],
+            'yreference' : wp[9],
+        }
+
+        x0 =  wp_dict['xorigin']
+        xref = wp_dict['xreference']
+        xinc = wp_dict['xincrement']
+
+        y0 =   wp_dict['yorigin']
+        yref = wp_dict['yreference']
+        yinc = wp_dict['yincrement']
+
+        MAX_BYTE_SAMPLES = 250000 # TODO - make this a class parameter
+        N_points = wp_dict['points']
+        N_chunks = N_points // MAX_BYTE_SAMPLES
+
+        self.gpib.write(":WAV:SOUR %d" % channel)
+        self.gpib.write(":WAV:MODE RAW")
+        self.gpib.write(":WAVE:FORM BYTE")
+
+        assert(N_points % MAX_BYTE_SAMPLES == 0)
+
+        data = np.array([])
+        for i in tqdm(range(N_chunks)):
+            
+            self.gpib.write(":WAV:STAR %d" % (1+i*MAX_BYTE_SAMPLES))
+            self.gpib.write(":WAV:STOP %d" % ((i+1)*MAX_BYTE_SAMPLES))
+            chunk = np.array(self.gpib.query_binary_values(":WAV:DATA?", datatype='B', header_fmt='ieee'))
+            print("chunk length: " + str(len(chunk)))
+            # self.gpib.write("WAV:DATA?")
+            # chunk = self.gpib.read_raw()[11:]
+            # Convert to voltage using method suggested by the manual
+            chunk = (chunk - y0 - yref) * yinc
+            data = np.append(data, chunk)
+            print("data length: %d" % +len(data))
+
+        t_array = np.arange(0, xinc * len(data), xinc) + x0 - xref # check sign, this should be -T to T
+
+        return data, t_array, wp_dict
+
+    def read_internal_memory_ascii(self, channel):
+        self.stop()
+
+        wp = self.gpib.query_ascii_values(":WAVeform:PREamble?")
+        wp_dict = {
+            'format'     : wp[0], # 0 (BYTE), 1 (WORD) or 2 (ASC)
+            'type'       : wp[1], # 0 (NORMal), 1 (MAXimum) or 2 (RAW)
+            'points'     : int(wp[2]), # integer between 1 and 12000000.
+            'count'      : wp[3], 
+            'xincrement' : wp[4],
+            'xorigin'    : wp[5],
+            'xreference' : wp[6],
+            'yincrement' : wp[7],
+            'yorigin'    : wp[8],
+            'yreference' : wp[9],
+        }
+
+        MAX_BYTE_SAMPLES = 15625
+        N_points = wp_dict['points']
+        N_chunks = N_points // MAX_BYTE_SAMPLES
+        assert(N_points % MAX_BYTE_SAMPLES == 0)
+
+        self.gpib.write(":WAV:SOUR %d" % channel)
+        self.gpib.write(":WAV:MODE RAW")
+        self.gpib.write(":WAVE:FORM ASCii")
+
+        data = np.array([])
+        for i in tqdm(range(N_chunks)):
+            
+            self.gpib.write(":WAV:STAR %d" % (1+i*MAX_BYTE_SAMPLES))
+            self.gpib.write(":WAV:STOP %d" % ((i+1)*MAX_BYTE_SAMPLES))
+            chunk = np.array(self.gpib.query_ascii_values(":WAV:DATA?"))
+            # Convert to voltage using method suggested by the manual
+            # chunk = (chunk - wp_dict['yorigin'] - wp_dict['yreference']) * wp_dict['yincrement']
+            print("chunk length: " + str(len(chunk)))
+            data = np.append(data, chunk)
+            print("data length: " + str(len(data)))
+
+        t_array = np.arange(0, wp_dict['xincrement'] * len(data), wp_dict['xincrement']) + wp_dict['xorigin'] - wp_dict['xreference'] # check sign, this should be -T to T
+
+        return data, t_array, wp_dict
+
+    # NOTE - adapted this function (and subfunctions) from: https://github.com/pklaus/ds1054z/blob/master/ds1054z/__init__.py
+    def get_internal_memory_samples(self, channel):
+        """
+        This function returns the waveform samples from the scope
+        Does a byte query from memory, strips the header, and converts to voltage
+        """
+        self.stop()
+        self.gpib.write(":WAVeform:SOURce %d" % channel)
+        self.gpib.write(":WAVeform:FORMat BYTE")
+        self.gpib.write(":WAVeform:MODE RAW")
+
+        wp = self.gpib.query_ascii_values(":WAVeform:PREamble?")
+        wp_dict = {
+            'format'     : wp[0],      # 0 (BYTE), 1 (WORD) or 2 (ASC)
+            'type'       : wp[1],      # 0 (NORMal), 1 (MAXimum) or 2 (RAW)
+            'points'     : int(wp[2]), # integer between 1 and 12000000. We expect 6000000
+            'count'      : wp[3], 
+            'xincrement' : wp[4],
+            'xorigin'    : wp[5],
+            'xreference' : wp[6],
+            'yincrement' : wp[7],
+            'yorigin'    : wp[8],
+            'yreference' : wp[9],
+        }
+
+        pnts = wp_dict['points']
+        buff = b""
+        MAX_BYTE_LEN = 250000
+        pos = 1
+        while len(buff) < pnts:
+            self.gpib.write(":WAVeform:STARt {0}".format(pos))
+            end_pos = min(pnts, pos+MAX_BYTE_LEN-1)
+            self.gpib.write(":WAVeform:STOP {0}".format(end_pos))
+            # tmp_buff = self.gpib.query_raw(":WAVeform:DATA?")
+            # tmp_buff = bytes(self.gpib.query(":WAVeform:DATA?"))
+            tmp_buff = bytes(self.gpib.query_binary_values(":WAVeform:DATA?", datatype="B", header_fmt="ieee"))
+            buff += tmp_buff # self._decode_ieee_block(tmp_buff)
+            pos += MAX_BYTE_LEN
+
+        xinc = wp_dict['xincrement']
+        xorigin = wp_dict['xorigin']
+
+        t_array = []
+        for i in range(pnts):
+            t_array.append(xinc* i + xorigin)
+
+        samples = self._get_waveform_samples(buff, wp_dict)
+
+        return samples, t_array, wp_dict
+
+    def _decode_ieee_block(self, ieee_bytes):
+        """
+        Strips headers (and trailing bytes) from a IEEE binary data block off.
+        This is the block format commands like ``:WAVeform:DATA?``, ``:DISPlay:DATA?``,
+        ``:SYSTem:SETup?``, and ``:ETABle<n>:DATA?`` return their data in.
+        Named after ``decode_ieee_block()`` in python-ivi
+        """
+        n_header_bytes = int(chr(ieee_bytes[1]))+2
+        n_data_bytes = int(ieee_bytes[2:n_header_bytes].decode('ascii'))
+        return ieee_bytes[n_header_bytes:n_header_bytes + n_data_bytes]
+
+    def _get_waveform_samples(self, buff, wp_dict):
+        """
+        Converts raw binary data from _get_waveform_bytes_internal() into usable voltage data
+        """
+
+        yorig = wp_dict['yorigin']
+        yref = wp_dict['yreference']
+        yinc = wp_dict['yincrement']
+
+        samples = list(struct.unpack(str(len(buff))+'B', buff))
+        samples = [(val - yorig - yref)*yinc for val in samples]
+
+        return samples
 
 if __name__ == '__main__':
 
-    osc = RigolDS1000()
-    addresses = osc.find_address()
-    osc.initialize(override_address=addresses[0])
+    scope = RigolDS1000()
+    addresses = scope.find_address()
+    scope.initialize()
 
-    print(osc.measure_item(1, "VPP"))
+    # data, t_array, wp_dict = scope.read_memory_buffer_sagar(4)
+    # print(wp_dict)
+    # print(len(data))
+    # print(len(t_array))
 
-    osc.close()
+    # plt.plot(t_array, data)
+    # plt.title('Memory Read Test')
+    # plt.xlabel('t []')
+    # plt.ylabel('CH4 [V]')
+    # plt.show()
+
+    samples, t_array, wp_dict = scope.get_internal_memory_samples(4)
+    print(wp_dict)
+    print(len(samples))
+    print(len(t_array))
+
+    plt.plot(t_array, samples)
+    plt.title('Memory Read Test')
+    plt.xlabel('t [s]')
+    plt.ylabel('CH4 [V]')
+    plt.show()
+
+    IPython.embed()
+
+
+
+
+
+
+    
+
