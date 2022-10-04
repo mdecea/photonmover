@@ -10,6 +10,7 @@ sys.path.insert(0, '../..')
 import IPython
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from tqdm.notebook import tqdm as tqdm_notebook
 import struct
 
 MANUFACTURER_ID = 0x1AB1
@@ -534,7 +535,7 @@ class RigolDS1000(Instrument):
         self.run() # TODO - this might be a problem i.e not done reading before you start running again
         return all_waveforms
 
-    # TODO - investigate this
+    # TODO this is working! - deprecate Gavin's function and other attemmts
     def read_memory_buffer_sagar(self, channel):
         self.stop()
 
@@ -564,27 +565,30 @@ class RigolDS1000(Instrument):
         N_points = wp_dict['points']
         N_chunks = N_points // MAX_BYTE_SAMPLES
 
-        self.gpib.write(":WAV:SOUR %d" % channel)
+        self.gpib.write(":WAVeform:SOURce CHANnel%d" % channel)
         self.gpib.write(":WAV:MODE RAW")
         self.gpib.write(":WAVE:FORM BYTE")
 
         assert(N_points % MAX_BYTE_SAMPLES == 0)
 
         data = np.array([])
-        for i in tqdm(range(N_chunks)):
+        mdepth = self.get_memory_depth()
+        for i in tqdm_notebook(range(N_chunks)):
             
-            self.gpib.write(":WAV:STAR %d" % (1+i*MAX_BYTE_SAMPLES))
-            self.gpib.write(":WAV:STOP %d" % ((i+1)*MAX_BYTE_SAMPLES))
+            start_pos = (1+i*MAX_BYTE_SAMPLES)
+            end_pos = ((i+1)*MAX_BYTE_SAMPLES)
+            self.gpib.write(":WAV:STAR %d" % start_pos)
+            self.gpib.write(":WAV:STOP %d" % end_pos)
             chunk = np.array(self.gpib.query_binary_values(":WAV:DATA?", datatype='B', header_fmt='ieee'))
-            print("chunk length: " + str(len(chunk)))
+            # print("chunk length: " + str(len(chunk)))
             # self.gpib.write("WAV:DATA?")
             # chunk = self.gpib.read_raw()[11:]
             # Convert to voltage using method suggested by the manual
             chunk = (chunk - y0 - yref) * yinc
             data = np.append(data, chunk)
-            print("data length: %d" % +len(data))
+            # print("data length: %d" % +len(data))
 
-        t_array = np.arange(0, xinc * len(data), xinc) + x0 - xref # check sign, this should be -T to T
+        t_array = np.arange(0, xinc * len(data), xinc) + x0 + xref # (+) not (-) appears to give correct time array
 
         return data, t_array, wp_dict
 
