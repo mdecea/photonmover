@@ -495,7 +495,9 @@ class RigolDS1000(Instrument):
 
         N_chunks = N_points // MAX_BYTE_SAMPLES
 
+
         data = np.array([])
+        # Doesn't run when N_chunks is 0 <-> range(0) == [], and doesn't include remainder points outside of chunk        
         for i in tqdm_notebook(range(N_chunks)):
             start_pos = (1+i*MAX_BYTE_SAMPLES)
             end_pos = ((i+1)*MAX_BYTE_SAMPLES)
@@ -507,7 +509,6 @@ class RigolDS1000(Instrument):
             data = np.append(data, chunk)
 
         # Handles cases where N_points < MAX_BYTE_SAMPLES or N_points % MAX_BYTE_SAMPLES != 0)
-        # Above for loop doesn't run when N_chunks is 0 <-> range(0), and doesn't include remainder points outside of chunk
         if (N_points % MAX_BYTE_SAMPLES != 0):
             start_pos = N_chunks*MAX_BYTE_SAMPLES + 1
             end_pos = (N_points % MAX_BYTE_SAMPLES) + (start_pos - 1)
