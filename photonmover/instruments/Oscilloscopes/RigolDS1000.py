@@ -209,19 +209,19 @@ class RigolDS1000(Instrument):
         """
         Sets the probe ration for specified channel
         :param channel (int): 1, 2, 3 or 4
-        :param atten   (str): '0.01, '0.02', '0.05', ... ''100', '200', '500', '1000'
+        :param atten   (float): 0.01, 0.02, 0.05, ... 100, 200, 500, 1000
         """
 
         if channel not in [1, 2, 3, 4]:
             print("Channel not correct. Doing nothing.")
             return
 
-        if atten not in ['0.01', '0.02', '0.05', '0.1','0.2', '0.5', 
-            '1', '2', '5', '10', '20', '50', '100', '200', '500', '1000']:
+        if atten not in [0.01, 0.02, 0.05, 0.1,0.2, 0.5, 
+            1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]:
             print("Probe attenuation not correct. Doing nothing.")
             return
         
-        self.gpib.write(":CHANnel%d:PROBe %s" % (channel, atten))
+        self.gpib.write(":CHANnel%d:PROBe %.7f" % (channel, atten))
 
     def get_probe(self, channel):
         if channel not in [1, 2, 3, 4]:
