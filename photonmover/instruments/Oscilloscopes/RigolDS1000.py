@@ -17,9 +17,6 @@ class ScopeTypes(Enum):
     """ Container class for scope model definitions """
     DS1054Z = 0x04CE
 
-# TODO - implement probe function ":CHANnel<n>:PROBe"
-# for now manually set all oscillscope channels to 1x probe
-
 class RigolDS1000(Instrument):
     """
     Code for controlling Rigol DS1000 Oscilloscope via USB connection.
@@ -207,6 +204,32 @@ class RigolDS1000(Instrument):
             return
 
         self.gpib.write(":CHAN%d:COUP %s" % (channel, coupling))
+
+    def set_probe(self, channel, atten):
+        """
+        Sets the probe ration for specified channel
+        :param channel (int): 1, 2, 3 or 4
+        :param atten   (str): '0.01, '0.02', '0.05', ... ''100', '200', '500', '1000'
+        """
+
+        if channel not in [1, 2, 3, 4]:
+            print("Channel not correct. Doing nothing.")
+            return
+
+        if atten not in ['0.01', '0.02', '0.05', '0.1','0.2', '0.5', 
+            '1', '2', '5', '10', '20', '50', '100', '200', '500', '1000']:
+            print("Probe attenuation not correct. Doing nothing.")
+            return
+        
+        self.gpib.write(":CHANnel%d:PROBe %s" % (channel, atten))
+
+    def get_probe(self, channel):
+        if channel not in [1, 2, 3, 4]:
+            print("Channel not correct. Doing nothing.")
+            return
+
+        return self.gpib.query_ascii_values(":CHANnel%d:PROBe?" % channel)[0]
+
 
     def channel_display(self, channel, on):
         """
