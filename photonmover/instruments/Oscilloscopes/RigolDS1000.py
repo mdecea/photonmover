@@ -487,6 +487,8 @@ class RigolDS1000(Instrument):
             
         self.stop()
 
+        self.gpib.write(":WAVeform:SOURce CHANnel%d" % channel)
+
         wp = self.gpib.query_ascii_values(":WAVeform:PREamble?")
         wp_dict = {
             'format'     : wp[0], # 0 (BYTE), 1 (WORD) or 2 (ASC)
@@ -509,7 +511,6 @@ class RigolDS1000(Instrument):
         yref = wp_dict['yreference']
         yinc = wp_dict['yincrement']
 
-        self.gpib.write(":WAVeform:SOURce CHANnel%d" % channel)
         self.gpib.write(":WAV:MODE RAW")
         self.gpib.write(":WAVE:FORM BYTE")
 
