@@ -9,6 +9,7 @@ class HP89410A(Instrument):
     """
     Code for controlling the HP89410A vector signal analyzer
     """
+
     def __init__(self, gpib_address=None):
         super().__init__()
         # It is good practice to initialize variables in init
@@ -355,6 +356,69 @@ class HP89410A(Instrument):
                 writer.writerow(sig)
 
         return freq, sig
+
+    def set_trigger_holdoff_state(self, state='off'):
+        """
+        Sets the state (on/off) of the trigger holdoff
+        """
+
+        if state.upper() in ['ON', 'OFF']:
+            self.gpib.write("TRIGger:HOLDoff:STATe {:s}".format(state.upper()))
+        else:
+            raise Warning("State must be 'on' or 'off'.")
+
+    def set_trigger_holdoff(self, holdoff):
+        """
+        Sets the time delay between trigger and the beginning of data collection. 
+
+        `holdoff` must be between 0 and 41[sec].
+        """
+        if (holdoff >= 0) and (holdoff <= 41):
+            self.gpib.write("TRIGger:HOLDoff:DELay {:.3f}".format(holdoff))
+        else:
+            raise Warning(
+                "Specified holdoff time is invalid or out-of-bounds.")
+
+    def set_trigger_level(self, level):
+        """
+        Sets the signal level at which a measurement is triggered.
+        If the trigger type is external trigger (TRIG:SOUR EXT),
+        the trigger signal is connected to the front panel connector
+        labeled EXT TRIGGER and trigger level is entered in units of
+        volts or %. The level is an analog voltage between -11V and
+        +11V.
+
+        :param level: Trigger level in volts.
+        """
+        if (level <= 11) and (level >= -11):
+            self.gpib.write("TRIGger:LEVel {:0.2f}V".format(level))
+        else:
+            raise Warning(
+                "Specified level is not valid. Must be inside +/- 11 V.")
+
+    def set_trigger_slope(self, slope='positive'):
+        """
+        Selects whether the trigger happens on rising ('positive') or falling ('negative')
+        signal edges.
+        """
+        if slope.upper() in ['POSITIVE', 'NEGATIVE']:
+            self.gpib.write("TRIGger:SLOPe {:s}".format(slope.upper()))
+        else:
+            raise Warning("State must be 'positive' or 'negative'.")
+
+    def set_trigger_source(self, source='IMM'):
+        """
+        Sets the type of source off which measurements are triggered. 
+        Can be "IMM","INT1", "INT2", IF1/2, OUTP,
+        BUS, or EXT. 
+
+
+        """
+        if source.upper() in ['IMM', 'INT1', 'INT2', 'IF1',
+                              'IF2', 'OUTP', 'BUS', 'EXT']:
+            self.gpib.write("TRIGger:SOURce {:s}".format(source.upper()))
+        else:
+            raise Warning("Invalid trigger source specified.")
 
 
 if __name__ == '__main__':
