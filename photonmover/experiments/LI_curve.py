@@ -183,6 +183,8 @@ if __name__ == '__main__':
     pm.initialize()
     sm.initialize()
 
+    pm.set_integration_time(channel=pm_channel, int_time=0.5)
+
     # EXPERIMENT PARAMETERS
     init_current = 8e-3  # in A
     end_current = 20e-3  # in A

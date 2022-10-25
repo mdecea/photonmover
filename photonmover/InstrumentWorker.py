@@ -107,7 +107,7 @@ class InstrumentWorker(QObject):
         tecs = self._find_instr_type_(TempController)
 
         for tec in tecs:
-            tec.set_power(set_T)
+            tec.set_temperature(set_T)
 
         self.done.emit()
         self.visa_lock.unlock()
