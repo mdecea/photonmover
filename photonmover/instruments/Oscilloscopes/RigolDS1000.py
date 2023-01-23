@@ -4,18 +4,16 @@ import numpy as np
 import time
 import csv
 from photonmover.Interfaces.Instrument import Instrument
+from tqdm.notebook import tqdm as tqdm_notebook
 from enum import Enum
 sys.path.insert(0, '../..')
-
-from tqdm.notebook import tqdm as tqdm_notebook
-
-
 MANUFACTURER_ID = 0x1AB1
 
 
 class ScopeTypes(Enum):
     """ Container class for scope model definitions """
     DS1054Z = 0x04CE
+
 
 class RigolDS1000(Instrument):
     """
@@ -216,11 +214,11 @@ class RigolDS1000(Instrument):
             print("Channel not correct. Doing nothing.")
             return
 
-        if atten not in [0.01, 0.02, 0.05, 0.1,0.2, 0.5, 
-            1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]:
+        if atten not in [0.01, 0.02, 0.05, 0.1, 0.2, 0.5,
+                         1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]:
             print("Probe attenuation not correct. Doing nothing.")
             return
-        
+
         self.gpib.write(":CHANnel%d:PROBe %.7f" % (channel, atten))
 
     def get_probe(self, channel):
@@ -229,7 +227,6 @@ class RigolDS1000(Instrument):
             return
 
         return self.gpib.query_ascii_values(":CHANnel%d:PROBe?" % channel)[0]
-
 
     def channel_display(self, channel, on):
         """
@@ -469,7 +466,6 @@ class RigolDS1000(Instrument):
 
         return all_preambles, all_waveforms
 
-
     def read_memory_buffer(self, channel):
         """
         Read data from internal memory for specified channel.
@@ -479,35 +475,35 @@ class RigolDS1000(Instrument):
 
         if channel not in [1, 2, 3, 4]:
             raise Warning("Channel not correct. Doing nothing.")
-        
+
         if self.get_memory_depth() == "AUTO":
             raise Warning("The 'AUTO' memory depth option is not supported when"
-                + " reading the memory buffer, please set a manual value or"
-                + " 'MAX'.")
-            
+                          + " reading the memory buffer, please set a manual value or"
+                          + " 'MAX'.")
+
         self.stop()
 
         self.gpib.write(":WAVeform:SOURce CHANnel%d" % channel)
 
         wp = self.gpib.query_ascii_values(":WAVeform:PREamble?")
         wp_dict = {
-            'format'     : wp[0], # 0 (BYTE), 1 (WORD) or 2 (ASC)
-            'type'       : wp[1], # 0 (NORMal), 1 (MAXimum) or 2 (RAW)
-            'points'     : int(wp[2]), # integer between 1 and 12000000.
-            'count'      : wp[3], 
-            'xincrement' : wp[4],
-            'xorigin'    : wp[5],
-            'xreference' : wp[6],
-            'yincrement' : wp[7],
-            'yorigin'    : wp[8],
-            'yreference' : wp[9],
+            'format': wp[0],  # 0 (BYTE), 1 (WORD) or 2 (ASC)
+            'type': wp[1],  # 0 (NORMal), 1 (MAXimum) or 2 (RAW)
+            'points': int(wp[2]),  # integer between 1 and 12000000.
+            'count': wp[3],
+            'xincrement': wp[4],
+            'xorigin': wp[5],
+            'xreference': wp[6],
+            'yincrement': wp[7],
+            'yorigin': wp[8],
+            'yreference': wp[9],
         }
 
-        x0 =  wp_dict['xorigin']
+        x0 = wp_dict['xorigin']
         xref = wp_dict['xreference']
         xinc = wp_dict['xincrement']
 
-        y0 =   wp_dict['yorigin']
+        y0 = wp_dict['yorigin']
         yref = wp_dict['yreference']
         yinc = wp_dict['yincrement']
 
@@ -519,9 +515,8 @@ class RigolDS1000(Instrument):
 
         N_chunks = N_points // MAX_BYTE_SAMPLES
 
-
         data = np.array([])
-        # Doesn't run when N_chunks is 0 <-> range(0) == [], and doesn't include remainder points outside of chunk        
+        # Doesn't run when N_chunks is 0 <-> range(0) == [], and doesn't include remainder points outside of chunk
         for i in tqdm_notebook(range(N_chunks)):
             start_pos = (1+i*MAX_BYTE_SAMPLES)
             end_pos = ((i+1)*MAX_BYTE_SAMPLES)
@@ -543,7 +538,7 @@ class RigolDS1000(Instrument):
             data = np.append(data, chunk)
 
         # Adding x0 + xref rather than subtracting appears to give correct timing array
-        t_array = np.arange(0, xinc * len(data), xinc) + x0 + xref 
+        t_array = np.arange(0, xinc * len(data), xinc) + x0 + xref
 
         return data, t_array, wp_dict
 
@@ -553,12 +548,3 @@ if __name__ == '__main__':
     scope = RigolDS1000()
     addresses = scope.find_address()
     scope.initialize()
-
-
-
-
-
-
-
-    
-
