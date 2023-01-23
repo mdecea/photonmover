@@ -22,6 +22,12 @@ Instruments:
       rec_channel: 3 # Was 3
       use_as_laser: True  # If we only want to use it as a power meter, set this to False (when we are using another laser)
 
+  - # LFI Temp controller
+    class_name: 'LFI3751'
+    class_package: 'instruments.Temperature_controllers.wavelengthelectronics3751'
+    class_params:
+      com_port: 12
+
   #- # Santec Power meter/laser
   #  class_name: 'SantecTSL210F'
   #  class_package: 'instruments.Lasers.SantecTSL210F'

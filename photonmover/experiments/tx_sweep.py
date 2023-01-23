@@ -1,4 +1,5 @@
 from photonmover.Interfaces.Experiment import Experiment
+from photonmover.Interfaces.TempController import TempController
 from photonmover.utils.plot_utils import plot_graph
 
 from photonmover.Interfaces.Laser import TunableLaser
@@ -30,7 +31,8 @@ class TXSweep(Experiment):
 
     def __init__(self, instrument_list, visa_lock=None):
         """
-        :param instrument_list: list of available instruments. IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
+        :param instrument_list: list of available instruments. 
+        IMPORTANT: WE ASSUME THAT THE INSTRUMENTS HAVE BEEN INITIALIZED ALREADY!
         """
         super().__init__(visa_lock)
 
@@ -42,6 +44,7 @@ class TXSweep(Experiment):
         self.daq = None
         self.wav_meter = None
         self.smu = None
+        self.t_controller = None
 
         self.data = None
 
@@ -73,6 +76,8 @@ class TXSweep(Experiment):
                 self.wav_meter = instr
             if isinstance(instr, SourceMeter):
                 self.smu = instr
+            if isinstance(instr, TempController):
+                self.t_controller = instr
 
         if ((self.pm is not None) or (self.daq is not None)) and (
                 self.laser is not None):
@@ -96,17 +101,19 @@ class TXSweep(Experiment):
         """
         Performs the experiment, and saves the relevant data (if there is any)
         to the specified file (if given)
-        :param params: dictionnary of the parameters necessary for the experiment.
+        :param params: dictionary of the params necessary for the experiment.
         :param filename: if specified, the data is saved in the specified file.
         :return:
         """
         """
         Dictionary keys:
-                  wavs --> List of wavelengths
-                  use_DAQ --> Boolean. If True, we use the DAQ.
-                  power_range --> Power range for the received power channel of the pwoer meter (only for DAQ sweep)
-                  calibrate --> If true, it will use the calibration data
-                  meas_current --> If true (and there is a source meter connected), current is measured at each wavelength point
+            wavs --> List of wavelengths
+            use_DAQ --> Boolean. If True, we use the DAQ.
+            power_range --> Power range for the received power channel of
+             the pwoer meter (only for DAQ sweep)
+            calibrate --> If true, it will use the calibration data
+            meas_current --> If true (and there is a source meter connected),
+             current is measured at each wavelength point
         """
 
         params = self.check_all_params(params)
@@ -117,27 +124,45 @@ class TXSweep(Experiment):
         # Current can only be measured with the mainframe
         meas_current = params["meas_current"]
         rec_splitter_ratio = params["rec_splitter_ratio"]
+        # Number of sweeps to take
+        num_sweeps = int(round(params["num_sweeps"]))
+        # Time between sweeps (in s). Only relevant if num_sweeps > 1
+        interval_sweep = params["interval_sweep"]
 
-        if (self.daq is not None) and use_DAQ:
-            power_range = params["power_range"]
-            meas = self.perform_tx_measurement_daq(
-                wavs, power_range, calibrate, rec_splitter_ratio, filename)
-        elif self.pm is not None:
-            # See if we use the HP lightwave or the MPM200
-            if isinstance(self.laser, SantecMPM200):
-                print('Tx measurent with MPM200')
-                meas = self.perform_tx_measurement_MPM200(
-                    wavs, calibrate, rec_splitter_ratio, filename)
-            elif isinstance(self.laser, HPLightWave):
-                print('Tx measurent with HPLightwave')
-                meas = self.perform_tx_measurement_mainframe(
-                    wavs, calibrate, meas_current, rec_splitter_ratio, filename)
+        for i in range(num_sweeps):
+
+            if num_sweeps > 1:
+                filename_sweep = filename + 'sweep' + str(i+1)
             else:
-                print('Tx measurent with HPLightwave')
-                meas = self.perform_tx_measurement_mainframe(
-                    wavs, calibrate, meas_current, rec_splitter_ratio, filename)
+                filename_sweep = filename
 
-        self.data = meas
+            if (self.daq is not None) and use_DAQ:
+                power_range = params["power_range"]
+                meas = self.perform_tx_measurement_daq(
+                    wavs, power_range, calibrate, rec_splitter_ratio,
+                    filename_sweep)
+            elif self.pm is not None:
+                # See if we use the HP lightwave or the MPM200
+                if isinstance(self.laser, SantecMPM200):
+                    print('Tx measurent with MPM200')
+                    meas = self.perform_tx_measurement_MPM200(
+                        wavs, calibrate, rec_splitter_ratio, filename_sweep)
+                elif isinstance(self.laser, HPLightWave):
+                    print('Tx measurent with HPLightwave')
+                    meas = self.perform_tx_measurement_mainframe(
+                        wavs, calibrate, meas_current,
+                        rec_splitter_ratio, filename_sweep)
+                else:
+                    print('Tx measurent with HPLightwave')
+                    meas = self.perform_tx_measurement_mainframe(
+                        wavs, calibrate, meas_current,
+                        rec_splitter_ratio, filename_sweep)
+
+            if i < (num_sweeps - 1):
+                print('Waiting until next sweep')
+                time.sleep(interval_sweep)
+
+            self.data = meas
 
         return meas
 
@@ -147,7 +172,9 @@ class TXSweep(Experiment):
             "meas_current": False,
             "use_DAQ": False,
             "power_range": None,
-            "rec_splitter_ratio": 1}
+            "rec_splitter_ratio": 1,
+            "num_sweeps": 1,
+            "interval_sweep": 60}
 
     def perform_tx_measurement_mainframe(
             self,
@@ -173,6 +200,12 @@ class TXSweep(Experiment):
 
         row = 0
 
+        # Record temperature if there is a T controller
+        if self.t_controller is not None:
+            current_T = self.t_controller.get_temperature()
+        else:
+            current_T = -100
+
         for wav in wavs:
 
             self.laser.set_wavelength(wav)
@@ -182,7 +215,8 @@ class TXSweep(Experiment):
 
             tap_power, measured_received_power = self.pm.get_powers()
             through_loss, measured_input_power = analyze_powers(
-                tap_power, measured_received_power, wav, calibrate, rec_splitter_ratio)
+                tap_power, measured_received_power, wav, calibrate,
+                rec_splitter_ratio)
 
             if self.wav_meter is not None:
                 meas_wavelength = self.wav_meter.get_wavelength()
@@ -205,6 +239,8 @@ class TXSweep(Experiment):
             print("Set Wavelength = %.3f nm" % wav)
             if meas_wavelength is not None:
                 print("Meas Wavelength = %.5f nm" % meas_wavelength)
+            if current is not None:
+                print("Meas current = %.2e A" % current)
             print("Rec Power = %.3e mW" % measured_received_power)
             print("Transmission Loss = %.2f dB" % through_loss)
             sys.stdout.flush()
@@ -226,7 +262,7 @@ class TXSweep(Experiment):
                                                                                 time_tuple[5])
 
             print("Saving data to ", filename)
-            io.savemat(filename, {'scattering': measurements})
+            io.savemat(filename, {'scattering': measurements, 'T': current_T})
 
         # Beep when done
         winsound.Beep(2000, 1000)
@@ -297,7 +333,8 @@ class TXSweep(Experiment):
             tap_power = daq_data[1][i] * np.power(10, (0 / 10)) * 1e-3
 
             through_loss, measured_input_power = analyze_powers(
-                tap_power, measured_received_power, wavs[i], calibrate, rec_splitter_ratio)
+                tap_power, measured_received_power, wavs[i], calibrate,
+                rec_splitter_ratio)
 
             measurements[i, 0] = 0.0   # We don't measure the wavelength
             measurements[i, 1] = through_loss
@@ -305,6 +342,12 @@ class TXSweep(Experiment):
             measurements[i, 3] = wavs[i]
             measurements[i, 4] = measured_received_power
             measurements[i, 5] = tap_power
+
+        # Record temperature if there is a T controller
+        if self.t_controller is not None:
+            current_T = self.t_controller.get_temperature()
+        else:
+            current_T = -100
 
         if filename is not None:
 
@@ -321,7 +364,7 @@ class TXSweep(Experiment):
                                                                                     time_tuple[5])
 
             print("Saving data to ", filename)
-            io.savemat(filename, {'scattering': measurements})
+            io.savemat(filename, {'scattering': measurements, 'T': current_T})
 
         # Beep when done
         winsound.Beep(2000, 1000)  # frequency, duration
@@ -428,6 +471,12 @@ class TXSweep(Experiment):
             measurements[i, 4] = rec_power
             measurements[i, 5] = tap_power
 
+        # Record temperature if there is a T controller
+        if self.t_controller is not None:
+            current_T = self.t_controller.get_temperature()
+        else:
+            current_T = -100
+
         if filename is not None:
 
             time_tuple = time.localtime()
@@ -443,7 +492,7 @@ class TXSweep(Experiment):
                                                                                 time_tuple[5])
 
             print("Saving data to ", filename)
-            io.savemat(filename, {'scattering': measurements})
+            io.savemat(filename, {'scattering': measurements, 'T': current_T})
 
         # Beep when done
         winsound.Beep(2000, 1000)
@@ -467,7 +516,9 @@ class TXSweep(Experiment):
             "calibrate",
             "meas_current",
             "power_range",
-            "rec_splitter_ratio"]
+            "rec_splitter_ratio",
+            "num_sweeps",
+            "interval_sweep"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -657,7 +708,9 @@ class TXBiasVSweep(Experiment):
             "meas_current",
             "voltages",
             "power_range",
-            "rec_splitter_ratio"]
+            "rec_splitter_ratio",
+            "num_sweeps",
+            "interval_sweep"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -833,7 +886,7 @@ class TXBiasISweep(Experiment):
 
     def required_params(self):
         """
-        Returns a list with the keys that need to be specified in the params dictionnary, in order for
+        Returns a list with the keys that need to be specified in the params dictionary, in order for
         a measurement to be performed
         """
         return [
@@ -842,7 +895,9 @@ class TXBiasISweep(Experiment):
             "calibrate",
             "currents",
             "power_range",
-            "rec_splitter_ratio"]
+            "rec_splitter_ratio",
+            "num_sweeps",
+            "interval_sweep"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -1028,7 +1083,9 @@ class TXPowerSweep(Experiment):
             "meas_current",
             "powers",
             "power_range",
-            "rec_splitter_ratio"]
+            "rec_splitter_ratio",
+            "num_sweeps",
+            "interval_sweep"]
 
     def plot_data(self, canvas_handle, data=None):
 
@@ -1308,7 +1365,9 @@ class TXDoubleBiasVSweep(Experiment):
             "voltages2",
             "power_range",
             "combine_mode",
-            "rec_splitter_ratio"]
+            "rec_splitter_ratio",
+            "num_sweeps",
+            "interval_sweep"]
 
     def plot_data(self, canvas_handle, data=None):
 

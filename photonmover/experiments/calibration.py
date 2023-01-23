@@ -134,7 +134,7 @@ class Calibration(Experiment):
 
             for i in range(MEAS_COUNT):
 
-                [tap_power, received_power] = self.laser.get_powers()
+                [tap_power, received_power] = self.pm.get_powers()
                 ratio = tap_power / received_power
                 meas_list.append(ratio)
 

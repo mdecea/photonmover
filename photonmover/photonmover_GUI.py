@@ -630,11 +630,27 @@ class photonmover_GUI(QMainWindow):
                 [self.num_avgs], 'textbox')
 
         if "temperatures" in self.param_list:
-            self.layout.addWidget(QtWidgets.QLabel('TEC T (deg C): '), 1, 0)
+            layout.addWidget(QtWidgets.QLabel('TEC T (deg C): '), 1, 0)
             self.tec_T = QtWidgets.QLineEdit('25.0')
             self.tec_T.returnPressed.connect(self.set_tec_T)
             layout.addWidget(self.tec_T, 1, 1)
             others_row_span = others_row_span + 1
+
+        if "num_sweeps" in self.param_list:
+            layout.addWidget(QtWidgets.QLabel('Num sweeps: '), 1, 2)
+            self.num_sweeps = QtWidgets.QLineEdit('1')
+            layout.addWidget(self.num_sweeps, 1, 3)
+
+            self.indicator_param_map["num_sweeps"] = ([self.num_sweeps],
+                                                      'textbox')
+
+            layout.addWidget(QtWidgets.QLabel('Sweeps interval (s): '), 2, 0)
+            self.interval_sweep = QtWidgets.QLineEdit('60')
+            layout.addWidget(self.interval_sweep, 2, 1)
+            others_row_span = others_row_span + 1
+
+            self.indicator_param_map["interval_sweep"] = ([self.interval_sweep],
+                                                          'textbox')
 
         self.layout.addWidget(
             self.others_group_box,
