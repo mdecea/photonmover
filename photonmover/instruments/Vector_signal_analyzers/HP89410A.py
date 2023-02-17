@@ -12,7 +12,7 @@ class HP89410A(Instrument):
 
     def __init__(self, gpib_address=None):
         super().__init__()
-        # It is good practice to initialize variables in init
+
         self.gpib_address = gpib_address
         self.gpib = None
 
@@ -41,6 +41,17 @@ class HP89410A(Instrument):
 
     def reset(self):
         self.gpib.write('*RST')
+
+    def set_instrument_mode(self, mode='vector'):
+        """
+        Chooses operating mode of the instrument. 
+
+        `mode` (string): "vector", "scalar", or "demodulation"
+        """
+        if mode.lower() in ["vector", "scalar", "demodulation"]:
+            self.gpib.write("INSTrument:SELect {:s}".format(mode.upper()))
+        else:
+            raise Warning("The provided mode is not an option for this instrument")
 
     def set_input_impedance(self, channel, impedance):
         """
@@ -94,16 +105,16 @@ class HP89410A(Instrument):
         """
 
         if center is not None:
-            self.gpib.write('SENS:FREQ:CENT %s;' % center)
+            self.gpib.write('SENS:FREQ:CENT {:s};'.format(str(center)))
 
         if span is not None:
-            self.gpib.write('SENS:FREQ:SPAN %s;' % span)
+            self.gpib.write('SENS:FREQ:SPAN {:s};'.format(str(span)))
 
         if start_freq is not None:
-            self.gpib.write('SENS:FREQ:STAR %s;' % start_freq)
+            self.gpib.write('SENS:FREQ:STAR {:s};'.format(str(start_freq)))
 
         if end_freq is not None:
-            self.gpib.write('SENS:FREQ:STOP %s;' % end_freq)
+            self.gpib.write('SENS:FREQ:STOP {:s};'.format(str(end_freq)))
 
     def set_y_unit(self, unit):
         """
@@ -182,6 +193,19 @@ class HP89410A(Instrument):
         else:
             self.gpib.write('SENS:AVER:STAT OFF;')
 
+    def set_num_points(self, num_points=401):
+        """
+        Sets the number of points to record per sweep.
+
+        :param num_points: Desired number of points. Allowed
+                values are 51, 101, 201, 401, 801, 1601
+
+        """
+        if num_points not in {51, 101, 201, 401, 801, 1601}:
+            print( "The specified number of points is not valid.")
+            return 
+        self.gpib.write("SENSe:SWEep:POINts {:d}".format(num_points))
+
     def averages_taken(self):
         """
         Checks the number of averages taken
@@ -209,6 +233,7 @@ class HP89410A(Instrument):
         self.gpib.write('SYST:KEY 24;')  # KEY: Save/recall
         self.gpib.write('SYST:KEY 111;')  # KEY: F1
         self.gpib.write('SYST:KEY %d;' % (111 + data_reg_num))  # KEY: Shifted
+        time.sleep(0.5)  # Give the system some time to finish saving
 
     def retrieve_data(self, trace_id, filename=None):
         """
@@ -241,8 +266,8 @@ class HP89410A(Instrument):
 
     def convert_to_noise_spectra(self, freqs, Sv, Vpp_interferometer, dL):
         """
-        Converts the vsa data into frequency noise spectra, assuming the noise 
-        was measured using an imbalanced MZI approach. 
+        Converts the vsa data into frequency noise spectra, assuming the noise
+        was measured using an imbalanced MZI approach.
 
         :param freqs: vector of frequencies (in Hz)
         :param Sv: voltage noise masured by the VSA (in V/sqrt(Hz))
@@ -292,9 +317,9 @@ class HP89410A(Instrument):
             self.set_averaging(1, 'RMS', num_averages)
 
         if isinstance(rbws, list):
-            change_rbw = 1
+            change_rbw = True
         else:
-            change_rbw = 0
+            change_rbw = False
             self.set_rbw(rbws)
 
         for idx in range(len(freqs) - 1):
@@ -359,7 +384,9 @@ class HP89410A(Instrument):
 
     def set_trigger_holdoff_state(self, state='off'):
         """
-        Sets the state (on/off) of the trigger holdoff
+        Sets the state (on/off) of the trigger holdoff option
+        (a "dark time" following a trigger event, during which
+        further trigger events are ignored).
         """
 
         if state.upper() in ['ON', 'OFF']:
@@ -367,14 +394,28 @@ class HP89410A(Instrument):
         else:
             raise Warning("State must be 'on' or 'off'.")
 
+    def set_trigger_delay(self, delay, channel=1):
+        """
+        Sets the time delay between trigger and the beginning of data collection.
+        Delay can be negative (pre-trigger delay) or positive (post-trigger delay).
+        Both delay values are limited by the memory depth. The associated time bound
+        is related to the time span set.
+
+        `delay` is specified in milliseconds.
+        `channel` (int): Specifies which channel's parameter to adjust. Can be 1 or 2.
+        """
+
+        self.gpib.write("SENSe:SWEep{:d}:TIME:DELay {:.1f}ms".format(channel, delay))
+
     def set_trigger_holdoff(self, holdoff):
         """
-        Sets the time delay between trigger and the beginning of data collection. 
+        Sets the "dark time", the duration after a trigger event during which other
+        trigger events are ignored. Effectively sets upper bound on trigger frequency.
 
         `holdoff` must be between 0 and 41[sec].
         """
         if (holdoff >= 0) and (holdoff <= 41):
-            self.gpib.write("TRIGger:HOLDoff:DELay {:.3f}".format(holdoff))
+            self.gpib.write("TRIGger:HOLDoff:DELay {:.3f}s".format(holdoff))
         else:
             raise Warning(
                 "Specified holdoff time is invalid or out-of-bounds.")
@@ -408,17 +449,53 @@ class HP89410A(Instrument):
 
     def set_trigger_source(self, source='IMM'):
         """
-        Sets the type of source off which measurements are triggered. 
+        Sets the type of source off which measurements are triggered.
         Can be "IMM","INT1", "INT2", IF1/2, OUTP,
-        BUS, or EXT. 
-
-
+        BUS, or EXT.
         """
         if source.upper() in ['IMM', 'INT1', 'INT2', 'IF1',
                               'IF2', 'OUTP', 'BUS', 'EXT']:
             self.gpib.write("TRIGger:SOURce {:s}".format(source.upper()))
         else:
             raise Warning("Invalid trigger source specified.")
+
+    def set_gate_delay(self, delay=0.0, channel=1):
+        """
+        Specifies the time when the gate begins relative to the beginning
+        of the main time record.
+
+        `delay` (float): Delay time in milliseconds
+        `channel` (int): Channel to adjust
+        """
+
+        msg = "SENSe:SWEep{:d}:TIME:GATE:DELay {:.1f}ms".format(channel, delay)
+        self.gpib.write(msg)
+
+    def set_gate_state(self, state='off', channel=1):
+        """
+        Enables or disables time gating
+
+        `state` (string): 'on' or 'off'
+        `channel` (int): Channel to adjust
+       """
+        if state.lower() in ['on', 'off']:
+            msg = "SENSe:SWEep{:d}:TIME:GATE:STATe {:s}ms".format(channel, state.upper())
+            self.gpib.write(msg)
+        else:
+            raise Warning('Provided "state" must be "on" or "off".')
+
+    def set_gate_span(self, span=5, channel=1):
+        """
+        Enables or disables time gating
+
+        `span` (float): Gate duration in milliseconds
+        `channel` (int): Channel to adjust
+        """
+        if span > 3.828:  # default value for 401 frequency points. Don't go lower
+            msg = "SENSe:SWEep{:d}:TIME:GATE:SPAN {:.3f}ms".format(channel, span)
+            self.gpib.write(msg)
+        else:
+            raise Warning('Provided "state" must be "on" or "off".')
 
 
 if __name__ == '__main__':
