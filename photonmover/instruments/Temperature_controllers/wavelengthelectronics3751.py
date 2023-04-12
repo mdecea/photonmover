@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright 2020 Gavin West
-import sys
 import numpy as np
 import pyvisa as visa
 from pyvisa.constants import StopBits, Parity, SerialTermination
-import time
 import photonmover.Interfaces.TempController as TempController
 import photonmover.Interfaces.Instrument as Instrument
 
 
 class LFI3751(TempController, Instrument):
     """
-    A class for Wavelength Electronics LFI3751-type TEC controllers, subclass of TempController.
+    A class for Wavelength Electronics LFI3751-type TEC controllers, subclass
+    of TempController.
 
     INPUTS:
         * **com_port** (int): The COM port the instrument is connected through.
@@ -227,3 +226,10 @@ class LFI3751(TempController, Instrument):
         """
 
         print(self.tec.read())
+
+
+if __name__ == '__main__':
+    t_cont = LFI3751(com_port=12)
+    t_cont.initialize()
+    print(t_cont.get_temperature())
+    t_cont.close()
