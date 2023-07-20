@@ -4,7 +4,7 @@ import pyvisa as visa
 from photonmover.Interfaces.LaserDriver import LaserDriver
 from photonmover.Interfaces.Instrument import Instrument
 
-COM_PORT = 6  # COM port number
+COM_PORT = 6  # Default COM port number
 
 class ThorlabsBOA(Instrument):
     """
@@ -50,7 +50,6 @@ class ThorlabsBOA(Instrument):
 
     def close(self):
         print('Disconnecting Thorlabs SOA/BOA')
-        self.turn_off()
         self.instr.close()
     
     def _clear_buffer(self): 
