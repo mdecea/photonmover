@@ -3,16 +3,18 @@ from photonmover.Interfaces.PowMeter import PowerMeter
 
 import os
 from ctypes import cdll, c_long, c_uint32, byref, create_string_buffer, c_bool, c_char_p, c_int, c_int16, c_double, sizeof, c_voidp
-
+from ctypes.util import find_library
 
 class ThorlabsPowerMeter(Instrument, PowerMeter):
 
     def __init__(self):
         super().__init__()
         if sizeof(c_voidp) == 4:
-            self.dll = cdll.LoadLibrary("TLPM_32.dll")
+            lib_path = find_library("TLPM_64.dll")
+            self.dll = cdll.LoadLibrary(lib_path)
         else:
-            self.dll = cdll.LoadLibrary("TLPM_64.dll")
+            lib_path = find_library("TLPM_64.dll")
+            self.dll = cdll.LoadLibrary(lib_path)
 
         self.devSession = c_long()
         self.devSession.value = 0
