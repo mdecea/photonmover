@@ -5,8 +5,8 @@ from photonmover.Interfaces.Instrument import Instrument
 
 class Keysight53220A(Instrument, FrequencyCounter):
     """
-    Code for controlling thorlabs tabletop SOA/BOAs through VISA/pyserial.
-    These are typically model numbers S7FC or S9FC.
+    Code for controlling Keysight 53220A frequency counters
+    via GPIB.
     """
 
     def __init__(
