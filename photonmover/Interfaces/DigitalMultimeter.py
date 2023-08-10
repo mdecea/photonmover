@@ -2,21 +2,18 @@
 # be used as a digital multimeter can implement
 
 from abc import ABC, abstractmethod
-# ABC means Abstract Base Class and is basically an interface
 
 
 class DigitalMultimeter(ABC):
-
     def __init__(self):
         super().__init__()
 
     @abstractmethod
     def initialize(self):
         """
-        Initializes the instrument 
+        Initializes the instrument
         """
-        pass 
-
+        pass
 
     @abstractmethod
     def get_voltage(self, voltage):
@@ -25,7 +22,7 @@ class DigitalMultimeter(ABC):
         :return:
         """
         pass
-    
 
+    @abstractmethod
     def get_id(self):
-        return ("DigitalMultimeter")
+        return "DigitalMultimeter"
