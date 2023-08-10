@@ -46,8 +46,7 @@ class ThorlabsBOA(Instrument, LaserDriver):
         self.get_state()  # check whether the amplifier is on already
 
     def close(self):
-        print("Disconnecting Thorlabs SOA/BOA")
-        self.turn_off()
+        print('Disconnecting Thorlabs SOA/BOA')
         self.instr.close()
 
     def _clear_buffer(self):
