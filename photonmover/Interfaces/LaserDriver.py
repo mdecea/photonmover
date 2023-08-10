@@ -1,12 +1,12 @@
 # This is an interface that any instrument that can
-# be used as a source meter has to implement.
+# be used as a laser driver has to implement.
+# In some cases, optical amplifiers (SOAs, EDFA, etc)
+# may implement similar commands and use this interface
 
 from abc import ABC, abstractmethod
-# ABC means Abstract Base Class and is basically an interface
 
 
 class LaserDriver(ABC):
-
     def __init__(self):
         super().__init__()
 
@@ -49,4 +49,4 @@ class LaserDriver(ABC):
         pass
 
     def get_id(self):
-        return ("LaserDriver")
+        return "LaserDriver"
