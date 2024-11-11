@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import csv
 
 
-GPIB_ADDRESS = "GPIB1::23::INSTR"
+GPIB_ADDRESS = "GPIB0::23::INSTR"
 
 
 class HP70951B(MSA, Instrument):
@@ -26,7 +26,7 @@ class HP70951B(MSA, Instrument):
 
         rm = visa.ResourceManager()
         try:
-            self.gpib = rm.open_resource(GPIB_ADDRESS, timeout=5000)
+            self.gpib = rm.open_resource(GPIB_ADDRESS, timeout=50000)
         except BaseException:
             raise ValueError('Cannot connect to the HP OSA')
 
@@ -76,7 +76,7 @@ class HP70951B(MSA, Instrument):
             self.gpib.write('STOPWL %s;' % end_wl)
 
     def clear_display(self):
-        self.write('CLRDSP;')
+        self.gpib.write('CLRDSP;')
 
     def set_continuous_acq(self):
         """
