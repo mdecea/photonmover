@@ -38,15 +38,23 @@ class ThorlabsPowerMeter(Instrument, PowerMeter):
 
         print("Thorlabs PM devices found: " + str(deviceCount.value))
 
-        resourceName = create_string_buffer(1024)
-
         for i in range(0, deviceCount.value):
+            resourceName = create_string_buffer(1024)
             self.getRsrcName(c_int(i), resourceName)
             print(c_char_p(resourceName.raw).value)
             break
 
         self.open(resourceName, c_bool(True), c_bool(True))
 
+        message = create_string_buffer(1024)
+        self.getCalibrationMsg(message)
+        print(c_char_p(message.raw).value)
+
+    def initalize_specific_pm(self, resourceName):
+        print('Connecting to Thorlabs Power Meter')
+
+        self.open(resourceName, c_bool(True), c_bool(True))
+        
         message = create_string_buffer(1024)
         self.getCalibrationMsg(message)
         print(c_char_p(message.raw).value)
