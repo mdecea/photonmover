@@ -109,9 +109,6 @@ class SantecTSL570(Instrument, TunableLaser):
         return [wav, pow, is_on]
     
     #### Sweep functions ####
-    # TODO - Test these functions!
-    # TODO - add a function or table of constats that returns min trigger step for a given sweep
-    # TODO - implement functions for both step and continuous sweep. Both modes have utility
 
     # Set sweep parameters
     def set_sweep_mode(self, mode):
@@ -170,6 +167,14 @@ class SantecTSL570(Instrument, TunableLaser):
         """
         return int(self.gpib.query(":WAV:SWE:MOD?"))
 
+    def get_wavelength_range_min(self):
+        """Reads out the minimum wavelength in the configurable sweep range"""
+        return float(self.gpib.query(":WAV:SWE:RANG:MIN?")) * 10**9
+
+    def get_wavelength_range_max(self):
+        "Reads out the maximum wavelength in the configurable sweep range"
+        return float(self.gpib.query(":WAV:SWE:RANG:MAX?")) * 10**9
+
     def get_sweep_wavelength_start(self):
         "Returns wavelength sweep start [nm]"
         return float(self.gpib.query(":WAV:SWE:STARt?")) * 10**9
@@ -191,7 +196,7 @@ class SantecTSL570(Instrument, TunableLaser):
         Range: 1 to 200 nm/s 
         Selection: 1,2,5,10,20,50,100,200 (nm/s)
         """
-        return int(self.gpib.query(":WAV:SWE:SPE?"))
+        return int(float(self.gpib.query(":WAV:SWE:SPE?")))
     
     def get_sweep_cycles(self):
         "Returns number of sweep cycles (repetitions)"
@@ -207,7 +212,7 @@ class SantecTSL570(Instrument, TunableLaser):
     
     # Sweep control functions
     def set_sweep_status(self, state):
-        "state (int), 0: stop, 1: start"
+        "state (int), 0: stop, 1: start - different from softtrigger command"
         self.gpib.write(":WAV:SWE %d" % state)
 
     def get_sweep_status(self):
@@ -227,7 +232,9 @@ class SantecTSL570(Instrument, TunableLaser):
         "(int) Read out the current number of completed sweeps"
         return int(self.gpib.query(":WAV:SWE:COUN?"))
 
-    # I/O (trigger-related) functions
+    #### I/O (trigger-related) functions ####
+    # TODO - add a function or table of constants that returns min trigger step for a given sweep
+
 
 if __name__ == '__main__':
     myLaser = SantecTSL570(SANTEC_TSL570_GPIB_ADDRESS)
