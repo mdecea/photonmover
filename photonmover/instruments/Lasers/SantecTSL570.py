@@ -267,8 +267,8 @@ class SantecTSL570(Instrument, TunableLaser):
         """
         Enables / Disables external trigger input.
         mode (int)
-        0 : Enable
-        1 : Disable
+        0 : Disable
+        1 : Enable
         """
         self.gpib.write(":TRIG:INP:EXT %d" % mode)
 
