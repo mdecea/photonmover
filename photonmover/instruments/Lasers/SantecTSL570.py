@@ -21,6 +21,8 @@ class SantecTSL570(Instrument, TunableLaser):
         self.step_sweep_dwell_time = SANTEC_TSL570_STEP_SWEEP_MIN_DWELL_TIME
         self.sweep_dwell_time = self.step_sweep_dwell_time
 
+        self.valid_sweep_speeds = {1, 2, 5, 10, 20, 50, 100, 200}
+
     #### Basic functions ####
     def initialize(self):
 
@@ -233,8 +235,170 @@ class SantecTSL570(Instrument, TunableLaser):
         return int(self.gpib.query(":WAV:SWE:COUN?"))
 
     #### I/O (trigger-related) functions ####
-    # TODO - add a function or table of constants that returns min trigger step for a given sweep
+    def get_min_trigger_step(self, speed):
+        """
+        speed (int) : sweep speed [nm/s]
+        Returns the minimum trigger step [nm] when operating in wavelength constant mode
+        """
+        assert speed in self.valid_sweep_speeds
 
+        d = {
+            1 : 0.2e-3,
+            2 : 0.2e-3,
+            5 : 0.5e-3,
+            10 : 1.0e-3,
+            20 : 1.0e-3,
+            50 : 2.5e-3,
+            100 : 5.0e-3,
+            200 : 10.0e-3
+        }
+
+        return d[speed]
+    
+    def soft_trigger(self):
+        """
+        TODO - last function to test
+        Issues a soft trigger. 
+        Executes sweep from trigger standby mode.
+        """
+        self.gpib.write(":TRIG:INP:SOFT")
+
+    def set_ext_trig_setting(self, mode):
+        """
+        Enables / Disables external trigger input.
+        mode (int)
+        0 : Enable
+        1 : Disable
+        """
+        self.gpib.write(":TRIG:INP:EXT %d" % mode)
+
+    def set_input_trig_polarity(self, mode):
+        """
+        Sets input trigger polarity
+        mode (int)
+        0: High Active / Triggers at rising edge 
+        1: Low Active / Triggers at falling edge
+        """
+        self.gpib.write(":TRIG:INP:ACT %d" % mode)
+
+    def set_standby(self, mode):
+        """
+        Sets the device in trigger signal input standby mode.
+        mode (int)
+        0: Normal operation mode 
+        1: Trigger standby mode
+        """
+        self.gpib.write(":TRIG:INP:STAN %d" % mode)
+
+    def set_trig_out_timing(self, mode):
+        """
+        Sets the timing of the trigger signal output.
+        mode (int)
+        0: None 
+        1: Stop 
+        2: Start 
+        3: Step
+        """
+        self.gpib.write(":TRIG:OUTP %d" % mode)
+
+    def set_trig_out_polarity(self, mode):
+        """
+        Sets output trigger polarity.
+        mode (int)
+        0: High Active / Triggers at rising edge 
+        1: Low Active / Triggers at falling edge
+        """
+        self.gpib.write(":TRIG:OUTP:ACT %d" % mode)
+
+    def set_trig_out_step(self, wav_step):
+        """
+        Sets the interval of the trigger signal output.
+        wav_step (float) [nm]
+        """
+        self.gpib.write(":TRIG:OUTP:STEP %.4fnm" % wav_step)
+
+    def set_trig_out_setting(self, mode):
+        """
+        Sets the output trigger period mode.
+        0: Sets the output trigger to be periodic in wavelength. 
+        1: Sets the output trigger to be periodic in time.
+        """
+        self.gpib.write(":TRIG:OUTP:SETT %d" % mode)
+
+    def set_trig_through(self, mode):
+        """
+        Sets the trigger through mode. 
+        When On is selected, input trigger signal is put through to the output trigger port. 
+        Trigger signal is re-shaped according to polarity setting.
+        mode (int) 
+        0 : OFF
+        1 : ON
+        """
+        self.gpib.write(":TRIG:THR %d" % mode)
+
+    def get_ext_trig_setting(self):
+        """
+        Reads out the setting of external trigger input.
+        0: Disable 
+        1: Enable
+        """
+        return int(self.gpib.query(":TRIG:INP:EXT?"))
+    
+    def get_input_trig_polarity(self):
+        """
+        Reads out input trigger polarity.
+        0: High Active / Triggers at rising edge 
+        1: Low Active / Triggers at falling edge
+        """
+        return int(self.gpib.query(":TRIG:INP:ACT?"))
+    
+    def get_standby(self):
+        """
+        Reads out the trigger signal input standby mode.
+        0: Normal operation mode 
+        1: Trigger standby mode
+        """
+        return int(self.gpib.query(":TRIG:INP:STAN?"))
+    
+    def get_trig_out_timing(self):
+        """
+        Reads out the timing setting of the trigger signal output.
+        0: None 
+        1: Stop 
+        2: Start
+        3: Step
+        """
+        return int(self.gpib.query(":TRIG:OUTP?"))
+    
+    def get_trig_out_polarity(self):
+        """
+        Reads out output trigger polarity.
+        0: High Active / Triggers at rising edge 
+        1: Low Active / Triggers at falling edge
+        """
+        return int(self.gpib.query(":TRIG:OUTP:ACT?"))
+    
+    def get_trig_out_step(self):
+        """
+        Reads out the interval of the trigger signal output [nm]
+        """
+        return float(self.gpib.query(":TRIG:OUTP:STEP?")) * 10**9
+    
+    def get_trig_out_setting(self):
+        """
+        Reads out the output trigger period mode.
+        0: Sets the output trigger to be periodic in wavelength. 
+        1: Sets the output trigger to be periodic in time.
+        """
+        return int(self.gpib.query(":TRIG:OUTP:SETT?"))
+
+    def get_trig_through(self):
+        """
+        Reads out the trigger through mode.
+        0: OFF 
+        sa1: ON
+        """
+        return int(self.gpib.query(":TRIG:THR?"))
 
 if __name__ == '__main__':
     myLaser = SantecTSL570(SANTEC_TSL570_GPIB_ADDRESS)
