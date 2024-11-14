@@ -119,7 +119,7 @@ class ThorlabsPowerMeter(Instrument, PowerMeter):
         Set the wavelength to the specified value (in nm)
         :return:
         """
-        self.setWavelength(c_double(wavelength))
+        return self.setWavelength(c_double(wavelength))
 
     def get_powers(self):
         """
