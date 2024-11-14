@@ -5,13 +5,21 @@ from photonmover.Interfaces.Instrument import Instrument
 import matplotlib.pyplot as plt
 
 SANTEC_TSL570_GPIB_ADDRESS = 1
+SANTEC_TSL570_STEP_SWEEP_MIN_DWELL_TIME = 0.1 # [s], consistent with both instrument units and sleep()
 
+SANTEC_TSL570_MAX_WAV = 1380 # [nm]
+SANTEC_TSL570_MIN_WAV = 1240 # [nm]
+SANTEC_TSL_FULL_WAVRANGE_MAX_POWER = 7 # [dBm] ~ 5mW, 10mW from 1260-1360nm
+
+# Class implemented using SPCI standard in the manual
 class SantecTSL570(Instrument, TunableLaser):
 
     def __init__(self, gpib_address=SANTEC_TSL570_GPIB_ADDRESS, wait=0.5):
         super().__init__()
         self.gpib_address = gpib_address
         self.wait = wait
+        self.step_sweep_dwell_time = SANTEC_TSL570_STEP_SWEEP_MIN_DWELL_TIME
+        self.sweep_dwell_time = self.step_sweep_dwell_time
 
     #### Basic functions ####
     def initialize(self):
@@ -101,111 +109,125 @@ class SantecTSL570(Instrument, TunableLaser):
         return [wav, pow, is_on]
     
     #### Sweep functions ####
-    # Configures the number of sweeps to perform
-    def cfg_num_sweeps(self, num_sweeps):
-        self.gpib.write(":SOUR:WAV:SWE:CYCL " + str(num_sweeps))
+    # TODO - Test these functions!
+    # TODO - add a function or table of constats that returns min trigger step for a given sweep
+    # TODO - implement functions for both step and continuous sweep. Both modes have utility
 
-    # Configures the delay between continuous sweeps (in s)
-    def cfg_delay(self, time):
-        self.gpib.write(":SOUR:WAV:SWE:DEL " + str(time))
+    # Set sweep parameters
+    def set_sweep_mode(self, mode):
+        """
+        mode (int) 
+        0: Step sweep mode and One way 
+        1: Continuous sweep mode and One way 
+        2: Step sweep mode and Two way 
+        3: Continuous sweep mode and Two way
+        """
+        self.gpib.write(":WAV:SWE:MOD %d" % mode)
 
-    # Configures the time between steps (in s)
-    def cfg_dwell(self, time):
-        self.gpib.write(":SOUR:WAV:SWE:DWEL " + str(time))
+    def set_sweep_wavelength_start(self, wav):
+        "wav (float) [nm], up to 4 decimal places are relevant"
+        self.gpib.write(":WAV:SWE:STARt %.4fnm" % wav)
 
-    # Sets the mode
-    # 0 : Step operation, one way
-    # 1 : Continuous operation, one way
-    # 2 : Step operation, two way
-    # 3 : Continuous operation, two way
-    def cfg_mode(self, mode):
-        self.gpib.write("SOUR:WAV:SWE:MOD " + str(mode))
+    def set_sweep_wavelength_stop(self, wav):
+        "wav (float) [nm], up to 4 decimal places are relevant"
+        self.gpib.write(":WAV:SWE:STOP %.4fnm" % wav)
 
-    # Sets the sweep speed in the continuous sweep (in nm/s, between 0.5 and
-    # 100)
-    def cfg_speed(self, speed):
-        self.gpib.write("SOUR:WAV:SWE:SPE " + str(speed))
+    def set_sweep_wavelength_step(self, step):
+        "step (float) [nm], 0.0001 nm is the minimum step size"
+        self.gpib.write(":WAV:SWE:STEP %.4fnm" % step)
 
-    # Sets the start and stop wavelength of the sweep
-    def cfg_start_stop(self, init_wav, end_wav):
-        self.gpib.write("SOUR:WAV:SWE:STAR " + str(init_wav))
-        self.gpib.write("SOUR:WAV:SWE:STOP " + str(end_wav))
+    def set_sweep_step_dwell(self, dwell):
+        "dwell (float) [s], 0.0 to 99.9s, only 1 decimal place relevant"
+        self.gpib.write(":WAV:SWE:DWEL %.1f" % dwell)
 
-    # Sets the step in wavelength (between 0.0001 and 160 nm)
-    def cfg_sweep_step(self, step):
-        self.gpib.write("SOUR:WAV:SWE:STEP " + str(step))
+    def set_sweep_cont_speed(self, speed):
+        """
+        speed (int) [nm/s]
+        Range: 1 to 200 nm/s 
+        Selection: 1,2,5,10,20,50,100,200 (nm/s)
+        """
+        self.gpib.write(":WAV:SWE:SPE %d" % speed)
 
-    # Starts a single sweep
-    def start_sweep(self):
-        # Stop any measurements that it may currently doing
-        if int(self.gpib.query_ascii_values("SOUR:WAV:SWE:STAT?")[0]) != 1:
-            self.stop_sweep()
+    def set_sweep_cycles(self, cycles):
+        "cycles (int) - number of sweep repetitions"
+        self.gpib.write(":WAV:SWE:CYCL %d" % cycles)
 
-        self.gpib.write("SOUR:WAV:SWE:STAT 1")
+    def set_cycle_delay(self, delay):
+        """
+        delay (float) [s] - delay between consequent scans
+        Range: 0 to 999.9 sec 
+        Step: 0.1 sec
+        """
+        self.gpib.write(":WAV:SWE:DEL %.1f" % delay)
 
-    # Stop sweep
-    def stop_sweep(self):
-        self.gpib.write("SOUR:WAV:SWE:STAT 0")
+    # Get sweep parameters
+    def get_sweep_mode(self):
+        """
+        0: Step sweep mode and One way 
+        1: Continuous sweep mode and One way 
+        2: Step sweep mode and Two way 
+        3: Continuous sweep mode and Two way
+        """
+        return int(self.gpib.query(":WAV:SWE:MOD?"))
 
-    # Starts conrinuous sweep
-    def start_cont_sweep(self):
-        self.gpib.write("SOUR:WAV:SWE:REP")
+    def get_sweep_wavelength_start(self):
+        "Returns wavelength sweep start [nm]"
+        return float(self.gpib.query(":WAV:SWE:STARt?")) * 10**9
 
-    # Configures the trigger
-    # mode = 0: No output trigger
-    # mode = 1: Triggers when sweep ended
-    # mode = 2: Triggers when sweep starts
-    # mode = 3: triggers every "step" nm
-    def cfg_out_trig(self, mode, step=None):
-        if (step is not None) and (mode == 3):
-            self.gpib.write("SOUR:TRIG:OUTP:STEP:WIDT " + str(step))
-        self.gpib.write("SOUR:TRIG:OUTP " + str(mode))
+    def get_sweep_wavelength_stop(self):
+        "Returns wavelength sweep stop [nm]"
+        return float(self.gpib.query(":WAV:SWE:STOP?")) * 10**9
 
-    # Configures the TSL to do a sweep by changing the wavelength continuously
-    # mode = 0: One-way sweep. Mode = 1: two way sweep
-    # delay: time between sweeps (in s)
-    # speed: speed of the sweep (in nm/s)
-    def cfg_cont_sweep(
-            self,
-            init_wav,
-            end_wav,
-            speed,
-            delay=1,
-            mode=0,
-            num_sweeps=1):
+    def get_sweep_wavelength_step(self):
+        "Returns wavelength sweep step [nm]"
+        return float(self.gpib.query(":WAV:SWE:STEP?")) * 10**9
+    
+    def get_sweep_step_dwell(self):
+        "Returns step sweep dwell time [s]"
+        return float(self.gpib.query(":WAV:SWE:DWEL?"))
+    
+    def get_sweep_cont_speed(self):
+        """
+        Range: 1 to 200 nm/s 
+        Selection: 1,2,5,10,20,50,100,200 (nm/s)
+        """
+        return int(self.gpib.query(":WAV:SWE:SPE?"))
+    
+    def get_sweep_cycles(self):
+        "Returns number of sweep cycles (repetitions)"
+        return int(self.gpib.query(":WAV:SWE:CYCL?"))
+    
+    def get_cycle_delay(self):
+        """
+        Return delay between consequent scans [s]
+        Range: 0 to 999.9 sec 
+        Step: 0.1 sec
+        """
+        return float(self.gpib.query(":WAV:SWE:DEL?"))
+    
+    # Sweep control functions
+    def set_sweep_status(self, state):
+        "state (int), 0: stop, 1: start"
+        self.gpib.write(":WAV:SWE %d" % state)
 
-        self.cfg_num_sweeps(num_sweeps)
-        self.cfg_delay(delay)
-        self.cfg_speed(speed)
-        self.cfg_start_stop(init_wav, end_wav)
+    def get_sweep_status(self):
+        """
+        0: Stopped 
+        1: Running 
+        3: Standing by trigger 
+        4: Preparation for sweep start
+        """
+        return int(self.gpib.query(":WAV:SWE?"))
+    
+    def repeat_sweep(self):
+        "Starts a repeat scan"
+        self.gpib.write(":WAV:SWE:REP")
+    
+    def get_sweep_count(self):
+        "(int) Read out the current number of completed sweeps"
+        return int(self.gpib.query(":WAV:SWE:COUN?"))
 
-        if mode == 0:
-            self.cfg_mode(1)
-        else:
-            self.cfg_mode(3)
-
-    # COnfigures the TSL to do a sweep by stepping the wavelength
-    # mode = 0: One-way sweep. Mode = 1: two way sweep
-    # dwell: time spent in each step (in s)
-    def cfg_step_sweep(
-            self,
-            init_wav,
-            end_wav,
-            step,
-            dwell,
-            mode=0,
-            num_sweeps=1):
-        self.cfg_num_sweeps(num_sweeps)
-        self.cfg_dwell(dwell)
-        self.cfg_sweep_step(step)
-        self.cfg_start_stop(init_wav, end_wav)
-        self.cfg_sweep_step(step)
-
-        if mode == 0:
-            self.cfg_mode(0)
-        else:
-            self.cfg_mode(2)
-
+    # I/O (trigger-related) functions
 
 if __name__ == '__main__':
     myLaser = SantecTSL570(SANTEC_TSL570_GPIB_ADDRESS)
