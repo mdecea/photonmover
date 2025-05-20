@@ -126,7 +126,7 @@ class ThorlabsPowerMeter(Instrument, PowerMeter):
         Returns a list with the power measured in the tap port and in
         the through port. These ports will be specified in the init of
         the actual power_meter implementation.
-        :return: A 2 element list with the power in mW
+        :return: A 2 element list with the power in W (or dBm depending on setPowerUnit())
         """
 
         # There is only one power here

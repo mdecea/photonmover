@@ -21,17 +21,37 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
             self,
             tap_channel,
             rec_channel,
+            gpib_address=HP_ADDR,
             use_as_laser=True,
             integration_time=DEFAULT_INTEGRATION_TIME,
-            sweep_dwell_time=SWEEP_DWELL_TIME):
+            sweep_dwell_time=SWEEP_DWELL_TIME,
+            source_channel: int = 1,):
+        """
+        Control interface for HP/Agilent/Keysight lightwave Mainframe-type lasers.
+
+        
+        Args:
+            tap_channel
+            rec_channel
+            gpib_address
+            use_as_laser
+            integration_time
+            sweep_dwell_time:
+            source_channel: Which laser output to use. Channel 1 is the 
+                            low-power, low-noise output, Channel 2 is 
+                            higher-power, higer-noise
+        """
         super().__init__()
 
         self.lwmain = None
+        self.gpib_address = gpib_address
         self.tap_channel = tap_channel  # Power meter channel measuring the tap power
         self.rec_channel = rec_channel  # Power meter channel measuring the through power
         self.int_time = integration_time
         self.is_laser = use_as_laser
         self.sweep_dwell_time = sweep_dwell_time
+        self.source_channel = source_channel
+
 
     def initialize(self):
         """
@@ -41,7 +61,7 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
         print('Opening connnection to HP laser and power meter')
 
         rm = visa.ResourceManager()
-        self.lwmain = rm.open_resource(HP_ADDR, timeout=20000)
+        self.lwmain = rm.open_resource(self.gpib_address, timeout=20000)
 
         self.initialize_sensors()
 
@@ -238,17 +258,28 @@ class HPLightWave(Instrument, TunableLaser, PowerMeter):
 
         return sweep_time, true_num_wavs
 
-    def __choose_sweep_speed__(self, end_wav, init_wav):
+    def __choose_sweep_speed__(self, end_wav, init_wav, sweep_rate=None, fast_sweep=False):
+        """
+        Set the rate at which the wavelength is swept using the HP internal
+        sweep methods, in nanometers per second.
+        If no value is given, a speed is chosen based on endpoints of the sweep.
+        Optionally allows "fast sweeping" at 10X the automatically-chosen rate.
 
+        At present a value of 0.5 nm/sec seems to work well.
+
+
+        OLD COMMENTS:
         # There are different sweep speeds: 0.5, 5, 20 and 40 nm/s
         # Choose depending on the range of the sweep
-
-        if (end_wav - init_wav) > 30.0:
-            sweep_speed = 5
+        """
+        
+        if sweep_rate is None:
+            if fast_sweep and (end_wav - init_wav) > 30.0:
+                sweep_speed = 5  
+            else:
+                sweep_speed = 0.5
         else:
-            # in nm/s. This speed seems good. There is also 5 nm/s, 20 nm/s and
-            # 40 nm/s
-            sweep_speed = 0.5
+            sweep_speed=sweep_rate
 
         return sweep_speed
 
